@@ -21,6 +21,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        // custom fields
+        'user_type',
+        'firm_id',
+        'welcomed',
+        'is_active',
+
     ];
 
     /**
@@ -31,6 +37,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'firm_id',
     ];
 
     /**
@@ -45,4 +52,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+
+    public function firm()
+    {
+        return $this->belongsTo(Firm::class);
+    }
+
 }
