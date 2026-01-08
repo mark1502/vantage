@@ -3,9 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Firm;
+use App\Models\Contact;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
@@ -54,9 +56,12 @@ class User extends Authenticatable
     }
 
 
-    public function firm()
-    {
+    public function firm() {
         return $this->belongsTo(Firm::class);
+    }
+
+    public function contact() {
+        return $this->hasOne(Contact::class);
     }
 
 }
