@@ -3,15 +3,18 @@
 namespace App\Models;
 
 use App\Models\Firm;
+use App\Models\Entry;
 use App\Models\Contact;
 use App\Models\Filetype;
+// use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class File extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
+    // protected $dates = ['deleted_at'];  No more softDeletes
 
     protected $guarded = [];
 
@@ -33,4 +36,7 @@ class File extends Model
         return $this->belongsTo( Filetype::class );
     }
 
+    public function entries() {
+        return $this->hasMany( Entry::class );
+    }
 }

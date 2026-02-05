@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('responses', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('entry_id');
+            $table->unsignedBigInteger('entry_id')->unique();
             $table->unsignedBigInteger('response_to');
             $table->date('response_date');
             $table->string('response_type', 1);
-            $table->unique('entry_id');
+            // $table->unique('entry_id');
             $table->index(['response_to', 'response_type']);
         });
     }
