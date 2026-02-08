@@ -6,7 +6,7 @@ import axios from 'axios';
 
 
 // const switch_file = defineModel('switch_file');
-const casefile_id = defineModel('casefile_id');
+const file_id = defineModel('file_id');
 
 const props = defineProps({
     state: Object,
@@ -28,37 +28,30 @@ const display_file = reactive({
 function lookup_file() {
     if (lookup.file_isChosen == false || lookup.file_chosen_name !== display_file.name) {       // name isn't chosen or display doesn't match chosen name
         display_file.id = 0;
-        if( display_file.name.length) {
-            lookup.file = false;
+        if( display_file.name.length ) {                                // if something is entered into display_file.name
+            lookup.file = false;                                            // clear the lookup flag and the list of matching files
             lookup.matching_files = [];
             axios.post('/lookup_file', { search: display_file.name })       // lookup search and list the response data
-            .then(function (response) { lookup.matching_files = response.data; 
-                                        lookup.file = true;
-                                      });
-        }
-    }
+            .then(function (response) { 
+                lookup.matching_files = response.data; 
+                lookup.file = true;
+            });
+        } // end if name.length
+    } // end if not chosen or no match
 }
+
 
 function clicked_file_list( index ) {
     display_file.name = lookup.matching_files.data[index].name;
     display_file.id = lookup.matching_files.data[index].id;
 
-    casefile_id.value = display_file.id;
+    file_id.value = display_file.id;
 
     lookup.file_isChosen = true;
     lookup.file_chosen_name = display_file.name;
     lookup.file = false;
-
-    // router.get( '/files/' + lookup.matching_files.data[index].id + '/entries' + 
-    //             '?page=1' + 
-    //             '&show=' + props.state.show + 
-    //             '&filepart=' + props.state.folder_name, {
-    //         onError: (errors) => {
-    //             console.log('refresh file search - error from router');
-    //             console.log(errors);
-    //         },
-    //     });        
 }
+
 
 function handleKeyDown( event ) {
     if( event.key === 'Escape' ) {

@@ -7,26 +7,26 @@ import { ref, onMounted, onUnmounted, nextTick, watch, onBeforeUnmount } from "v
 import { Head, Link, useForm, router } from "@inertiajs/vue3";
 
 const props = defineProps({
-    casefiletypes: Object,
+    filetypes: Object,
     attorneys: Object,
 });
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
-let default_casefiletype = null;                            // var to hold the default casefiletype.id
+let default_filetype = null;                            // var to hold the default filetype.id
 const solEnabled = ref();                                   // reactive variable to determine if the SOL date is enabled
 let ok_clicked = false;                                     // used to submit a dirty form on ok click (needed for RemoveListener)
 
-props.casefiletypes.forEach( casefiletype => {              // go through casefiletypes
-    if( casefiletype.set_as_default === 1 ) {                   // if default casefiletype is found, set the default variables with it
-        default_casefiletype = casefiletype.id;                     // hold default casefiletype.id (used to initialize on the form)
-        solEnabled.value = casefiletype.enable_file_SOL;            // set ref for enable_file_SOL
+props.filetypes.forEach( filetype => {              // go through filetypes
+    if( filetype.set_as_default === 1 ) {                   // if default filetype is found, set the default variables with it
+        default_filetype = filetype.id;                     // hold default filetype.id (used to initialize on the form)
+        solEnabled.value = filetype.enable_file_SOL;            // set ref for enable_file_SOL
     }
 });
 
 let form = useForm({
-    formtype: "casefile",
+    formtype: "file",
     name: "",
     summary: "",
     date_sol: "",
@@ -42,7 +42,7 @@ let form = useForm({
     fee_arrangement: "",
     fee_amount: "",
     final_disposition: "",
-    casefiletype_id: default_casefiletype,                      // start the form with the default casefiletype, if any
+    filetype_id: default_filetype,                      // start the form with the default filetype, if any
     contact_id: null,
     current_page: urlParams.get('page'),
     show: urlParams.get('show'),
@@ -60,10 +60,10 @@ const removeListener = router.on('before', (event) => {         // Inertia onBef
     }
   });
 
-watch( () => form.casefiletype_id, (newTypeId, oldTypeId) => {                         // Watch for changes in casefile type and clear SOL date if disabled
-    const selectedType = props.casefiletypes.find(type => type.id === newTypeId);           // Find the selected casefile type based on the newTypeId
+watch( () => form.filetype_id, (newTypeId, oldTypeId) => {                         // Watch for changes in file type and clear SOL date if disabled
+    const selectedType = props.filetypes.find(type => type.id === newTypeId);           // Find the selected file type based on the newTypeId
 
-    solEnabled.value = selectedType && selectedType.enable_file_SOL == 1 ? true : false;    // Set solEnabled based on whether the casefiletype allows SOL date
+    solEnabled.value = selectedType && selectedType.enable_file_SOL == 1 ? true : false;    // Set solEnabled based on whether the filetype allows SOL date
 
     if ( solEnabled.value === false && form.date_sol !== '' ) {                        // If SOL date is disabled and a date is set, clear it
         form.date_sol = '';
@@ -209,13 +209,13 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
 
                     <form @submit.prevent="" class="max-w-5xl mx-auto mt-4 p-6 bg-base-200 rounded border" >
 
-                        <!-- File name line -->
+                            <!-- File name line -->
                         <div class="flex items-center">
                             <div class="flex w-32">
                                 <InputLabel for="name" value="File Name:" /><span class="red_star-700-2 ml-2">*</span>
                             </div>
                             <div>
-                                <TextInput v-model="form.name" id="name" class="w-[460px]" required autocomplete="off" />
+                                <TextInput v-model="form.name" id="name" class="w-115" required autocomplete="off" />
                                 <InputError class="mt-2" :message="form.errors.name" />
                             </div>
                             <div class="text-sm font-semibold ml-36">
@@ -223,18 +223,18 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             </div>
                         </div>
 
-                        <!-- Casefile type line -->
+                            <!-- File type line -->
                         <div class="mt-3 flex items-center">
                             <div class="flex w-32">
-                                <InputLabel for="casefiletype_id" value="File Type:" /><span class="red_star-700-2 ml-2">*</span>
+                                <InputLabel for="filetype_id" value="File Type:" /><span class="red_star-700-2 ml-2">*</span>
                             </div>
-                            <select v-model="form.casefiletype_id" id="casefiletype_id" class="select select-bordered select-sm w-64 disabled:text-base-content" >
-                                <option v-if="!saved_file_form.casefiletype_id" :value="null">Select file type . . .</option>
-                                <option v-for="casefiletype in casefiletypes" :key="casefiletype.id" :value="casefiletype.id">{{ casefiletype.name }}</option>
+                            <select v-model="form.filetype_id" id="filetype_id" class="select select-bordered select-sm w-64 disabled:text-base-content" >
+                                <option v-if="!saved_file_form.filetype_id" :value="null">Select file type . . .</option>
+                                <option v-for="filetype in filetypes" :key="filetype.id" :value="filetype.id">{{ filetype.name }}</option>
                             </select>
                         </div>
 
-                        <!-- Attorney Line -->
+                            <!-- Attorney Line -->
                         <div class="mt-4 flex items-center">
                             <div class="flex w-32">
                                  <InputLabel for="contact_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
@@ -247,7 +247,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                         </div>
                         <InputError class="mt-2 ml-32" :message="form.errors.contact_id" />
 
-                        <!-- Date opened and SOL Date line -->
+                            <!-- Date opened and SOL Date line -->
                         <div class="mt-4 flex items-center">
                             <div class="flex items-baseline w-1/2 p-0">
                                 <InputLabel value="Opened:" class="w-32" />
@@ -259,17 +259,17 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             <div class="flex items-baseline w-1/2">
                                 <InputLabel value="SOL Date:" class="w-24" :class="{ 'text-gray-400': !solEnabled }"/>
                                 <div>
-                                    <input v-if="solEnabled && form.casefiletype_id" type="date" id="date_sol" v-model="form.date_sol" class="input input-sm input-bordered w-44"
+                                    <input v-if="solEnabled && form.filetype_id" type="date" id="date_sol" v-model="form.date_sol" class="input input-sm input-bordered w-44"
                                     :class="{ 'input-disabled text-gray-400 bg-gray-100': !solEnabled }" :disabled="!solEnabled" />
-                                    <InputError v-if="solEnabled && form.casefiletype_id" class="mt-2" :message="form.errors.date_sol" />
-                                    <div v-if="!solEnabled && form.casefiletype_id" class="text-xs text-gray-500 mt-1">
+                                    <InputError v-if="solEnabled && form.filetype_id" class="mt-2" :message="form.errors.date_sol" />
+                                    <div v-if="!solEnabled && form.filetype_id" class="text-xs text-gray-500 mt-1">
                                         This file type does not use a Statute of Limitations date.
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Date filed and Court line -->
+                            <!-- Date filed and Court line -->
                         <div class="mt-4 flex items-center">
                             <div class="flex items-baseline w-1/2 p-0">
                                 <InputLabel value="Filed:" class="w-32" />
@@ -287,7 +287,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             </div>
                         </div>
 
-                        <!-- Docket # and Our # line -->
+                            <!-- Docket # and Our # line -->
                         <div class="mt-4 flex items-center">
                             <div class="flex items-baseline w-1/2 p-0">
                                 <InputLabel value="Docket #:" class="w-32" />
@@ -305,18 +305,18 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             </div>
                         </div>
 
-                        <!-- Summary line -->
+                            <!-- Summary line -->
                         <div class="mt-4 flex items-top">
                             <div class="w-32">
                                 <InputLabel for="summary" value="Summary:" />
                             </div>
                             <div>
-                                <textarea v-model="form.summary" id="summary" class="textarea textarea-bordered w-[730px] py-1 px-2" />
+                                <textarea v-model="form.summary" id="summary" class="textarea textarea-bordered w-178 py-1 px-2" />
                                 <InputError class="mt-2" :message="form.errors.summary" />
                             </div>
                         </div>
 
-                        <!-- Date closed and Disposition line -->
+                            <!-- Date closed and Disposition line -->
                         <div class="mt-3 flex items-center">
                             <div class="flex items-baseline w-1/2 p-0">
                                 <InputLabel value="Closed:" class="w-32"/>
@@ -334,7 +334,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             </div>
                         </div>
 
-                        <!-- Collapsed Referral and Fee Information lines -->
+                            <!-- Collapsed Referral and Fee Information lines -->
                         <div class="mt-8 collapse collapse-arrow border border-base-300 bg-base-300 rounded-box max-w-4xl">
                             <input type="checkbox" />
                             <div class="collapse-title font-semibold text-md">
@@ -372,7 +372,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             </div>
                         </div>
 
-                        <!-- Save and Cancel Buttons line (only shown when form is not disabled) -->
+                            <!-- Save and Cancel Buttons line (only shown when form is not disabled) -->
                         <div v-show="true" class="flex mt-6 mb-2 justify-center">
                             <button type="button" href="" class="btn btn-primary w-36 mr-14" @click="fileform_click('ok')">Ok</button>
                             <button type="button" href="" class="btn btn-primary" @click="fileform_click('cancel')">Cancel</button>

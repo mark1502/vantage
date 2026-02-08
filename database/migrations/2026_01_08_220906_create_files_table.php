@@ -28,8 +28,8 @@ return new class extends Migration
             $table->string('fee_arrangement')->nullable();
             $table->string('fee_amount')->nullable();
             $table->string('final_disposition')->nullable();
-            $table->unsignedInteger('casefiletype_id')->nullable();
-            $table->unsignedInteger('contact_id'); // assigned_atty - firm member in contacts file
+            $table->unsignedInteger('filetype_id')->nullable(); // if for the filetype
+            $table->unsignedInteger('contact_id');              // assigned_atty - firm member in contacts file
             $table->unsignedInteger('firm_id');
             $table->timestamps();
             // $table->softDeletes(); No more softDeletes, filter on closed date instead

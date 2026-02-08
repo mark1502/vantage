@@ -15,8 +15,8 @@ import { Head, Link, useForm, router } from "@inertiajs/vue3";
 import { nextTick } from "vue";
 
 const props = defineProps({
-    casefile: Object,
-    casefiletypes: Object,
+    file: Object,
+    filetypes: Object,
     attorneys: Object,
 });
 
@@ -54,10 +54,9 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
 
                     <FileForm_new 
                         v-model:the_mode="state.mode" 
-                        :casefile="props.casefile"
+                        :file="props.file"
+                        :filetypes="props.filetypes"
                         :attorneys="props.attorneys" 
-                        :casefiletypes="props.casefiletypes"
-                        :index_form="index_form" 
                     />
 
                 </div>

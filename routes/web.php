@@ -4,9 +4,11 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\EntryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\FiletypeController;
 
 Route::get('/', function () {
     // dd('here');

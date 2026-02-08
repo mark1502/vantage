@@ -11,10 +11,12 @@ import InputLabel from "@/Components/InputLabel.vue";
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
-const props = defineProps({ files: Object });
+const props = defineProps({ 
+    files: Object
+});
 
 const search = ref(urlParams.get('search') || '');      // search field, set to the search parameter in the URL, or empty if not present
-const file1 = ref(null);
+const file1 = ref(null);                                // ref used for code shortcut to the file
 
 const state = reactive({
     hover: false,
@@ -209,7 +211,7 @@ update_disp();                                                                  
 
                             <!-- Paginator Line Here-->
                                 <div class="btn-group flex justify-between mt-2 items-center">
-                                    <div>
+                                    <div class="flex items-center ">
                                         <label for="state_show" class="font-bold ml-2 mr-1">
                                             Show:
                                         </label>

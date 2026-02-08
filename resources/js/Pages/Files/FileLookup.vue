@@ -30,9 +30,10 @@ function lookup_file() {
             lookup.file = false;
             lookup.matching_files = [];
             axios.post('/lookup_file', { search: display_file.name })       // lookup search and list the response data
-            .then(function (response) { lookup.matching_files = response.data; 
-                                        lookup.file = true;
-                                      });
+            .then(function (response) { 
+                lookup.matching_files = response.data; 
+                lookup.file = true;
+            });
         }
     }
 

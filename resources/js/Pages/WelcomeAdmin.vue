@@ -438,7 +438,7 @@ function addUser_Cancel() {     // closes the attorney form
 
                                     <div class="mt-12 mr-6 items-baseline">
                                         <div class="flex items-baseline">
-                                            <label for="form2.work_phone" class="label_sm-700 mr-2">Work:</label>
+                                            <label for="form2.work_phone" class="label_sm-700 mr-4">Work:</label>
                                             <input v-model="form2.work_phone" id="form2.work_phone" class="input input-bordered w-36 max-w-xs" />
                                             <InputError class="mt-2" :message="form2.errors.work_phone" />
                                         </div>
@@ -448,7 +448,7 @@ function addUser_Cancel() {     // closes the attorney form
                                             <InputError class="mt-2" :message="form2.errors.home_phone" />
                                         </div>
                                         <div class="flex items-baseline mt-3">
-                                            <label for="form2.cell_phone" class="label_sm-700 mr-4">Cell:</label>
+                                            <label for="form2.cell_phone" class="label_sm-700 mr-6.5">Cell:</label>
                                             <input v-model="form2.cell_phone" id="form2.cell_phone" class="input input-bordered w-36 max-w-xs"/>
                                             <InputError class="mt-2" :message="form2.errors.cell_phone" />
                                         </div>
@@ -475,7 +475,7 @@ function addUser_Cancel() {     // closes the attorney form
 
                             <div v-if="state.addUser == 0">
                                 <p class="pt-4 mx-24">
-                                    Each person in your law firm who will use this application should be added as a user.
+                                    Each person in your law firm who may use this application should be added as a user.
                                 </p>
                                 <p class="pt-4 mx-24">
                                     You are currently an <b>Administrative User</b> for your law firm, which allows you to add, edit and remove the users of the application. &nbsp;Administrators
@@ -487,7 +487,7 @@ function addUser_Cancel() {     // closes the attorney form
                                     <b>'Admin Menu'</b> which is found on the upper right of the main screen.
                                 </p>
                                 <p v-if="form2.firm_role != 'Attorney'" class="pt-4 mx-24">
-                                    Each law firm must have at least one attorney. &nbsp;Please click the button below to add an attorney for your law firm.
+                                    NOTE: Each law firm must have at least one attorney. &nbsp;Please click the button below to add an attorney for your law firm.
                                 </p>
                                 <button v-if="form2.firm_role != 'Attorney'" @click="addUserClicked"
                                     class="btn bg-emerald-600 hover:bg-emerald-500 mt-4 mb-4 text-center ml-48 w-40">Add Attorney

@@ -14,41 +14,41 @@
     defineExpose({ fileform_click, fileform_actions });
 
     const props = defineProps({
-        casefile: Object,
+        file: Object,
+        filetypes: Object,
         attorneys: Object,
-        casefiletypes: Object,
-        index_form: Object,
+        // index_form: Object,
     });
 
     const file_form = useForm({
-        formtype: "casefile",
-        name: props.casefile.name,
-        summary: props.casefile.summary,
-        date_sol: props.casefile.date_sol,
-        date_opened: props.casefile.date_opened,
-        date_filed: props.casefile.date_filed,
-        date_closed: props.casefile.date_closed,
-        date_archived: props.casefile.date_archived,
-        court_filed: props.casefile.court_filed,
-        docket_number: props.casefile.docket_number,
-        file_number: props.casefile.file_number,
-        referred_by: props.casefile.referred_by,
-        referral_amount: props.casefile.referral_amount,
-        fee_arrangement: props.casefile.fee_arrangement,
-        fee_amount: props.casefile.fee_amount,
-        final_disposition: props.casefile.final_disposition,
-        casefiletype_id: props.casefile.casefiletype_id,
-        contact_id: props.casefile.contact_id,
-        current_page: props.index_form.current_page,
-        show: props.index_form.show,
-        comeback: true,
+        formtype: "file",
+        name: props.file.name,
+        summary: props.file.summary,
+        date_sol: props.file.date_sol,
+        date_opened: props.file.date_opened,
+        date_filed: props.file.date_filed,
+        date_closed: props.file.date_closed,
+        date_archived: props.file.date_archived,
+        court_filed: props.file.court_filed,
+        docket_number: props.file.docket_number,
+        file_number: props.file.file_number,
+        referred_by: props.file.referred_by,
+        referral_amount: props.file.referral_amount,
+        fee_arrangement: props.file.fee_arrangement,
+        fee_amount: props.file.fee_amount,
+        final_disposition: props.file.final_disposition,
+        filetype_id: props.file.filetype_id,
+        contact_id: props.file.contact_id,
+        // current_page: props.index_form.current_page,
+        // show: props.index_form.show,
+        // comeback: true,                          // ???
     });
 
     let saved_file_form = { ...file_form }; // clone a copy of the file form
 
     let solEnabled = ref(false);                                                            // reactive variable to determine if the SOL date is enabled
 
-    solEnabled.value = props.casefile.casefiletype.enable_file_SOL === 1 ? true : false;    // set solEnabled based on the casefile type's enable_file_SOL property
+    solEnabled.value = props.file.filetype.enable_file_SOL === 1 ? true : false;    // set solEnabled based on the file type's enable_file_SOL property
     
     if( solEnabled.value === false ) {                                                      // if the SOL date is not enabled, set it to null
         file_form.date_sol = null;
@@ -110,7 +110,7 @@
                 fileform_isDirty.value = false;
                 the_mode.value = 'file_show';
 
-                file_form.put(route( 'files.update', { casefile: props.casefile.id } ),
+                file_form.put(route( 'files.update', { file: props.file.id } ),
                     { onSuccess: () =>  { 
                         // alert('File information saved successfully.');
                         // console.log('File information saved successfully.');
@@ -183,14 +183,14 @@
             </div>
         </div>
 
-        <!-- Casefile type line (not currently used) -->
+        <!-- File type line (not currently used) -->
     <div class="mt-3 flex items-center">
         <div class="flex w-32">
-            <InputLabel for="casefiletype_id" value="File Type:" disabled /><span class="red_star-700-2 ml-2">*</span>
+            <InputLabel for="filetype_id" value="File Type:" disabled /><span class="red_star-700-2 ml-2">*</span>
         </div>
-        <select v-model="file_form.casefiletype_id" @change="form_change()" class="select select-bordered select-sm w-64 disabled:text-base-content" disabled >
-            <option v-if="!saved_file_form.casefiletype_id" :value="null">Select file type . . .</option>
-            <option v-for="casefiletype in casefiletypes" :key="casefiletype.id" :value="casefiletype.id">{{ casefiletype.name }}</option>
+        <select v-model="file_form.filetype_id" @change="form_change()" class="select select-bordered select-sm w-64 disabled:text-base-content" disabled >
+            <option v-if="!saved_file_form.filetype_id" :value="null">Select file type . . .</option>
+            <option v-for="filetype in filetypes" :key="filetype.id" :value="filetype.id">{{ filetype.name }}</option>
         </select>
         <!-- <button @click="click_AddType" class="ml-6 btn btn-xs btn-outline btn-primary">Add New Type</button> -->
     </div>
@@ -230,7 +230,7 @@
                     <input v-if="solEnabled" type="date" id="date_sol" v-model="file_form.date_sol" class="input input-sm input-bordered w-44"
                         @change="form_change()" @blur="form_change()"/>
                     <div v-if="!solEnabled" class="text-xs text-gray-500 mt-1">
-                        N/A - '{{ props.casefile.casefiletype.name }}' file
+                        N/A - '{{ props.file.filetype.name }}' file
                     </div>
                     <InputError class="mt-2" :message="file_form.errors.date_sol" />
                 </div>
