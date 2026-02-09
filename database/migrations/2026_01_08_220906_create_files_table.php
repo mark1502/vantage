@@ -37,6 +37,8 @@ return new class extends Migration
             $table->index(['firm_id', 'contact_id']);
             $table->index(['firm_id', 'date_opened']);
             $table->index(['firm_id', 'date_closed']);
+            $table->index(['firm_id', 'date_sol']);
+            $table->index(['firm_id', 'date_filed']);
         });
     }
 

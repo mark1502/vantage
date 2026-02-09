@@ -194,7 +194,7 @@ update_disp();
                                                 <option>25</option>
                                             </select>
                                         </div>
-                                        <Pagination :links="contacts.links" :only="['contacts','casefiles']" />
+                                        <Pagination :links="contacts.links" :only="['contacts','files']" />
                                     </div>
                                 </div>
                                 <div v-else class="border p-4 text-xl text-center">No Contacts Found!
@@ -242,9 +242,9 @@ update_disp();
                             <!-- moved untile the end of div from outside the dive ti inside, due to no records -->
                             <div class="pt-3">
                                 <p class="text-lg font-md text-base-content ml-2">Associated Files:</p>
-                                <p v-if="contact1.casefiles.length" class="bg-base-200 text-base text-left p-2 rounded-lg">
-                                    <div v-for="casefile in contact1.casefiles" :key="casefile.id">
-                                        &bull; {{ casefile.name }}
+                                <p v-if="contact1.files.length" class="bg-base-200 text-base text-left p-2 rounded-lg">
+                                    <div v-for="file in contact1.files" :key="file.id">
+                                        &bull; {{ file.name }}
                                     </div>
                                 </p>
                                 <p v-else class="bg-base-200 whitespace-pre-wrap text-left p-2 rounded-lg">

@@ -1,0 +1,179 @@
+/* FullCalendar Dark Mode Theme using DaisyUI variables */
+
+/* Main calendar background */
+.fc {
+    background-color: oklch(var(--b1));
+    color: oklch(var(--bc));
+}
+
+/* Toolbar (header with navigation and view buttons) */
+.fc .fc-toolbar {
+    background-color: oklch(var(--b1));
+    color: oklch(var(--bc));
+}
+
+.fc .fc-toolbar-title {
+    color: oklch(var(--bc));
+}
+
+.fc .fc-button {
+    background-color: oklch(var(--b2));
+    border-color: oklch(var(--bc) / 0.2);
+    color: oklch(var(--bc));
+}
+
+.fc .fc-button:hover {
+    background-color: oklch(var(--b3));
+    border-color: oklch(var(--bc) / 0.3);
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: oklch(var(--p));
+    border-color: oklch(var(--p));
+    color: oklch(var(--pc));
+}
+
+.fc .fc-button-primary:disabled {
+    background-color: oklch(var(--b2));
+    border-color: oklch(var(--bc) / 0.1);
+    color: oklch(var(--bc) / 0.4);
+}
+
+/* Day headers (Mon, Tue, Wed, etc.) */
+.fc .fc-col-header-cell {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc));
+    border-color: oklch(var(--bc) / 0.2);
+}
+
+.fc .fc-col-header-cell-cushion {
+    color: oklch(var(--bc));
+}
+
+/* Day grid cells */
+.fc .fc-daygrid-day {
+    background-color: oklch(var(--b1));
+    border-color: oklch(var(--bc) / 0.2);
+}
+
+.fc .fc-daygrid-day-number {
+    color: oklch(var(--bc));
+}
+
+/* Time grid (week/day view) */
+.fc .fc-timegrid-slot {
+    border-color: oklch(var(--bc) / 0.2);
+}
+
+.fc .fc-timegrid-slot-label {
+    color: oklch(var(--bc));
+    border-color: oklch(var(--bc) / 0.2);
+}
+
+.fc .fc-timegrid-axis {
+    background-color: oklch(var(--b1));
+}
+
+.fc .fc-timegrid-col {
+    background-color: oklch(var(--b1));
+}
+
+/* All borders */
+.fc td,
+.fc th {
+    border-color: oklch(var(--bc) / 0.2);
+}
+
+.fc .fc-scrollgrid {
+    border-color: oklch(var(--bc) / 0.2);
+}
+
+/* Today highlight */
+.fc .fc-day-today {
+    background-color: oklch(var(--b2)) !important;
+}
+
+.fc .fc-timegrid-col.fc-day-today {
+    background-color: oklch(var(--b2));
+}
+
+/* Now indicator (current time line) */
+.fc .fc-timegrid-now-indicator-line {
+    border-color: oklch(var(--p));
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+    border-color: oklch(var(--p));
+}
+
+/* Week numbers */
+.fc .fc-daygrid-week-number {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc));
+}
+
+/* More link (when too many events) */
+.fc .fc-daygrid-more-link {
+    color: oklch(var(--p));
+}
+
+.fc .fc-daygrid-more-link:hover {
+    background-color: oklch(var(--b3));
+}
+
+/* Popover (when clicking "more" link) */
+.fc .fc-popover {
+    background-color: oklch(var(--b1));
+    border-color: oklch(var(--bc) / 0.2);
+}
+
+.fc .fc-popover-header {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc));
+}
+
+/* List view */
+.fc .fc-list-day-cushion {
+    background-color: oklch(var(--b2));
+    color: oklch(var(--bc));
+}
+
+.fc .fc-list-event:hover td {
+    background-color: oklch(var(--b3));
+}
+
+.fc .fc-list-event-time,
+.fc .fc-list-event-title {
+    color: oklch(var(--bc));
+}
+
+/* Disabled days (outside current month) */
+.fc .fc-day-disabled {
+    background-color: oklch(var(--b1));
+    opacity: 0.5;
+}
+
+/* Selection highlight */
+.fc .fc-highlight {
+    background-color: oklch(var(--b3));
+    opacity: 0.3;
+}
+
+/* Scrollbar styling for dark mode */
+.fc .fc-scroller::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.fc .fc-scroller::-webkit-scrollbar-track {
+    background: oklch(var(--b2));
+}
+
+.fc .fc-scroller::-webkit-scrollbar-thumb {
+    background: oklch(var(--bc) / 0.3);
+    border-radius: 5px;
+}
+
+.fc .fc-scroller::-webkit-scrollbar-thumb:hover {
+    background: oklch(var(--bc) / 0.5);
+}

@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
 import FileForm_new from "@/Pages/Files/FileForm_new.vue";
 import FileLookup from "@/Pages/Files/FileLookup.vue";
-import EntryForm_new from "@/Pages/Entries/EntryForm_new.vue";
+import EntryForm from "@/Pages/Entries/EntryForm.vue";
 
 
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
@@ -652,14 +652,14 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
 
                             <!-- Start of Right Side -->
                             <div name="right-side" class="w-1/2 justify-items-center ml-4 mt-1">
-                                <div id="disp_card" class="rounded-sm w-[580px] h-[480px] bg-base-200"
+                                <div id="disp_card" class="rounded-sm w-145 bg-base-200"
                                     :class="{
-                                        'border border-base-content': state.mode === 'browse',
-                                        'border-4 border-blue-700 h-[560px]': state.mode === 'entry_edit' || state.mode === 'entry_add'
+                                        'border border-base-content h-120': state.mode === 'browse',
+                                        'border-4 border-blue-700 h-140': state.mode === 'entry_edit' || state.mode === 'entry_add'
                                     }">
 
                                     <!-- HERE is the EntryForm -->
-                                    <EntryForm_new                                         
+                                    <EntryForm                                         
                                         ref="EntryForm_ref" 
                                         v-model:the_mode="state.mode"
                                         v-model:hotkey_pressed="hotkey_pressed" 

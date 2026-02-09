@@ -959,7 +959,7 @@ update_disp();
                     {{ props.getFolderData('note_prompt') }}
                 </label>
                 <textarea v-model="entry_form.note" id="entry_note" rows="3" @blur="checkEditMode()" @input="checkEditMode()" @change="checkEditMode()"
-                    class="w-[470px] textarea textarea-bordered leading-snug disabled:border-0 text-sm resize-none py-0 px-2 ml-1 text-base-content bg-base-100" />
+                    class="w-117.5 textarea textarea-bordered disabled:border-0 text-sm resize-none py-0 px-2 ml-1 text-base-content bg-base-100" />
             </div>
 
             <!-- Response Expected Date Row > Hide/Show based on folder -->
@@ -1017,12 +1017,12 @@ update_disp();
             <!-- Is Response To Droplist Row -->
             <!-- Lists all entries in the file which are expecting a response -->
             <!-- Show the droplist if the highlighted entry is either a full or partial response && the folder does not hide isResponsive-->
-            <div v-show="entry_form.is_a_response != 'N' && props.getFolderData('hide_isResponsive') === false" class="flex mt-2">
+            <div v-show="entry_form.is_a_response != 'N' && props.getFolderData('hide_isResponsive') === false" class="flex mt-3">
                 <label for="form.is_response_to" class="text-sm font-semibold w-24">
                     Response to:
                 </label>
                 <select v-model="entry_form.is_response_to" id="form.is_response_to" @blur="checkEditMode()"
-                    @change="checkEditMode()" class="w-[500px] ml-2 select select-bordered select-xs rounded-md font-normal text-sm text-base-content bg-base-100">
+                    @change="checkEditMode()" class="w-[500px] ml-2 select select-xs rounded-md font-normal text-sm text-base-content bg-base-100">
                     <!-- This first option is added *if* the entry which this was responsive to no longer expects a response -->
                     <!-- It's needed because that entry would no longer be in the props.p1.expecting_response list -->
                     <option v-if="entry_form.was_response_to && related_entry.expecting_response == false"

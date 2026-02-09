@@ -4,10 +4,12 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\ViewController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\FiletypeController;
 
 Route::get('/', function () {
@@ -68,7 +70,7 @@ Route::middleware('auth','welcomed')->group(function () {
     Route::post('/add_new_event_type', [CalendarController::class, 'add_new_event_type'])->name('calendar.add.event_type');
     Route::get('/add_new_event_type', [CalendarController::class, 'add_new_event_type'])->name('calendar.add.event_type');   // for error passback
 
-    Route::post('/newfiletype', [CasefiletypeController::class, 'addnewtype'])->name('files.addnewtype');
+    // Route::post('/newfiletype', [CasefiletypeController::class, 'addnewtype'])->name('files.addnewtype');  // Not needed?
 
     
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index'); 

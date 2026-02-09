@@ -242,7 +242,7 @@ class FiletypeController extends Controller
     public function entriesFound( $request, $filetype_id, $folder_id ) {
         $entry_found = false;
 
-        $files_of_type = Casefile::query()                                              // get all files of this type (for this firm)
+        $files_of_type = File::query()                                              // get all files of this type (for this firm)
                             ->where( 'firm_id', $request->user()->firm_id )
                             ->where( 'filetype_id', $filetype_id )
                             ->get();

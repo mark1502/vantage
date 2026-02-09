@@ -22,7 +22,7 @@ class StoreEntryRequest extends FormRequest
     public function rules(): array
     {
         return [    'formtype' => 'string|max:20|nullable',
-                    'casefile_id' => 'numeric|integer|nullable',
+                    'file_id' => 'numeric|integer|nullable',
                     'folder_id' => 'numeric|integer|required',
                     'input_time' => 'boolean|nullable',
                     'hide_date2_prompt' => 'boolean|nullable',
@@ -43,7 +43,7 @@ class StoreEntryRequest extends FormRequest
 
     public function messages(): array
     {
-        return [    'casefile_id' => 'Invalid File ID',
+        return [    'file_id' => 'Invalid File ID',
                     'folder_id' => 'Invalid Folder ID',
                     'entrytype_id' => 'Entry Type Not Found',
                     'date1' => 'Invalid Date',

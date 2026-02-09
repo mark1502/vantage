@@ -18,7 +18,7 @@
                         <div class="flex mt-8">
                             <div class="flex-col w-36 max-w-xs mr-4">
                                 <div class="flex ml-2"><InputLabel for="form.title" value="Title" /><span class="text-sm text-red-600 ml-2">*</span></div>
-                                <select v-model="form.title" class="select select-bordered select-sm" id="form.title">
+                                <select v-model="form.title" class="select select-bordered select-sm text-base" id="form.title">
                                     <option value="" disabled selected>Pick one</option>
                                     <option>Mr.</option>
                                     <option>Ms.</option>
@@ -84,7 +84,7 @@
                         <div class="flex my-5">
                             <div class="flex-col w-1/2 max-w-sm">
                                 <InputLabel for="form.address" value="Address" class="ml-2"/>
-                                <textarea v-model="form.address" id="form.address" class="textarea textarea-bordered leading-snug p-2 h-32 w-full"></textarea>
+                                <textarea v-model="form.address" id="form.address" class="textarea textarea-bordered text-base p-2 h-32 w-full"></textarea>
                                 <InputError class="mt-2" :message="form.errors.address" />
 
                             </div>
@@ -132,7 +132,7 @@
                         <div class="flex mt-6 items-end justify-between">
                             <div class="flex-col w-1/2">
                                 <InputLabel for="form.note" value="Notes" class="ml-2"/>
-                                <textarea v-model="form.note" id="formnotes" class="textarea textarea-bordered leading-snug p-2 w-full" rows="4"></textarea>
+                                <textarea v-model="form.note" id="formnotes" class="textarea textarea-bordered text-base p-2 w-full" rows="4"></textarea>
                                 <InputError class="mt-2" :message="form.errors.note" />
                             </div>
                             <div class="flex mb-2">

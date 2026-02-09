@@ -158,7 +158,7 @@
 </script>
 
 <template>
-    <input v-model="local.name" :id="props.id"  class="input input-bordered input-sm rounded-sm w-64" placeholder="Enter name: ( Last, First, M. )"
+    <input v-model="local.name" :id="props.id"  class="input input-bordered input-sm text-sm rounded-sm w-64" placeholder="Enter name: ( Last, First, M. )"
        @input="lookup_contact()" @blur="handleBlur()" @keydown="handleKeyDown" autocomplete="off"
     />
 

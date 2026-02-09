@@ -86,6 +86,9 @@ class FileController extends Controller
                 'final_disposition' => 'nullable|max:255',
                 'filetype_id' => 'nullable|integer',
                 'contact_id' => 'required|integer',
+            ],
+            [   'name' => 'File name is required.',
+                'contact_id' => 'Assigned attorney is required.',
             ]);
 
             $newCase = new File;

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             FirmSeeder::class,
             UserSeeder::class,
             FolderSeeder::class,
+            FileSeeder::class,
             FiletypeSeeder::class,
             EntrytypeSeeder::class,
         ]);

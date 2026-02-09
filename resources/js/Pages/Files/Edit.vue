@@ -23,10 +23,10 @@ const props = defineProps({
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
-// let default_casefiletype = null;
+// let default_filetype = null;
 
-// props.casefiletypes.forEach( casefiletype => {                                                  // go through the casefiletypes
-//     if( casefiletype['set_as_default'] === 1 ) default_casefiletype = casefiletype.id;          // if a default type is found, set the variable with it
+// props.filetypes.forEach( filetype => {                                                  // go through the filetypes
+//     if( filetype['set_as_default'] === 1 ) default_filetype = filetype.id;          // if a default type is found, set the variable with it
 // });
 
 onMounted(() => document.addEventListener('keydown', handleEsc));

@@ -15,7 +15,7 @@ class Entry extends Model
         return $this->belongsTo( Folder::class );  
     }
 
-    public function casefile() { 
+    public function file() { 
         return $this->belongsTo( File::class );
     }
 

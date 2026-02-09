@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use App\Models\Contact;
-use App\Models\Casefile;
+use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -38,41 +38,41 @@ class ContactController extends Controller
 
         $contactIds = $contacts->pluck('id');                               // collect the IDs of the contacts for later use 
 
-        $casefiles = Casefile::select(                                      // query for casefiles - where the contact is either 'from' or 'to' in an entry
-            'casefiles.id',
-            'casefiles.name',
+        $files = File::select(                                      // query for files - where the contact is either 'from' or 'to' in an entry
+            'files.id',
+            'files.name',
             'entries.from_contact_id',
             'entries.to_contact_id'
         )
         ->distinct()
-        ->join('entries', 'entries.casefile_id', '=', 'casefiles.id')
+        ->join('entries', 'entries.file_id', '=', 'files.id')
         ->where(function ($query) use ($contactIds) {
             $query->whereIn('entries.from_contact_id', $contactIds)
                 ->orWhereIn('entries.to_contact_id', $contactIds);
         })
         ->get();
 
-        $casefilesByContact = collect();                                    // initialize a collection to hold casefiles by contact
+        $filesByContact = collect();                                    // initialize a collection to hold files by contact
 
-        foreach ($casefiles as $casefile) {                                 // loop through each casefile               
-            if ($casefile->from_contact_id) {                               // if the casefile has a 'from_contact_id', add it to the collection
-                $casefilesByContact->push([
-                    'contact_id' => $casefile->from_contact_id,
-                    'casefile' => $casefile,
+        foreach ($files as $file) {                                 // loop through each file               
+            if ($file->from_contact_id) {                               // if the file has a 'from_contact_id', add it to the collection
+                $filesByContact->push([
+                    'contact_id' => $file->from_contact_id,
+                    'file' => $file,
                 ]);
             }
-            if ($casefile->to_contact_id) {                                 // if the casefile has a 'to_contact_id', add it to the collection
-                $casefilesByContact->push([
-                    'contact_id' => $casefile->to_contact_id,
-                    'casefile' => $casefile,
+            if ($file->to_contact_id) {                                 // if the file has a 'to_contact_id', add it to the collection
+                $filesByContact->push([
+                    'contact_id' => $file->to_contact_id,
+                    'file' => $file,
                 ]);
             }
         }
             
-        $contacts->transform(function ($contact) use ($casefilesByContact) {    // transform each contact to include its casefiles
-            $contact->casefiles = $casefilesByContact
+        $contacts->transform(function ($contact) use ($filesByContact) {    // transform each contact to include its files
+            $contact->files = $filesByContact
                 ->where('contact_id', $contact->id)
-                ->pluck('casefile')
+                ->pluck('file')
                 ->unique('id')                  // prevent duplicates
                 ->sortBy('name')                // sort alphabetically by name
                 ->map(function ($cf) {          // map to a simpler array structure, just keeping id and name
