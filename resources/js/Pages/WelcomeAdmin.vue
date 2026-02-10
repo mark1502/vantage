@@ -475,15 +475,15 @@ function addUser_Cancel() {     // closes the attorney form
 
                             <div v-if="state.addUser == 0">
                                 <p class="pt-4 mx-24">
-                                    Each person in your law firm who may use this application should be added as a user.
+                                    Anyone in your law firm who may use this application should be added as a user. &nbsp;Administrative users are responsible for managing who can log into this application.
                                 </p>
                                 <p class="pt-4 mx-24">
-                                    You are currently an <b>Administrative User</b> for your law firm, which allows you to add, edit and remove the users of the application. &nbsp;Administrators
-                                     are responsible for managing who who can log in to use the application. &nbsp;Each of your law firm's users must first be added 
+                                    Because you are currently an <b>Administrative User</b>,
+                                    you can add, edit and remove the users of the application. &nbsp;Before they can use the application, all of your law firm's users must first be added 
                                      by an adminstrator and assigned a temporary login password.
                                 </p>
                                 <p class="pt-4 mx-24">
-                                    Management of users and all other administrative features are accessible from the  
+                                    The management of users, and all other administrative features, are accessible from the  
                                     <b>'Admin Menu'</b> which is found on the upper right of the main screen.
                                 </p>
                                 <p v-if="form2.firm_role != 'Attorney'" class="pt-4 mx-24">
