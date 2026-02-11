@@ -1022,7 +1022,7 @@ update_disp();
                     Response to:
                 </label>
                 <select v-model="entry_form.is_response_to" id="form.is_response_to" @blur="checkEditMode()"
-                    @change="checkEditMode()" class="w-[500px] ml-2 select select-xs rounded-md font-normal text-sm text-base-content bg-base-100">
+                    @change="checkEditMode()" class="w-125 ml-2 select select-xs rounded-md font-normal text-sm text-base-content bg-base-100">
                     <!-- This first option is added *if* the entry which this was responsive to no longer expects a response -->
                     <!-- It's needed because that entry would no longer be in the props.p1.expecting_response list -->
                     <option v-if="entry_form.was_response_to && related_entry.expecting_response == false"
@@ -1080,7 +1080,7 @@ update_disp();
                         {{ props.getFolderData('entrytype_prompt') }}
                     </label>
                     <input v-model="entrytype_form.name" id="type_name" name="type_name" @input="lookup_entrytype()"
-                        class="input input-bordered ml-4 w-[500px]" autocomplete="off" />
+                        class="input input-bordered ml-4 w-125" autocomplete="off" />
                 </div>
                 <table
                     v-if="matching.entrytypes.length > 0 && entrytype_form.name.length > 0 && entrytype_form.isChosen == false"

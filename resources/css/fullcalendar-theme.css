@@ -1,161 +1,161 @@
-/* FullCalendar Dark Mode Theme using DaisyUI variables */
+/* FullCalendar Dark Mode Theme using DaisyUI 5 variables */
 
 /* Main calendar background */
 .fc {
-    background-color: oklch(var(--b1));
-    color: oklch(var(--bc));
+    background-color: var(--color-base-100);
+    color: var(--color-base-content);
 }
 
 /* Toolbar (header with navigation and view buttons) */
 .fc .fc-toolbar {
-    background-color: oklch(var(--b1));
-    color: oklch(var(--bc));
+    background-color: var(--color-base-100);
+    color: var(--color-base-content);
 }
 
 .fc .fc-toolbar-title {
-    color: oklch(var(--bc));
+    color: var(--color-base-content);
 }
 
 .fc .fc-button {
-    background-color: oklch(var(--b2));
-    border-color: oklch(var(--bc) / 0.2);
-    color: oklch(var(--bc));
+    background-color: var(--color-base-200);
+    border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
+    color: var(--color-base-content);
 }
 
 .fc .fc-button:hover {
-    background-color: oklch(var(--b3));
-    border-color: oklch(var(--bc) / 0.3);
+    background-color: var(--color-base-300);
+    border-color: color-mix(in oklch, var(--color-base-content) 30%, transparent);
 }
 
 .fc .fc-button-primary:not(:disabled).fc-button-active {
-    background-color: oklch(var(--p));
-    border-color: oklch(var(--p));
-    color: oklch(var(--pc));
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-content);
 }
 
 .fc .fc-button-primary:disabled {
-    background-color: oklch(var(--b2));
-    border-color: oklch(var(--bc) / 0.1);
-    color: oklch(var(--bc) / 0.4);
+    background-color: var(--color-base-200);
+    border-color: color-mix(in oklch, var(--color-base-content) 10%, transparent);
+    color: color-mix(in oklch, var(--color-base-content) 40%, transparent);
 }
 
 /* Day headers (Mon, Tue, Wed, etc.) */
 .fc .fc-col-header-cell {
-    background-color: oklch(var(--b2));
-    color: oklch(var(--bc));
-    border-color: oklch(var(--bc) / 0.2);
+    background-color: var(--color-base-200);
+    color: var(--color-base-content);
+    border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
 }
 
 .fc .fc-col-header-cell-cushion {
-    color: oklch(var(--bc));
+    color: var(--color-base-content);
 }
 
 /* Day grid cells */
 .fc .fc-daygrid-day {
-    background-color: oklch(var(--b1));
-    border-color: oklch(var(--bc) / 0.2);
+    background-color: var(--color-base-100);
+    border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
 }
 
 .fc .fc-daygrid-day-number {
-    color: oklch(var(--bc));
+    color: var(--color-base-content);
 }
 
 /* Time grid (week/day view) */
 .fc .fc-timegrid-slot {
-    border-color: oklch(var(--bc) / 0.2);
+    border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
 }
 
 .fc .fc-timegrid-slot-label {
-    color: oklch(var(--bc));
-    border-color: oklch(var(--bc) / 0.2);
+    color: var(--color-base-content);
+    border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
 }
 
 .fc .fc-timegrid-axis {
-    background-color: oklch(var(--b1));
+    background-color: var(--color-base-100);
 }
 
 .fc .fc-timegrid-col {
-    background-color: oklch(var(--b1));
+    background-color: var(--color-base-100);
 }
 
 /* All borders */
 .fc td,
 .fc th {
-    border-color: oklch(var(--bc) / 0.2);
+    border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
 }
 
 .fc .fc-scrollgrid {
-    border-color: oklch(var(--bc) / 0.2);
+    border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
 }
 
 /* Today highlight */
 .fc .fc-day-today {
-    background-color: oklch(var(--b2)) !important;
+    background-color: var(--color-base-200) !important;
 }
 
 .fc .fc-timegrid-col.fc-day-today {
-    background-color: oklch(var(--b2));
+    background-color: var(--color-base-200);
 }
 
 /* Now indicator (current time line) */
 .fc .fc-timegrid-now-indicator-line {
-    border-color: oklch(var(--p));
+    border-color: var(--color-primary);
 }
 
 .fc .fc-timegrid-now-indicator-arrow {
-    border-color: oklch(var(--p));
+    border-color: var(--color-primary);
 }
 
 /* Week numbers */
 .fc .fc-daygrid-week-number {
-    background-color: oklch(var(--b2));
-    color: oklch(var(--bc));
+    background-color: var(--color-base-200);
+    color: var(--color-base-content);
 }
 
 /* More link (when too many events) */
 .fc .fc-daygrid-more-link {
-    color: oklch(var(--p));
+    color: var(--color-primary);
 }
 
 .fc .fc-daygrid-more-link:hover {
-    background-color: oklch(var(--b3));
+    background-color: var(--color-base-300);
 }
 
 /* Popover (when clicking "more" link) */
 .fc .fc-popover {
-    background-color: oklch(var(--b1));
-    border-color: oklch(var(--bc) / 0.2);
+    background-color: var(--color-base-100);
+    border-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
 }
 
 .fc .fc-popover-header {
-    background-color: oklch(var(--b2));
-    color: oklch(var(--bc));
+    background-color: var(--color-base-200);
+    color: var(--color-base-content);
 }
 
 /* List view */
 .fc .fc-list-day-cushion {
-    background-color: oklch(var(--b2));
-    color: oklch(var(--bc));
+    background-color: var(--color-base-200);
+    color: var(--color-base-content);
 }
 
 .fc .fc-list-event:hover td {
-    background-color: oklch(var(--b3));
+    background-color: var(--color-base-300);
 }
 
 .fc .fc-list-event-time,
 .fc .fc-list-event-title {
-    color: oklch(var(--bc));
+    color: var(--color-base-content);
 }
 
 /* Disabled days (outside current month) */
 .fc .fc-day-disabled {
-    background-color: oklch(var(--b1));
+    background-color: var(--color-base-100);
     opacity: 0.5;
 }
 
 /* Selection highlight */
 .fc .fc-highlight {
-    background-color: oklch(var(--b3));
+    background-color: var(--color-base-300);
     opacity: 0.3;
 }
 
@@ -166,14 +166,14 @@
 }
 
 .fc .fc-scroller::-webkit-scrollbar-track {
-    background: oklch(var(--b2));
+    background: var(--color-base-200);
 }
 
 .fc .fc-scroller::-webkit-scrollbar-thumb {
-    background: oklch(var(--bc) / 0.3);
+    background: color-mix(in oklch, var(--color-base-content) 30%, transparent);
     border-radius: 5px;
 }
 
 .fc .fc-scroller::-webkit-scrollbar-thumb:hover {
-    background: oklch(var(--bc) / 0.5);
+    background: color-mix(in oklch, var(--color-base-content) 50%, transparent);
 }
