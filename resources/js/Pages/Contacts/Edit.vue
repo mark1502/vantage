@@ -1,3 +1,106 @@
+<script setup>
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
+import InputError from "@/Components/InputError.vue";
+import InputLabel from "@/Components/InputLabel.vue";
+// import PrimaryButton from "@/Components/PrimaryButton.vue";
+import TextInput from "@/Components/TextInput.vue";
+
+import { Head, Link, useForm, router } from "@inertiajs/vue3";
+import { reactive, computed, onMounted, onUnmounted } from "vue";
+// import { EMPTY_ARR } from "@vue/shared";
+
+
+const props = defineProps({
+    contact: Object,
+});
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+
+let form = useForm({
+    formtype: "contact",
+    id: props.contact.id,
+    title: props.contact.title,
+    first_name: props.contact.first_name ?? '',
+    middle_name: props.contact.middle_name ?? '',
+    last_name: props.contact.last_name,
+    srjr: props.contact.srjr ?? '',
+    esqphd: props.contact.esqphd ?? '',
+    company: props.contact.company ?? '',
+    business_title: props.contact.business_title ?? '',
+    address: props.contact.address ?? '',
+    email: props.contact.email ?? '',
+    email_alt: props.contact.email_alt ?? '',
+    home_phone: props.contact.home_phone ?? '',
+    work_phone: props.contact.work_phone ?? '',
+    cell_phone: props.contact.cell_phone ?? '',
+    fax_phone: props.contact.fax_phone ?? '',
+    other_phone: props.contact.other_phone ?? '',
+    note: props.contact.note ?? '',
+    display_name: props.contact.display_name,
+    display_last_first: props.contact.display_last_first,
+    current_page: urlParams.get('page'),
+    show: urlParams.get('show'),
+});
+
+
+function submitForm() {
+    buildDisplayNames();
+    form.put( route( 'contacts.update', { contact : props.contact.id } ) );
+}
+
+
+function buildDisplayNames() {
+    if( form.title === null || form.title === undefined ) {
+        form.title = '';
+    } else if( form.title === 'Co.' ) {
+        form.last_name = form.company;
+        form.display_last_first = form.company;
+        form.display_name = form.company;
+    } else {
+            // Convert null or undefined vars to empty string
+        if( form.first_name === null || form.first_name === undefined ) { form.first_name = ''; }
+        if( form.middle_name === null || form.middle_name === undefined ) { form.middle_name = ''; }
+        if( form.last_name === null || form.last_name === undefined ) { form.last_name = ''; }
+        if( form.srjr === null || form.srjr === undefined ) { form.srjr = ''; }
+        if( form.esqphd === null || form.esqphd === undefined ) { form.esqphd = ''; }
+
+        form.display_name = form.first_name.trim();        
+        form.display_name += form.middle_name.trim().length != 0 ? ' ' + form.middle_name.trim() : "";
+        form.display_name += ' ' + form.last_name.trim();
+        form.display_name += form.srjr.trim().length != 0 ? ', ' + form.srjr.trim() : "";
+        form.display_name += form.esqphd.trim().length != 0 ? ', ' + form.esqphd.trim() : "";
+
+        form.display_last_first = form.last_name.trim() + ', ' + form.first_name.trim();
+        form.display_last_first += form.middle_name.trim().length != 0 ? ' ' + form.middle_name.trim() : "";
+        form.display_last_first += form.srjr.trim().length != 0 ? ', ' + form.srjr.trim() : "";
+        form.display_last_first += form.esqphd.trim().length != 0 ? ', ' + form.esqphd.trim() : "";
+    }   
+}
+
+
+function deleteClicked() {
+    let r = confirm("Do you want to delete this contact?\n\nClick Ok to delete");
+    if (r == true) {
+       form.delete( "/contacts/" + props.contact.id, {} );
+    }
+}
+
+
+function handleEsc(e) {
+    if(e.key === 'Escape') {
+        router.get( route('contacts.index', { page: form.current_page, show: form.show }) );
+    } else if( e.altKey && e.key==='o' ) { 
+        e.preventDefault();
+        submitForm();
+    } 
+}
+
+onMounted(() => document.addEventListener('keydown', handleEsc));
+onUnmounted(() => document.removeEventListener('keydown', handleEsc));
+
+</script>
+
 <template>
 
     <Head title="DashboardER" />
@@ -149,106 +252,3 @@
     </AuthenticatedLayout>
 </template>
 
-<script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-// import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
-
-import { Head, Link, useForm, router } from "@inertiajs/vue3";
-import { reactive, computed, onMounted, onUnmounted } from "vue";
-// import { EMPTY_ARR } from "@vue/shared";
-
-
-const props = defineProps({
-    contact: Object,
-});
-
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
-
-let form = useForm({
-    formtype: "contact",
-    id: props.contact.id,
-    title: props.contact.title,
-    first_name: props.contact.first_name ?? '',
-    middle_name: props.contact.middle_name ?? '',
-    last_name: props.contact.last_name,
-    srjr: props.contact.srjr ?? '',
-    esqphd: props.contact.esqphd ?? '',
-    company: props.contact.company ?? '',
-    business_title: props.contact.business_title ?? '',
-    address: props.contact.address ?? '',
-    email: props.contact.email ?? '',
-    email_alt: props.contact.email_alt ?? '',
-    home_phone: props.contact.home_phone ?? '',
-    work_phone: props.contact.work_phone ?? '',
-    cell_phone: props.contact.cell_phone ?? '',
-    fax_phone: props.contact.fax_phone ?? '',
-    other_phone: props.contact.other_phone ?? '',
-    note: props.contact.note ?? '',
-    display_name: props.contact.display_name,
-    display_last_first: props.contact.display_last_first,
-    current_page: urlParams.get('page'),
-    show: urlParams.get('show'),
-});
-
-
-function submitForm() {
-    buildDisplayNames();
-    form.put( route( 'contacts.update', { contact : props.contact.id } ) );
-}
-
-
-function buildDisplayNames() {
-    if( form.title === null || form.title === undefined ) {
-        form.title = '';
-    } else if( form.title === 'Co.' ) {
-        form.last_name = form.company;
-        form.display_last_first = form.company;
-        form.display_name = form.company;
-    } else {
-            // Convert null or undefined vars to empty string
-        if( form.first_name === null || form.first_name === undefined ) { form.first_name = ''; }
-        if( form.middle_name === null || form.middle_name === undefined ) { form.middle_name = ''; }
-        if( form.last_name === null || form.last_name === undefined ) { form.last_name = ''; }
-        if( form.srjr === null || form.srjr === undefined ) { form.srjr = ''; }
-        if( form.esqphd === null || form.esqphd === undefined ) { form.esqphd = ''; }
-
-        form.display_name = form.first_name.trim();        
-        form.display_name += form.middle_name.trim().length != 0 ? ' ' + form.middle_name.trim() : "";
-        form.display_name += ' ' + form.last_name.trim();
-        form.display_name += form.srjr.trim().length != 0 ? ', ' + form.srjr.trim() : "";
-        form.display_name += form.esqphd.trim().length != 0 ? ', ' + form.esqphd.trim() : "";
-
-        form.display_last_first = form.last_name.trim() + ', ' + form.first_name.trim();
-        form.display_last_first += form.middle_name.trim().length != 0 ? ' ' + form.middle_name.trim() : "";
-        form.display_last_first += form.srjr.trim().length != 0 ? ', ' + form.srjr.trim() : "";
-        form.display_last_first += form.esqphd.trim().length != 0 ? ', ' + form.esqphd.trim() : "";
-    }   
-}
-
-
-function deleteClicked() {
-    let r = confirm("Do you want to delete this contact?\n\nClick Ok to delete");
-    if (r == true) {
-       form.delete( "/contacts/" + props.contact.id, {} );
-    }
-}
-
-
-function handleEsc(e) {
-    if(e.key === 'Escape') {
-        router.get( route('contacts.index', { page: form.current_page, show: form.show }) );
-    } else if( e.altKey && e.key==='o' ) { 
-        e.preventDefault();
-        submitForm();
-    } 
-}
-
-onMounted(() => document.addEventListener('keydown', handleEsc));
-onUnmounted(() => document.removeEventListener('keydown', handleEsc));
-
-
-</script>

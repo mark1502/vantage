@@ -27,7 +27,7 @@ class FileController extends Controller
         })
         ->orderBy('name')
 
-        ->paginate($show ? $show : 15)
+        ->paginate($show ? $show : 10)
         ->withQueryString();
 
         // dd($file_list);
@@ -147,19 +147,11 @@ class FileController extends Controller
                         ->where('firm_role', 'Attorney')
                         ->get();
         
-        // return Inertia::render('Files/FileForm', [
-        //     'editmode' => 'edit',
-        //     'file' => $file,
-        //     'filetypes' => $filetypes,
-        //     'attorneys' => $attorneys,
-        //     ]);
-
         return inertia::render('Files/Edit',[
             'file' => $file,
             'filetypes' => $filetypes,
             'attorneys' => $attorneys,
         ]);
-
     }
 
     /**

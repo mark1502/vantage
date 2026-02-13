@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { reactive, ref, watch, onMounted, onUnmounted } from "vue";
+import { reactive, ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useTheme } from '@/Composables/useTheme';
 import Pagination from '@/Components/Pagination.vue'
@@ -125,6 +125,17 @@ const handleTheKepress = (e) => {
     } // end if
 };
 
+const emptyRows = computed(() => {
+    return Math.max(0, state.show - props.contacts.data.length);
+});
+
+function setEntryClass( index ) {
+    if ( index === state.current_row ) {
+        return 'text-gray-900 dark:text-gray-900 bg-blue-200 dark:bg-blue-200 border-l-4 border-l-blue-600';
+    }
+    return 'text-base-content bg-base-100';
+}
+
 onMounted(() => document.addEventListener('keydown', handleTheKepress));
 onUnmounted(() => document.removeEventListener('keydown', handleTheKepress));
 
@@ -166,17 +177,22 @@ update_disp();
                                                 <th class="normal-case text-base font-bold border-b-2 border-gray-800 bg-gray-200 text-gray-800 text-left pl-5">NAME: <span class="ml-2 font-normal">(Last, First)</span></th>
                                             </tr>
                                         </thead>
-                                        <tr v-for="contact, index in contacts.data" :key="contact.id" class="border-b border-base-content"
-                                            :class="(index == state.current_row ? 'text-white bg-blue-800' : 'text-base-content bg-base-100')"
-                                            @click="contact_clicked(index)" @dblclick="contact_dblclick(index)">
-                                            <td class="px-2 py-2 whitespace-nowrap">
-                                                <div class="flex items-center">
-                                                    <div class="text-base font-sans font-normal">
-                                                        {{ contact.display_last_first }}
+                                        <tbody>
+                                            <tr v-for="contact, index in contacts.data" :key="contact.id" class="border-b border-base-content"
+                                                :class="setEntryClass(index)"
+                                                @click="contact_clicked(index)" @dblclick="contact_dblclick(index)">
+                                                <td class="px-2 py-2 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <div class="text-base font-sans font-normal">
+                                                            {{ contact.display_last_first }}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                </td>
+                                            </tr>
+                                            <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-base-content bg-base-100">
+                                                <td class="px-2 py-2">&nbsp;</td>
+                                            </tr>
+                                        </tbody>
                                     </table>
                                     <div class="min-w-full btn-group flex justify-between mt-2 items-center">
                                         <div class="flex items-baseline ml-2">
@@ -220,7 +236,7 @@ update_disp();
                                 Contact Info:
                             </div>
                                 
-                            <div v-if="contacts.data.length" class="bg-base-200 text-base-content text-base font-sans rounded-lg mt-3 px-4 py-2">
+                            <div v-if="contacts.data.length" class="bg-base-200 text-base-content text-base font-sans rounded border border-gray-400 mt-3 px-4 py-2">
                                 <h2 class="">{{ contact1.display_name }}</h2>
                                 <p v-if="contact1.business_title" class="">{{ contact1.business_title }}</p>
                                 <p v-if="contact1.company && contact1.title !== 'Co.'" class="">

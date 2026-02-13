@@ -14,7 +14,7 @@ class FiletypeController extends Controller
      * Display a listing of the resource.
      */
     public function index( Request $request )
-    {
+    {   
         $show = $request->query('show') ?? 15;
 
         $this_firm_id = $request->user()->firm_id;
@@ -90,6 +90,11 @@ class FiletypeController extends Controller
                 'show' => 'numeric|integer',
             ]);
 
+            // If SOL is enabled, pleadings must be enabled
+            if ($request->enable_file_SOL) {
+                $request->merge(['has_pleadings' => true]);
+            }
+
             $filetype = new Filetype;
 
             $filetype->name = $request->name;
@@ -153,6 +158,11 @@ class FiletypeController extends Controller
                 'current_page' => 'numeric|integer',
                 'show' => 'numeric|integer',
             ]);
+
+        // If SOL is enabled, pleadings must be enabled
+        if ($request->enable_file_SOL) {
+            $request->merge(['has_pleadings' => true]);
+        }
 
         $removed_folders = $this->check4RemovedFolder( $request, $filetype );
 

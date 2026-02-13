@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
-import FileForm_new from "@/Pages/Files/FileForm_new.vue";
+import FileForm from "@/Pages/Files/FileForm.vue";
 import FileLookup from "@/Pages/Files/FileLookup.vue";
 import EntryForm from "@/Pages/Entries/EntryForm.vue";
 
@@ -341,11 +341,15 @@ function getFolderData( whichData, singular = null ) {                          
 }
 
 
+const emptyRows = computed(() => {
+    return Math.max(0, state.show - props.entries.data.length);
+});
+
 function setEntryClass( index ) {                                                       // sets the color of the listbox entries
     let entry = props.entries.data[index];                                                   // shortcut for cleaner code
-    let sendback = '';
     let textcolor = 'text-base-content';
     let bgcolor = 'bg-base-100';
+    let border = '';
 
     if( state.mode === 'entry_edit' || state.mode === 'entry_add' ) {                  // if adding or entering, then gray out the listbox entries
         textcolor = 'text-base-300';
@@ -355,15 +359,12 @@ function setEntryClass( index ) {                                               
     }
 
     if( index === state.row ) {                                                        // if this row is the highlighted row
-        if( entry.expecting_response == false ) {                                      // if not expecting a response, set text color to white
-            textcolor = 'text-white'
-        }
-        bgcolor = 'bg-blue-800';                                                        // set background color of highlighted row 
+        textcolor = 'text-gray-900 dark:text-gray-900';
+        bgcolor = 'bg-blue-200 dark:bg-blue-200';
+        border = 'border-l-4 border-l-blue-600';
     }
 
-    sendback = textcolor + ' ' + bgcolor;
-
-    return sendback;
+    return textcolor + ' ' + bgcolor + ' ' + border;
 }
 
 
@@ -548,7 +549,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                     <!-- Tab 1 - File Information Tab - Starts Here-->
                     <div v-if="state.tab === 1">
                         <!-- File Info Form -->
-                        <FileForm_new 
+                        <FileForm 
                             ref="FileForm_ref"
                             v-model:the_mode="state.mode" 
                             :file="props.file"
@@ -592,31 +593,39 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                     </th>
                                                 </tr>
                                             </thead>
-                                            <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                class="border-b border-gray-400"
-                                                :class="setEntryClass(index)"
-                                                @click.left="entryList_click('list', index)"
-                                                @click.right.prevent="entryList_click('right', index)"
-                                                @dblclick="entryList_click('list_double', index)"
-                                            >                                                    
-                                                <td class="pl-1 pr-2 py-1.5 border-base-content w-28">
-                                                    {{ reformat_date(entry.date1, props.folders[entry.folder_id-1].input_time, entry.all_day) }}
-                                                </td>
-                                                <!-- find the entrytype in the folders -->
-                                                <td class="border-x border-base-content w-40 pl-1">
-                                                    {{ props.folders[entry.folder_id - 1].entrytypes.find((entrytype) =>
-                                                    entrytype.id === entry.entrytype_id).name }}
-                                                </td>
-                                                <!-- find the contact in file_contacts -->
-                                                <td class="border-base-content w-40 pl-1">
-                                                    {{ props.file_contacts.find((contact) => contact.id ===
-                                                    entry.from_contact_id ).display_last_first }}
-                                                </td>
-                                                <!-- next is only shown for listFormat 4, which doesn't exist right now -->
-                                                <td v-show="disp.listFormat === 4" class="border-gray-900 pl-1">
-                                                    {{ props.folders[entry.folder_id - 1].name }}
-                                                </td>
-                                            </tr>
+                                            <tbody>
+                                                <tr v-for="entry, index in entries.data" :key="entry.id"
+                                                    class="border-b border-gray-400"
+                                                    :class="setEntryClass(index)"
+                                                    @click.left="entryList_click('list', index)"
+                                                    @click.right.prevent="entryList_click('right', index)"
+                                                    @dblclick="entryList_click('list_double', index)"
+                                                >
+                                                    <td class="pl-1 pr-2 py-1.5 border-base-content w-28">
+                                                        {{ reformat_date(entry.date1, props.folders[entry.folder_id-1].input_time, entry.all_day) }}
+                                                    </td>
+                                                    <!-- find the entrytype in the folders -->
+                                                    <td class="border-x border-base-content w-40 pl-1">
+                                                        {{ props.folders[entry.folder_id - 1].entrytypes.find((entrytype) =>
+                                                        entrytype.id === entry.entrytype_id).name }}
+                                                    </td>
+                                                    <!-- find the contact in file_contacts -->
+                                                    <td class="border-base-content w-40 pl-1">
+                                                        {{ props.file_contacts.find((contact) => contact.id ===
+                                                        entry.from_contact_id ).display_last_first }}
+                                                    </td>
+                                                    <!-- next is only shown for listFormat 4, which doesn't exist right now -->
+                                                    <td v-show="disp.listFormat === 4" class="border-gray-900 pl-1">
+                                                        {{ props.folders[entry.folder_id - 1].name }}
+                                                    </td>
+                                                </tr>
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
+                                                    <td class="border-x border-base-content">&nbsp;</td>
+                                                    <td>&nbsp;</td>
+                                                    <td v-show="disp.listFormat === 4">&nbsp;</td>
+                                                </tr>
+                                            </tbody>
                                         </table>
                                     </div>
                                     <!-- if we're browsing the data (not edit or add), then display show droplist and link buttons -->

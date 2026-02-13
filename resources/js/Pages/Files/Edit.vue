@@ -6,7 +6,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 // import TextInput from "@/Components/TextInput.vue";
 // import VueDatePicker from '@vuepic/vue-datepicker';
 // import '@vuepic/vue-datepicker/dist/main.css'
-import FileForm_new from "@/Pages/Files/FileForm_new.vue";
+import FileForm from "@/Pages/Files/FileForm.vue";
 
 
 import { reactive, ref, computed, onMounted, onUnmounted } from "vue";
@@ -52,7 +52,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         File Information
                     </p>
 
-                    <FileForm_new 
+                    <FileForm 
                         v-model:the_mode="state.mode" 
                         :file="props.file"
                         :filetypes="props.filetypes"

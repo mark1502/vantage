@@ -4,31 +4,49 @@
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-semibold text-xl text-base-content leading-tight">
                 Admin Menu
             </h2>
         </template>
 
-        <div class="py-3 min-h-screen">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 min-h-screen">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <p class="text-3xl text-center mt-8">Administrators Menu</p>
-                    <div class="mx-auto text-center">
-                        <Link class="btn btn-primary text-white mb-5 mt-12 px-8" href="/users">User List</Link>
-                    </div>
-                    <div class="mx-auto text-center">
-                        <Link class="btn btn-primary text-white mb-5 mt-12 px-8" href="/casefiletypes">File Types</Link>
-                    </div>
-                    <div>
-                        <Link class="btn btn-primary mt-10" href="/Entrytypes" >Entrytypes</Link>
-                    </div>
-
-                    <div class="mx-auto text-center">
-                        <Link class="btn btn-primary text-white mb-5 mt-12 px-8" href="/folders">Folder List</Link>
-                    </div>
-                    <div class="mx-auto text-center">
-                        <Link class="btn btn-primary text-white mb-5 mt-12 px-8" href="/test_form">Test Form</Link>
-                    </div>
+        <div class="py-3">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-base-300 p-4 min-h-dvh sm:rounded-lg">
+                    <p class="text-3xl text-base-content text-center mt-8">Administrators Menu</p>
+                    <table class="mx-auto mt-12">
+                        <tbody>
+                            <tr>
+                                <td class="py-3 pr-6">
+                                    <Link class="btn btn-primary text-white px-8 w-40" href="/users">User List</Link>
+                                </td>
+                                <td class="py-3 text-base-content">Manage user accounts, roles, and permissions</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-6">
+                                    <Link class="btn btn-primary text-white px-8 w-40" href="/filetypes">File Types</Link>
+                                </td>
+                                <td class="py-3 text-base-content">Configure file types and their available folders</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-6">
+                                    <Link class="btn btn-primary text-white px-8 w-40" href="/Entrytypes">Entry Types</Link>
+                                </td>
+                                <td class="py-3 text-base-content">Manage entry types within each folder</td>
+                            </tr>
+                            <!-- <tr>
+                                <td class="py-3 pr-6">
+                                    <Link class="btn btn-primary text-white px-8 w-40" href="/folders">Folder Types</Link>
+                                </td>
+                                <td class="py-3 text-base-content">Manage folder categories for organizing entries</td>
+                            </tr> -->
+                            <!-- <tr>
+                                <td class="py-3 pr-6">
+                                    <Link class="btn btn-primary text-white px-8 w-40" href="/test_form">Test Form</Link>
+                                </td>
+                                <td class="py-3 text-base-content">Test form for development purposes</td>
+                            </tr> -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

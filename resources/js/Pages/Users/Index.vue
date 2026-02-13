@@ -81,6 +81,18 @@ function deleteClicked() {
     }
 }
 
+const emptyRows = computed(() => {
+    return Math.max(0, state.show - props.users.data.length);
+});
+
+function setEntryClass( index ) {
+    if ( index === state.current_row ) {
+        return 'text-gray-900 dark:text-gray-900 bg-blue-200 dark:bg-blue-200 border-l-4 border-l-blue-600';
+    }
+
+    return 'text-base-content bg-base-100';
+}
+
 const handleTheKeypress = (e) => {
     let changeit = false;
     if (e.altKey && e.key === 'a') {        // Alt-A (Add button)
@@ -102,7 +114,7 @@ const handleTheKeypress = (e) => {
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                if (state.current_row < state.show - 1) {
+                if (state.current_row < (props.users.data.length - 1)) {
                     state.current_row++;
                     changeit = true;
                 }
@@ -199,83 +211,74 @@ update_disp();
                 <div class="bg-base-300 p-4 min-h-dvh sm:rounded-lg" id="UserScreen">
                     <div class="mt-6 w-3/4 mx-auto">
                         <div v-if="users.data.length" class="">
-                            <table
-                                class="table table-compact w-full border border-base-content text-base font-sans font-normal"
-                                id="userlist">
+                            <table class="w-full border border-base-content text-base font-sans font-normal" id="userlist">
                                 <thead class="text-left text-md bg-gray-200">
                                     <tr>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 text-center">Name
-                                        </th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 text-center">Initials
-                                        </th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 text-center">Email
-                                        </th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 text-center">Firm
-                                            Role</th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 text-center">User
-                                            Type</th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 text-center">Status
-                                        </th>
-
+                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Name</th>
+                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Initials</th>
+                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Email</th>
+                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Firm Role</th>
+                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">User Type</th>
+                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Status</th>
                                     </tr>
                                 </thead>
-                                <tr v-for="user, index in users.data" :key="user.id" class="border-b border-blue-900"
-                                    :class="(index == state.current_row ? 'text-white bg-blue-800' : 'text-gray-900 bg-white')"
-                                    @click="user_clicked(index)" @dblclick="user_dblclick(index)">
-                                    <td class="px-6 py-2 whitespace-nowrap border-r border-gray-800 text-base">
-                                        {{ user.name }}
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap border-r border-gray-800 text-base">
-                                        {{ user.member_initials }}
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap border-r border-gray-800 text-base">
-                                        {{ user.email }}
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap border-r border-gray-800 text-base">
-                                        {{ user.firm_role }}
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap border-r border-gray-800 text-base">
-                                        {{ user.user_type }}
-                                    </td>
-                                    <td class="px-6 py-2 whitespace-nowrap border-r border-gray-800 text-base">
-                                        {{ user.current == 'F' ? 'Former' : 'Current' }}
-                                    </td>
-
-                                </tr>
+                                <tbody>
+                                    <tr v-for="user, index in users.data" :key="user.id" class="border-b border-base-content"
+                                        :class="setEntryClass(index)"
+                                        @click="user_clicked(index)" @dblclick="user_dblclick(index)">
+                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.name }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.member_initials }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.email }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.firm_role }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.user_type }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.current == 'F' ? 'Former' : 'Current' }}</td>
+                                    </tr>
+                                    <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-base-content bg-base-100">
+                                        <td class="px-2 py-2 border-r border-base-content">&nbsp;</td>
+                                        <td class="px-2 py-2 border-r border-base-content">&nbsp;</td>
+                                        <td class="px-2 py-2 border-r border-base-content">&nbsp;</td>
+                                        <td class="px-2 py-2 border-r border-base-content">&nbsp;</td>
+                                        <td class="px-2 py-2 border-r border-base-content">&nbsp;</td>
+                                        <td class="px-2 py-2 border-r border-base-content">&nbsp;</td>
+                                    </tr>
+                                </tbody>
                             </table>
-                            <div class="flex justify-between items-center mt-3">
-                                <div class="ml-2 flex items-center">
-                                    <label class="font-bold">
-                                        Display:
+                            <div class="btn-group flex justify-between mt-2 items-center">
+                                <div class="flex items-center">
+                                    <label for="showSelect" class="font-bold ml-2 mr-1">
+                                        Show:
                                     </label>
-                                    <select v-model="state.show" class="select select-sm select-bordered ml-2"
-                                        id="showSelect" @change="showChanged">
+                                    <select v-model="state.show" id="showSelect" @change="showChanged"
+                                        class="select select-bordered select-sm">
                                         <option>6</option>
                                         <option>8</option>
                                         <option selected>10</option>
                                         <option>12</option>
                                         <option>15</option>
+                                        <option>20</option>
+                                        <option>25</option>
                                     </select>
                                 </div>
-
-                                <Pagination :links="users.links" class="mr-2" />
+                                <div class="pr-2">
+                                    <Pagination :links="users.links" />
+                                </div>
                             </div>
                         </div>
                         <div v-else class="border p-4 text-xl text-center">No Data Found!
                         </div>
                         <div name="control_buttons" class="flex mt-8 justify-around">
-                            <Link :href='disp.createurl' class="btn btn-outline btn-primary gap-0">+
+                            <Link :href='disp.createurl' class="btn btn-primary gap-0">+
                                 &nbsp;<u>A</u>dd
                             </Link>
                             <Link id="editbutton" name="editbutton" :href='disp.editurl'
-                                class="btn btn-outline btn-primary gap-0">△
+                                class="btn btn-primary gap-0">△
                                 &nbsp;<u>C</u>hange
                             </Link>
                             <Link id="deletebutton" name="deletebutton" href='' @click="deleteClicked"
                                 class="btn btn-outline btn-error">- &nbsp;Delete
                             </Link>
                             <Link id="prefsbutton" :href='disp.preferencesurl'
-                                class="btn btn-outline btn-primary gap-0">⋈
+                                class="btn btn-primary gap-0">⋈
                                 &nbsp;<u>P</u>references
                             </Link>
                         </div>

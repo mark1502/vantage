@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 
-import FileForm_new from "@/Pages/Files/FileForm_new.vue";
+import FileForm from "@/Pages/Files/FileForm.vue";
 import FileLookup  from  "@/Pages/Files/FileLookup.vue";
 import EntryForm from "@/Pages/Entries/EntryForm.vue";
 
@@ -560,7 +560,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                         <option value="both">All</option>
                     </select>
                     
-                    <span v-if="state.view === 'events'" class="font-medium text-base text-gray-900 ml-7 w-24">Date Range: </span>
+                    <span v-if="state.view === 'events'" class="font-medium text-base text-base-content ml-7 w-24">Date Range: </span>
                     <span v-if="state.view === 'events'" class="font-normal text-xs ml-1"> {{ disp.date_range }}</span>
                     <button v-if="state.view === 'events'" type="button" class="btn btn-outline btn-primary btn-xs ml-3" @click="clicked_set_date_range()">Change</button>
                         

@@ -306,7 +306,7 @@ function addUser_Cancel() {     // closes the attorney form
                             <p class="mt-3 text-3xl font-bold text-center text-blue-800">
                                 Law Firm Information
                             </p>
-                            <form @submit.prevent="submitFirm" class="max-w-md mx-auto mt-8">
+                            <form @submit.prevent="submitFirm" autocomplete="off" class="max-w-md mx-auto mt-8">
                                 <p class="text-red-800 text-sm text-right">( * ) - required fields</p>
 
                                 <label for="name" class="label_sm-700 block ml-2">
@@ -337,7 +337,7 @@ function addUser_Cancel() {     // closes the attorney form
                             </p>
                             <!-- <p class="mt-2 ml-24 font-semibold">Enter your information:</p> -->
                             <!-- Form 2 starts here-->
-                            <form @submit.prevent="submitUserInfo" class="max-w-5xl mx-auto mt-0">
+                            <form @submit.prevent="submitUserInfo" autocomplete="off" class="max-w-5xl mx-auto mt-0">
                                 <p class="text-red-800 text-sm text-right">( * ) - required fields</p>
                                 <!-- Form2 - Name Line -->
                                 <div class="flex mt-8">
@@ -475,12 +475,12 @@ function addUser_Cancel() {     // closes the attorney form
 
                             <div v-if="state.addUser == 0">
                                 <p class="pt-4 mx-24">
-                                    Anyone in your law firm who may use this application should be added as a user. &nbsp;Administrative users are responsible for managing who can log into this application.
+                                    Anyone in your law firm who will use this application should be added as a user. &nbsp;Administrative users are responsible for managing who can log into the application.
                                 </p>
                                 <p class="pt-4 mx-24">
                                     Because you are currently an <b>Administrative User</b>,
-                                    you can add, edit and remove the users of the application. &nbsp;Before they can use the application, all of your law firm's users must first be added 
-                                     by an adminstrator and assigned a temporary login password.
+                                    you can add, edit and remove the users of the application. &nbsp;Additional users must first be added to the system
+                                     by an adminstrator and assigned a temporary passwords before they can use the application.
                                 </p>
                                 <p class="pt-4 mx-24">
                                     The management of users, and all other administrative features, are accessible from the  

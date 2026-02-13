@@ -21,7 +21,7 @@ const file1 = ref(null);                                // ref used for code sho
 const state = reactive({
     hover: false,
     current_row: 0,
-    show: props.files.per_page ?? 15,               // set in the controller - if not show, then 15
+    show: props.files.per_page ?? 10,               // set in the controller - if not show, then 15
     display: 'name',
     sort_on: 'name',
     sort_order: 'asc'
@@ -139,16 +139,16 @@ function handleTheKeypress( e ) {
 }
 
 
-function setEntryClass( index ) {                                                       // sets the color of the listbox entries
-    let textcolor = 'text-base-content';
-    let bgcolor = 'bg-base-100';
+const emptyRows = computed(() => {                                                             // number of empty rows to fill the table
+    return Math.max(0, state.show - props.files.data.length);
+});
 
+function setEntryClass( index ) {                                                       // sets the color of the listbox entries
     if ( index === state.current_row ) {                                                        // if this is the highlighted row
-        textcolor = 'text-white'
-        bgcolor = 'bg-blue-800';                                                        // set background color of highlighted row 
+        return 'text-gray-900 dark:text-gray-900 bg-blue-200 dark:bg-blue-200 border-l-4 border-l-blue-600';
     }
 
-    return textcolor + ' ' + bgcolor;
+    return 'text-base-content bg-base-100';
 }
 
 
@@ -200,11 +200,14 @@ update_disp();                                                                  
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="file, index in files.data" :key="file.id" class="border-b border-base-content" 
+                                        <tr v-for="file, index in files.data" :key="file.id" class="border-b border-base-content"
                                             :class="setEntryClass(index)" @click="file_clicked(index)" @dblclick="file_dblclick(index)">
                                             <td class="px-2 py-2 w-[480px]">
                                                 {{ file.name }}
                                             </td>
+                                        </tr>
+                                        <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-base-content bg-base-100">
+                                            <td class="px-2 py-2">&nbsp;</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -254,10 +257,10 @@ update_disp();                                                                  
                     <!-- Left Side Ends Here -->
                     <!-- Right Side Starts Here -->
                         <div v-if="files.data.length" name="right.side" class="w-1/2 ml-12">
-                            <p v-if="files.data.length" class="text-xl font-bold ml-2">File Details:</p>
+                            <p v-if="files.data.length" class="text-xl font-bold text-base-content ml-2">File Details:</p>
 
                             <div class="rounded-lg w-[430px] mt-2 bg-base-200 border border-gray-400" id="disp_card">
-                                <div v-if="files.data.length" class="p-4 text-gray-900">
+                                <div v-if="files.data.length" class="p-4 text-base-content">
                                     <h2 class="card-title text-base-content">{{ file1.name }}</h2>
                                     <p class="mt-2">File Type: &nbsp;{{ file1.filetype.name }}</p>
                                     <p class="">Attorney: &nbsp;{{ file1.contact.display_name }}</p>
