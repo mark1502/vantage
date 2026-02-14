@@ -28,7 +28,7 @@
             display_last_first: ""
             });
 
-    const added_contact_obj = defineModel('added_contact_obj');             // define the model for the object used on the parent form
+    let added_contact_obj = defineModel('added_contact_obj');             // define the model for the object used on the parent form
 
 
     watch( added_contact_obj.value, (setting) => {                          // watch added_contact_obj, and display or close modal based on value of display_modal

@@ -18,6 +18,8 @@ class CalendarController extends Controller
      */
     public function index(Request $request)
     {
+        // NOTE: the event data is retrieved int the get_events() function below, which is called from the calendar component.
+
         $firm_id = $request->user()->firm_id;
 
         $firm_members = Contact::select('id','display_last_first','member_initials')
@@ -195,8 +197,12 @@ class CalendarController extends Controller
             $events = $events->where( 'to_contact_id', $request->user1 );
         }
 
-        if( $request->include_due == 'false' ) {            // if not including due dates, then filter them out
-            $events = $events->where( 'folder_id', 6 );     // limit to 'Events' folder only
+        if( $request->include_due == 'false' ) {                                // if not including due dates, then filter them out
+            $events = $events->where( 'folder_id', 6 );                         // limit to 'Events' folder only
+        } 
+        if ( $request->include_due == 'true' ) {                                // if including due dates
+            $events = $events->where( 'folder_id', 6 );                         // events folder entries
+            $events = $events->orWhere( 'expecting_response', '=', 1 );         // or, entries expecting a response
         }
 
         $events = $events->whereBetween('date_response_expected', [$request->start, $request->end])
@@ -216,11 +222,17 @@ class CalendarController extends Controller
                 $color_bg = $event_colors->where('user_id', $event->contact_to->user_id)->where('name','event_bg')->first();
                 $color_text = $event_colors->where('user_id', $event->contact_to->user_id)->where('name','event_text')->first();
 
+                if( $event->folder_id == 6 ) {                                  // if folder 6, so not a due date
+                    $e_title = '(' . $event->contact_to->member_initials . ') ' . $event->entrytype->name . ' - ' . $event->note;
+                } else {                                                        // else, it is a response due
+                    $e_title = 'Response Due: ' . $event->entrytype->name . ' - ' . $event->note;
+                }
+
                 $events_back[] = [ 
                     'id' => $event->id,
                     'start' => $event->date_response_expected,                    
                     'end' => $event->date2,
-                    'title' => '(' . $event->contact_to->member_initials . ') ' . $event->entrytype->name . ' - ' . $event->note,
+                    'title' => $e_title,
                     'allDay' => $event->all_day,
                     'backgroundColor' => $color_bg->setting ?? '#fff68f',
                     'textColor' => $color_text->setting ?? '#000000',

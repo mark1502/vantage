@@ -143,27 +143,14 @@ const calendarOptions = reactive({
     eventResize: function (eventInfo) { event_placement(eventInfo, 'resize'); },
 
     eventMouseEnter: function (mouseEnterInfo) {
-        // console.log(mouseEnterInfo);
+        if( mouseEnterInfo.event.title[0] === '(' ) {                               // title starts with '(', it's an event, set tooltip time 
+            let starting_time = toolTimeCalc( mouseEnterInfo.event.startStr );
+            let ending_time = toolTimeCalc( mouseEnterInfo.event.endStr );
 
-        let starting = new Date(mouseEnterInfo.event.startStr);
-        let hours = starting.getHours();
-        let mins = starting.getMinutes();
-        if( hours > 12 ) hours -= 12;
-        // let starting_time = hours < 10 ? '0' + hours + ':' : hours + ':';
-        let starting_time = hours  + ':';
-        starting_time += mins < 10 ? '0' + mins : mins;
-
-
-        let ending = new Date(mouseEnterInfo.event.endStr);
-        hours = ending.getHours();
-        mins = ending.getMinutes();
-        if( hours > 12 ) hours -= 12;
-        // let ending_time = hours < 10 ? '0' + hours + ':' : hours + ':';
-        let ending_time = hours + ':';
-        ending_time += mins < 10 ? '0' + mins : mins;
-
-        tooltip.timespan = starting_time + ' - ' + ending_time;
-
+            tooltip.timespan = starting_time + ' - ' + ending_time;
+        } else {                                                                    // else, Response Due, no time on tooltip
+            tooltip.timespan = '';
+        }
 
         tooltip.visibility = true;
         tooltip.text = mouseEnterInfo.event.title;
@@ -180,9 +167,23 @@ const calendarOptions = reactive({
         tooltip.timespan = '';
         tooltip.text = '';
         tooltip.file_name = '';
-    },    
+    },
 }); // end calendarOptions
 
+function toolTimeCalc( timeString ) {
+    let time_in = new Date( timeString );
+    let hours = time_in.getHours();
+    let mins = time_in.getMinutes();
+    let a_p = 'am';                 // ap starts at am
+    if( hours > 11 ) a_p = 'pm';    // if 12 or later, then pm
+    if( hours > 12 ) hours -= 12;   // if > 12, subtract for 12 hour clock
+
+    let the_time = hours  + ':';
+    the_time += mins < 10 ? '0' + mins : mins;
+    the_time += a_p;
+
+    return the_time;
+}
 
 
 function submit_test_1() {  // on submit, first test if the event firm member was changed, if so, then confirm the change

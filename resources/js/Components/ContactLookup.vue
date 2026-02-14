@@ -4,7 +4,7 @@
     const contact_id = defineModel('contact_id');
     const contact_name = defineModel('contact_name');
     const the_mode = defineModel('the_mode');
-    const added_contact_obj = defineModel('added_contact_obj');
+    let added_contact_obj = defineModel('added_contact_obj');
 
     const props = defineProps([ 'id', 'folder_id', 'next_field', 'state', 'firm_members', 'file_contacts' ]);
 
@@ -145,7 +145,7 @@
 
     <table v-if="showLookupList" class="mt-8 ml-4 border border-gray-500 suggestion-table bg-white w-64" >
         <tr v-for="contact, index in lookup.contact_list.data" :key="contact.id" @mousedown="clicked_contact_list(index)">
-            <td class="pl-4 py-1 text-sm hover:bg-gray-200 hover:cursor-default">
+            <td class="pl-4 py-1 text-sm text-base-content bg-base-300 hover:bg-base-100 hover:cursor-default">
                 {{ contact.display_last_first }}
             </td>
         </tr>

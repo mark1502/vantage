@@ -75,7 +75,7 @@ function handleKeyDown( event ) {
             <table v-if="display_file.name.length && lookup.file == true"
                 class="mt-8 border border-gray-400 suggestion-table bg-white w-64">
                 <tr v-for="afile, index in lookup.matching_files.data" :key="afile.id" @click="clicked_file_list(index)" >
-                    <td class="pl-4 py-1 text-sm hover:bg-gray-200 hover:cursor-default">
+                    <td class="pl-4 py-1 text-sm text-base-content bg-base-300 hover:bg-base-100 hover:cursor-default">
                         {{ afile.name }}
                     </td>
                 </tr>

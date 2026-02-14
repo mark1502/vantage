@@ -360,6 +360,9 @@ function setEntryClass( index ) {                                               
 
     if( index === state.row ) {                                                        // if this row is the highlighted row
         textcolor = 'text-gray-900 dark:text-gray-900';
+        if( entry.expecting_response ) {
+            textcolor = determine_response_expectation( entry.date_response_expected ) === 'Awaiting response' ? 'text-green-600' : 'text-red-500';
+        }
         bgcolor = 'bg-blue-200 dark:bg-blue-200';
         border = 'border-l-4 border-l-blue-600';
     }
@@ -532,10 +535,10 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                 </div>
 
                 <div class="w-1/5 pr-16">
-                    <div v-if="state.mode === 'entry_edit' || state.mode === 'file_edit'" class="text-blue-700 text-lg font-semibold text-right pr-8">
+                    <div v-if="state.mode === 'entry_edit' || state.mode === 'file_edit'" class="text-blue-800 dark:text-blue-400 text-lg font-semibold text-right pr-8">
                         Edit Mode: On
                     </div>
-                    <div v-if="state.mode === 'entry_add'" class="text-blue-700 text-lg font-semibold text-right pr-8">
+                    <div v-if="state.mode === 'entry_add'" class="text-blue-800 dark:text-blue-400 text-lg font-semibold text-right pr-8">
                         Add Mode
                     </div>
                 </div>

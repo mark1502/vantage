@@ -568,10 +568,10 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                 </div>
 
                 <div class="w-1/5 flex items-baseline justify-end pr-8">
-                    <div v-if="state.mode === 'entry_edit' || state.mode === 'file_edit'" class="text-blue-800 text-lg font-semibold text-right pr-8">
+                    <div v-if="state.mode === 'entry_edit' || state.mode === 'file_edit'" class="text-blue-800 dark:text-blue-400 text-lg font-semibold text-right pr-8">
                         Edit Mode
                     </div>
-                    <div v-if="state.mode == 'entry_add'" class="text-blue-800 text-lg font-semibold text-right pr-8">
+                    <div v-if="state.mode == 'entry_add'" class="text-blue-800 dark:text-blue-400 text-lg font-semibold text-right pr-8">
                         Add Mode
                     </div>
                 </div>

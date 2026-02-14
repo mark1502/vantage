@@ -119,7 +119,7 @@ const folder_singular = [                               // this array is used to
     'Case Cost',
 ];
 
-const added_contact_obj = reactive({                    // used for contact lookup
+let added_contact_obj = reactive({                    // used for contact lookup
     name: '',
     id: 0,
     display_modal: false,
@@ -1133,24 +1133,24 @@ update_disp();
         </div>
     </div>
 
-    <!-- Put this part before </body> tag - Confirm Entry Change modal-->
+    <!-- Put this part before </body> tag - File Contacts modal-->
     <input hidden type="checkbox" id="file_contacts_modal" class="modal-toggle" />
     <div class="modal">
         <div class="modal-box">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="selectFileContact( 'cancel' )">✕</button>
-            <h3 class="font-bold text-2xl text-center">Select File Contact</h3>
-                <div class="text-center">
-                    <span class="">{{ disp.show_file_contacts === 'from' ? props.getFolderData('from_prompt') : props.getFolderData('to_prompt') }}</span>
-                    <select v-model="disp.show_contact_id" class="select select-bordered select-sm w-64 mt-8 ml-3 size">
-                        <option v-for="(contact, index) in props.p1.file_contacts" :key="index" :value="contact.id">
-                            {{ contact.display_last_first }}
-                        </option>
-                    </select>
-                </div>
+            <h3 class="font-bold text-2xl text-center mb-2">Select File Contact</h3>
+            <p class="text-center text-sm mb-4">{{ disp.show_file_contacts === 'from' ? props.getFolderData('from_prompt') : props.getFolderData('to_prompt') }}</p>
 
-            <div class="modal-action justify-center mt-10">
-                <button type="button" class="btn btn-primary gap-0" @click="selectFileContact()">Select</button>
-                <!-- <button type="button" class="btn gap-0" @click="disp.show_file_contacts ='off'">Cancel</button> -->
+            <!-- Scrollable list of contacts -->
+            <div class="max-h-96 overflow-y-auto border border-base-300 rounded-md">
+                <div
+                    v-for="(contact, index) in props.p1.file_contacts"
+                    :key="index"
+                    @click="disp.show_contact_id = contact.id; selectFileContact()"
+                    class="px-4 py-2 hover:bg-base-200 cursor-pointer border-b border-base-300 last:border-b-0"
+                >
+                    {{ contact.display_last_first }}
+                </div>
             </div>
         </div>
     </div>
