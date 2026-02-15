@@ -18,16 +18,26 @@ const props = defineProps({
     file: Object,
     filetypes: Object,
     attorneys: Object,
+    assigned_attorney_id: Number,
+    client_name: String,
 });
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
+
+const state = reactive({
+    mode: 'file_show',
+});
 
 // let default_filetype = null;
 
 // props.filetypes.forEach( filetype => {                                                  // go through the filetypes
 //     if( filetype['set_as_default'] === 1 ) default_filetype = filetype.id;          // if a default type is found, set the variable with it
 // });
+
+function handleEsc(e) {
+    // Handle escape key if needed
+}
 
 onMounted(() => document.addEventListener('keydown', handleEsc));
 onUnmounted(() => document.removeEventListener('keydown', handleEsc));
@@ -52,11 +62,13 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         File Information
                     </p>
 
-                    <FileForm 
-                        v-model:the_mode="state.mode" 
+                    <FileForm
+                        v-model:the_mode="state.mode"
                         :file="props.file"
                         :filetypes="props.filetypes"
-                        :attorneys="props.attorneys" 
+                        :attorneys="props.attorneys"
+                        :assigned_attorney_id="props.assigned_attorney_id"
+                        :client_name="props.client_name"
                     />
 
                 </div>

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
 use App\Models\Contact;
+use App\Models\ContactRole;
 use App\Models\File;
 use App\Models\Filetype;
+use App\Models\Role;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class FileController extends Controller
 {
@@ -20,7 +22,10 @@ class FileController extends Controller
         // dd($request->user()->firm_id);
         $show = $request->query('show');
 
-        $files = File::with(['filetype','contact:id,display_name'])
+        $files = File::with([
+            'filetype',
+            'assignedAttorney.contact:id,display_name'
+        ])
         ->where('firm_id', $request->user()->firm_id)
         ->when($request->query('search'), function($query, $search) {
             $query->where('name', 'like', '%' . $search . '%');
@@ -53,10 +58,17 @@ class FileController extends Controller
                     ->where('firm_role', 'Attorney')
                     ->get();
 
+        $firm_members = Contact::select('id', 'display_last_first')
+                    ->where('firm_id', $request->user()->firm_id)
+                    ->where('is_firm_member', true)
+                    ->orderBy('display_last_first')
+                    ->get();
+
         return inertia::render('Files/Create',[
             // 'editmode' => 'create',
             'filetypes' => $filetypes,
             'attorneys' => $attorneys,
+            'firm_members' => $firm_members,
         ]);
     }
 
@@ -85,10 +97,12 @@ class FileController extends Controller
                 'fee_amount' => 'nullable|max:255',
                 'final_disposition' => 'nullable|max:255',
                 'filetype_id' => 'nullable|integer',
-                'contact_id' => 'required|integer',
+                'attorney_id' => 'required|integer',
+                'client_contact_id' => 'required|integer',
             ],
             [   'name' => 'File name is required.',
-                'contact_id' => 'Assigned attorney is required.',
+                'attorney_id' => 'Assigned attorney is required.',
+                'client_contact_id' => 'Client is required.',
             ]);
 
             $newCase = new File;
@@ -108,12 +122,38 @@ class FileController extends Controller
             $newCase->fee_amount = $request->fee_amount;
             $newCase->final_disposition = $request->final_disposition;
             $newCase->filetype_id = $request->filetype_id;
-            $newCase->contact_id = $request->contact_id;
-            $newCase->date_archived = $request->date_archived;
 
             $newCase->firm_id = $request->user()->firm_id;
 
             $newCase->save();
+
+            $AttorneyRole = Role::select('id')
+                ->where( 'firm_id', $newCase->firm_id )
+                ->where( 'name', 'Attorney' )
+                ->first();
+
+            // Create ContactRole for assigned attorney
+            ContactRole::create([
+                'file_id' => $newCase->id,
+                'contact_id' => $request->attorney_id,
+                'role_id' => $AttorneyRole->id,
+                'is_attorney' => true,
+                'is_client' => true,
+            ]);
+
+            // Create ContactRole for client
+            $ClientRole = Role::select('id')
+                ->where( 'firm_id', $newCase->firm_id )
+                ->where( 'name', 'Client' )
+                ->first();
+
+            ContactRole::create([
+                'file_id' => $newCase->id,
+                'contact_id' => $request->client_contact_id,
+                'role_id' => $ClientRole->id,
+                'is_client' => true,
+                'is_attorney' => false,
+            ]);
 
             return redirect( route( 'files.index', [ 'page' => $request->current_page, 'show' => $request->show ] ) );
     }
@@ -146,11 +186,22 @@ class FileController extends Controller
                         ->where('is_firm_member', true)
                         ->where('firm_role', 'Attorney')
                         ->get();
-        
+
+        // Load the assigned attorney from contact_roles
+        $assignedAttorney = $file->assignedAttorney;
+
+        // Load the client from contact_roles
+        $clientContactRole = ContactRole::where('file_id', $file->id)
+                        ->where('is_client', true)
+                        ->with('contact:id,display_last_first')
+                        ->first();
+
         return inertia::render('Files/Edit',[
             'file' => $file,
             'filetypes' => $filetypes,
             'attorneys' => $attorneys,
+            'assigned_attorney_id' => $assignedAttorney?->contact_id,
+            'client_name' => $clientContactRole?->contact?->display_last_first ?? '',
         ]);
     }
 
@@ -183,7 +234,7 @@ class FileController extends Controller
                 'fee_amount' => 'nullable|max:255',
                 'final_disposition' => 'nullable|max:255',
                 'filetype_id' => 'nullable|integer',
-                'contact_id' => 'required|integer',
+                'attorney_id' => 'required|integer',
             ]);
 
             // dd($request);
@@ -204,9 +255,20 @@ class FileController extends Controller
             $file->fee_amount = $request->fee_amount ?? '';
             $file->final_disposition = $request->final_disposition ?? '';
             $file->filetype_id = $request->filetype_id;
-            $file->contact_id = $request->contact_id;
 
             $file->save();
+
+            // Update or create ContactRole for assigned attorney
+            ContactRole::updateOrCreate(
+                [
+                    'file_id' => $file->id,
+                    'is_attorney' => true,
+                ],
+                [
+                    'contact_id' => $request->attorney_id,
+                    'is_client' => false,
+                ]
+            );
             // disp.openurl = '/files/' + disp.id + '/entries?page=' + props.files.current_page + '&show=' + state.show + '&filepart=info';
             // return redirect('/files?page=' . $request->current_page . '&show=' . $request->show);
             

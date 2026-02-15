@@ -1,0 +1,446 @@
+{
+  "personal_injury": {
+    "Martinez v. ABC Transportation - Bus Accident": [
+      {
+        "first_name": "Carlos",
+        "last_name": "Martinez",
+        "email": "carlos.martinez@email.com",
+        "phone": "555-0101",
+        "role": "Client/Plaintiff",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "James",
+        "last_name": "Patterson",
+        "email": "j.patterson@abctransport.com",
+        "phone": "555-0102",
+        "role": "Defendant Representative",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Sarah",
+        "last_name": "Kim",
+        "email": "skim@globalinsurance.com",
+        "phone": "555-0103",
+        "role": "Insurance Adjuster",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Dr. Michael",
+        "last_name": "Torres",
+        "email": "mtorres@citymedical.com",
+        "phone": "555-0104",
+        "role": "Treating Physician",
+        "is_firm_member": false
+      }
+    ],
+    "Chen Slip and Fall - Riverside Mall": [
+      {
+        "first_name": "Linda",
+        "last_name": "Chen",
+        "email": "linda.chen@email.com",
+        "phone": "555-0201",
+        "role": "Client/Plaintiff",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Robert",
+        "last_name": "Nguyen",
+        "email": "rnguyen@riversideproperties.com",
+        "phone": "555-0202",
+        "role": "Property Manager",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Amanda",
+        "last_name": "Foster",
+        "email": "afoster@premierinsure.com",
+        "phone": "555-0203",
+        "role": "Insurance Adjuster",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Jessica",
+        "last_name": "Moore",
+        "email": "jmoore@email.com",
+        "phone": "555-0204",
+        "role": "Witness",
+        "is_firm_member": false
+      }
+    ],
+    "Thompson v. Dr. Harrison - Medical Malpractice": [
+      {
+        "first_name": "David",
+        "last_name": "Thompson",
+        "email": "d.thompson@email.com",
+        "phone": "555-0301",
+        "role": "Client/Plaintiff",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Dr. Richard",
+        "last_name": "Harrison",
+        "email": "harrison@coastalsurgery.com",
+        "phone": "555-0302",
+        "role": "Defendant",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Patricia",
+        "last_name": "Wong",
+        "email": "pwong@medicalmalpracticeins.com",
+        "phone": "555-0303",
+        "role": "Insurance Representative",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Dr. Elizabeth",
+        "last_name": "Sanders",
+        "email": "esanders@expertmedical.com",
+        "phone": "555-0304",
+        "role": "Expert Witness",
+        "is_firm_member": false
+      }
+    ],
+    "Rodriguez Auto Accident - Interstate 5": [
+      {
+        "first_name": "Maria",
+        "last_name": "Rodriguez",
+        "email": "maria.rodriguez@email.com",
+        "phone": "555-0401",
+        "role": "Client/Plaintiff",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Thomas",
+        "last_name": "Bradley",
+        "email": "tbradley@email.com",
+        "phone": "555-0402",
+        "role": "Defendant",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Kevin",
+        "last_name": "Reynolds",
+        "email": "kreynolds@statefarmauto.com",
+        "phone": "555-0403",
+        "role": "Insurance Adjuster",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Officer Daniel",
+        "last_name": "Martinez",
+        "email": "dmartinez@chp.gov",
+        "phone": "555-0404",
+        "role": "Police Officer/Witness",
+        "is_firm_member": false
+      }
+    ],
+    "Williams v. Coastal Properties - Premises Liability": [
+      {
+        "first_name": "Jennifer",
+        "last_name": "Williams",
+        "email": "j.williams@email.com",
+        "phone": "555-0501",
+        "role": "Client/Plaintiff",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Mark",
+        "last_name": "Sullivan",
+        "email": "msullivan@coastalproperties.com",
+        "phone": "555-0502",
+        "role": "Property Owner",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Rachel",
+        "last_name": "Hughes",
+        "email": "rhughes@liabilityinsure.com",
+        "phone": "555-0503",
+        "role": "Insurance Adjuster",
+        "is_firm_member": false
+      }
+    ]
+  },
+  "divorce": {
+    "In re Marriage of Anderson": [
+      {
+        "first_name": "Michelle",
+        "last_name": "Anderson",
+        "email": "michelle.anderson@email.com",
+        "phone": "555-0601",
+        "role": "Client/Petitioner",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Steven",
+        "last_name": "Anderson",
+        "email": "steven.anderson@email.com",
+        "phone": "555-0602",
+        "role": "Respondent",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Rebecca",
+        "last_name": "Martinez",
+        "email": "rmartinez@familylaw.com",
+        "phone": "555-0603",
+        "role": "Opposing Counsel",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Dr. Karen",
+        "last_name": "Phillips",
+        "email": "kphillips@childpsych.com",
+        "phone": "555-0604",
+        "role": "Child Custody Evaluator",
+        "is_firm_member": false
+      }
+    ],
+    "Peterson v. Peterson Dissolution": [
+      {
+        "first_name": "Gregory",
+        "last_name": "Peterson",
+        "email": "greg.peterson@email.com",
+        "phone": "555-0701",
+        "role": "Client/Petitioner",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Lauren",
+        "last_name": "Peterson",
+        "email": "lauren.peterson@email.com",
+        "phone": "555-0702",
+        "role": "Respondent",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Donald",
+        "last_name": "Crawford",
+        "email": "dcrawford@familyattorneys.com",
+        "phone": "555-0703",
+        "role": "Opposing Counsel",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Richard",
+        "last_name": "Chen",
+        "email": "rchen@businessvaluations.com",
+        "phone": "555-0704",
+        "role": "Business Valuator",
+        "is_firm_member": false
+      }
+    ],
+    "In re Marriage of Kumar": [
+      {
+        "first_name": "Priya",
+        "last_name": "Kumar",
+        "email": "priya.kumar@email.com",
+        "phone": "555-0801",
+        "role": "Client/Petitioner",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Rajesh",
+        "last_name": "Kumar",
+        "email": "rajesh.kumar@email.com",
+        "phone": "555-0802",
+        "role": "Respondent",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Margaret",
+        "last_name": "Davis",
+        "email": "mdavis@mediation.com",
+        "phone": "555-0803",
+        "role": "Mediator",
+        "is_firm_member": false
+      }
+    ]
+  },
+  "contract": {
+    "TechVentures Inc. v. DataSoft LLC - Breach of Contract": [
+      {
+        "first_name": "Andrew",
+        "last_name": "Mitchell",
+        "email": "amitchell@techventures.com",
+        "phone": "555-0901",
+        "role": "Client/CEO TechVentures",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Brian",
+        "last_name": "Cole",
+        "email": "bcole@datasoft.com",
+        "phone": "555-0902",
+        "role": "CEO DataSoft",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Susan",
+        "last_name": "Park",
+        "email": "spark@businesslaw.com",
+        "phone": "555-0903",
+        "role": "Opposing Counsel",
+        "is_firm_member": false
+      }
+    ],
+    "Morrison Real Estate v. Greenfield Development": [
+      {
+        "first_name": "Charles",
+        "last_name": "Morrison",
+        "email": "cmorrison@morrisonrealty.com",
+        "phone": "555-1001",
+        "role": "Client/Property Owner",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Daniel",
+        "last_name": "Green",
+        "email": "dgreen@greenfielddevelopment.com",
+        "phone": "555-1002",
+        "role": "Developer/Defendant",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Emily",
+        "last_name": "Robinson",
+        "email": "erobinson@commerciallaw.com",
+        "phone": "555-1003",
+        "role": "Opposing Counsel",
+        "is_firm_member": false
+      }
+    ],
+    "Silva v. Premier Construction - Construction Defect": [
+      {
+        "first_name": "Antonio",
+        "last_name": "Silva",
+        "email": "antonio.silva@email.com",
+        "phone": "555-1101",
+        "role": "Client/Homeowner",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Frank",
+        "last_name": "Wallace",
+        "email": "fwallace@premierconstruction.com",
+        "phone": "555-1102",
+        "role": "Contractor/Defendant",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "George",
+        "last_name": "Taylor",
+        "email": "gtaylor@constructionexperts.com",
+        "phone": "555-1103",
+        "role": "Expert Witness",
+        "is_firm_member": false
+      }
+    ]
+  },
+  "probate_estate": {
+    "Estate of Margaret Henderson": [
+      {
+        "first_name": "Margaret",
+        "last_name": "Henderson",
+        "email": null,
+        "phone": null,
+        "role": "Decedent",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Robert",
+        "last_name": "Henderson",
+        "email": "robert.henderson@email.com",
+        "phone": "555-1201",
+        "role": "Executor/Son",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Catherine",
+        "last_name": "Williams",
+        "email": "catherine.williams@email.com",
+        "phone": "555-1202",
+        "role": "Beneficiary/Daughter",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Thomas",
+        "last_name": "Henderson",
+        "email": "thomas.henderson@email.com",
+        "phone": "555-1203",
+        "role": "Beneficiary/Son",
+        "is_firm_member": false
+      }
+    ],
+    "In re Estate of Robert Chang": [
+      {
+        "first_name": "Robert",
+        "last_name": "Chang",
+        "email": null,
+        "phone": null,
+        "role": "Decedent",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Helen",
+        "last_name": "Chang",
+        "email": "helen.chang@email.com",
+        "phone": "555-1301",
+        "role": "Widow/Trustee",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Peter",
+        "last_name": "Chang",
+        "email": "peter.chang@email.com",
+        "phone": "555-1302",
+        "role": "Son/Beneficiary",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Lisa",
+        "last_name": "Yamamoto",
+        "email": "lisa.yamamoto@email.com",
+        "phone": "555-1303",
+        "role": "Daughter/Beneficiary",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Edward",
+        "last_name": "Brooks",
+        "email": "ebrooks@estatelaw.com",
+        "phone": "555-1304",
+        "role": "Contesting Party Attorney",
+        "is_firm_member": false
+      }
+    ],
+    "Estate of Dorothy Walsh - Guardianship": [
+      {
+        "first_name": "Dorothy",
+        "last_name": "Walsh",
+        "email": null,
+        "phone": "555-1401",
+        "role": "Ward/Conservatee",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Mary",
+        "last_name": "Walsh",
+        "email": "mary.walsh@email.com",
+        "phone": "555-1402",
+        "role": "Daughter/Petitioner",
+        "is_firm_member": false
+      },
+      {
+        "first_name": "Dr. James",
+        "last_name": "Cooper",
+        "email": "jcooper@geriatriccare.com",
+        "phone": "555-1403",
+        "role": "Attending Physician",
+        "is_firm_member": false
+      }
+    ]
+  }
+}

@@ -17,6 +17,8 @@
         file: Object,
         filetypes: Object,
         attorneys: Object,
+        assigned_attorney_id: Number,
+        client_name: String,
         // index_form: Object,
     });
 
@@ -38,7 +40,7 @@
         fee_amount: props.file.fee_amount,
         final_disposition: props.file.final_disposition,
         filetype_id: props.file.filetype_id,
-        contact_id: props.file.contact_id,
+        attorney_id: props.assigned_attorney_id,
         // current_page: props.index_form.current_page,
         // show: props.index_form.show,
         // comeback: true,                          // ???
@@ -195,19 +197,29 @@
         <!-- <button @click="click_AddType" class="ml-6 btn btn-xs btn-outline btn-primary">Add New Type</button> -->
     </div>
 
-        <!-- Attorney Line -->
+        <!-- Attorney and Client Line -->
         <div class="mt-4 flex items-center">
             <div class="flex w-32">
-                <InputLabel for="contact_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
+                <InputLabel for="attorney_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
             </div>
-            <select v-model="file_form.contact_id" id="contact_id" @change="form_change()" class="select select-bordered select-sm w-64">
+            <select v-model="file_form.attorney_id" id="attorney_id" @change="form_change()" class="select select-bordered select-sm w-64">
                 <!-- <option :value="null" /> -->
                 <option v-for="attorney in attorneys" :key="attorney.id" :value="attorney.id">
                     {{ attorney.display_last_first }}
                 </option>
             </select>
+
+            <div class="flex items-center ml-12">
+                <InputLabel value="Client:" class="mr-3" />
+                <input
+                    :value="client_name"
+                    type="text"
+                    disabled
+                    class="input input-sm input-bordered w-64 disabled:input-bordered disabled:text-base-content disabled:bg-base-200"
+                />
+            </div>
         </div>
-        <InputError class="mt-2 ml-32" :message="file_form.errors.contact_id" />
+        <InputError class="mt-2 ml-32" :message="file_form.errors.attorney_id" />
 
         <!-- Date opened and SOL Date line -->
         <div class="mt-4 flex items-center">

@@ -18,5 +18,29 @@ class FirmSeeder extends Seeder
             'email' => 'markkowit@gmail.com',
             'subscription_status' => false,
         ]);
+
+        Firm::create([
+            'name' => 'Vantage Sample Firm 1',
+            'email' => 'sample_1@wayopened.com',
+            'subscription_status' => false,
+        ]);
+
+        Firm::create([
+            'name' => 'Vantage Sample Firm 2',
+            'email' => 'sample_2@wayopened.com',
+            'subscription_status' => false,
+        ]);
+
+        Firm::create([
+            'name' => 'Vantage Sample Firm 3',
+            'email' => 'sample_3@wayopened.com',
+            'subscription_status' => false,
+        ]);
+
+        Firm::create([
+            'name' => 'Vantage Sample Firm 4',
+            'email' => 'sample_4@wayopened.com',
+            'subscription_status' => false,
+        ]);
     }
 }

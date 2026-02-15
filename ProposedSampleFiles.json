@@ -1,0 +1,66 @@
+{
+  "personal_injury": [
+    {
+      "file_name": "Martinez v. ABC Transportation - Bus Accident",
+      "description": "Passenger injured in bus collision on Highway 101"
+    },
+    {
+      "file_name": "Chen Slip and Fall - Riverside Mall",
+      "description": "Client sustained back injury due to wet floor without warning signs"
+    },
+    {
+      "file_name": "Thompson v. Dr. Harrison - Medical Malpractice",
+      "description": "Surgical error during routine appendectomy"
+    },
+    {
+      "file_name": "Rodriguez Auto Accident - Interstate 5",
+      "description": "Multi-vehicle collision resulting in spinal injuries"
+    },
+    {
+      "file_name": "Williams v. Coastal Properties - Premises Liability",
+      "description": "Defective stairway railing caused fall and fractures"
+    }
+  ],
+  "divorce": [
+    {
+      "file_name": "In re Marriage of Anderson",
+      "description": "Contested divorce with child custody and property division issues"
+    },
+    {
+      "file_name": "Peterson v. Peterson Dissolution",
+      "description": "High-asset divorce involving business valuation"
+    },
+    {
+      "file_name": "In re Marriage of Kumar",
+      "description": "Uncontested divorce with spousal support agreement"
+    }
+  ],
+  "contract": [
+    {
+      "file_name": "TechVentures Inc. v. DataSoft LLC - Breach of Contract",
+      "description": "Software licensing agreement dispute"
+    },
+    {
+      "file_name": "Morrison Real Estate v. Greenfield Development",
+      "description": "Commercial lease agreement breach and unpaid rent"
+    },
+    {
+      "file_name": "Silva v. Premier Construction - Construction Defect",
+      "description": "Residential building contract dispute over substandard work"
+    }
+  ],
+  "probate_estate": [
+    {
+      "file_name": "Estate of Margaret Henderson",
+      "description": "Probate administration with real property and multiple beneficiaries"
+    },
+    {
+      "file_name": "In re Estate of Robert Chang",
+      "description": "Contested will with trust administration"
+    },
+    {
+      "file_name": "Estate of Dorothy Walsh - Guardianship",
+      "description": "Conservatorship and estate planning for incapacitated adult"
+    }
+  ]
+}

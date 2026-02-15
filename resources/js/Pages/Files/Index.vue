@@ -263,7 +263,7 @@ update_disp();                                                                  
                                 <div v-if="files.data.length" class="p-4 text-base-content">
                                     <h2 class="card-title text-base-content">{{ file1.name }}</h2>
                                     <p class="mt-2">File Type: &nbsp;{{ file1.filetype.name }}</p>
-                                    <p class="">Attorney: &nbsp;{{ file1.contact.display_name }}</p>
+                                    <p class="">Attorney: &nbsp;{{ file1.assigned_attorney.contact.display_name }}</p>
                                     <div class="flex font-mono mt-2">
                                         <p class="w-1/2">Opened: {{ file1.date_opened ? reformat_date(file1.date_opened) : "" }}</p>
                                         <p class="">Closed: {{ file1.date_closed ? reformat_date(file1.date_closed) : "No" }}</p>

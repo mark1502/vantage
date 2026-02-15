@@ -19,13 +19,12 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
-            $table->tinyInteger('user_level')->default(0); // end of (breeze?) default fields
-            // custom fields
+                // custom fields
             $table->string('user_type', 10)->nullable();
-            $table->unsignedInteger('firm_id')->default(0)->index(); // default 0 for site admins, indexed for faster lookups
+            $table->unsignedInteger('firm_id')->default(0)->index(); // default 0 for site admins (?), indexed for faster lookups
             $table->boolean('welcomed')->default(false);
             $table->boolean('is_active')->default(true);  //added to easily disable accounts of former users
-            // considered adding member_initials, but for now, just use it as it is in contacts
+                // considered adding member_initials, but for now, just use it as it is in contacts
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

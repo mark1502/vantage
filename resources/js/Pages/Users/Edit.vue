@@ -307,24 +307,30 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         <div class="divider"></div>
 
                         <!-- Phone line starts here-->
-                        <div class="grid grid-cols-3 gap-4 mt-6 justify-between">
+                        <div class="grid grid-cols-3 gap-4 mt-6">
                             <div class="form-control">
-                                <label class="label_sm-700 mr-2">Cell:</label>
-                                <input v-model="form3.cell_phone" class="input input-sm input-bordered w-48" type="text"
+                                <label class="label_sm-700 ml-2">
+                                    Cell Phone:
+                                </label>
+                                <input v-model="form3.cell_phone" class="input input-sm input-bordered w-full" type="text"
                                     name="cell_phone" id="cell_phone" />
                                 <InputError class="mt-2" :message="form3.errors.cell_phone" />
                             </div>
-                            
+
                             <div class="form-control">
-                                <label class="label_sm-700 mr-2">Home:</label>
-                                <input v-model="form3.home_phone" class="input input-sm input-bordered w-48" type="text"
+                                <label class="label_sm-700 ml-2">
+                                    Home Phone:
+                                </label>
+                                <input v-model="form3.home_phone" class="input input-sm input-bordered w-full" type="text"
                                     name="home_phone" id="home_phone" />
                                 <InputError class="mt-2" :message="form3.errors.home_phone" />
                             </div>
-                            
+
                             <div class="form-control">
-                                <label class="label_sm-700 mr-2">Work:</label>
-                                <input v-model="form3.work_phone" class="input input-sm input-bordered w-48" type="text"
+                                <label class="label_sm-700 ml-2">
+                                    Work Phone:
+                                </label>
+                                <input v-model="form3.work_phone" class="input input-sm input-bordered w-full" type="text"
                                     name="work_phone" id="work_phone" />
                                 <InputError class="mt-2" :message="form3.errors.work_phone" />
                             </div>

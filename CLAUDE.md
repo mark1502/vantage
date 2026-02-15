@@ -132,6 +132,50 @@ database/
 - Folders define which Entrytypes are available
 - Users belong to Firms (multi-tenant)
 
+### User-Contact Relationship (Important!)
+
+**Every User has a corresponding Contact record** to allow users to be referenced in entries (from/to relationships).
+
+**Contact Model Dual Purpose:**
+- **External contacts**: `is_firm_member = false` (clients, opposing counsel, etc.)
+- **Internal firm members**: `is_firm_member = true`, has `user_id` linking to User record
+
+**Active Status Tracking:**
+- The `contacts.current` field is the **single source of truth** for active/inactive status
+  - `'C'` = Current/Active user
+  - `'I'` = Inactive user (or any value other than 'C')
+- The `users.is_active` column is NOT used (will be dropped)
+
+**Firm Member Data:**
+- `member_initials` - stored in contacts table only (unique per firm)
+- `firm_role` - stored in contacts table only (Attorney/Paralegal/Clerical)
+- These fields are NOT in the users table
+
+**Helper Methods:**
+```php
+// Check if user is active
+$user->isActive();  // returns bool
+
+// Query active users
+User::active()->get();
+User::current()->get();  // alias for active()
+
+// Access member data
+$user->memberInitials();  // instead of $user->contact->member_initials
+$user->firmRole();        // instead of $user->contact->firm_role
+
+// Contact scopes
+Contact::current()->get();                    // current/active contacts only
+Contact::firmMembers()->get();                // firm members only
+Contact::externalContacts()->get();           // external contacts only
+Contact::firmMembers()->current()->get();     // current firm members
+```
+
+**Why This Architecture:**
+- Entries need to reference both internal users and external contacts in `from_contact_id`/`to_contact_id`
+- Single contacts table simplifies entry relationships
+- External contacts are filtered out of contact index with `->where('is_firm_member', false)`
+
 ## Important Patterns & Conventions
 
 ### Inertia.js Pattern

@@ -114,7 +114,7 @@ function initials_3_Focus() {
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 min-h-screen">
                 <div class="bg-base-300 overflow-hidden shadow-sm sm:rounded-lg">
 
-                    <form @submit.prevent="submitForm3" class="max-w-5xl mx-auto mt-4">
+                    <form @submit.prevent="submitForm3" class="max-w-5xl mx-auto mt-4" autocomplete="off">
 
                         <!-- Name Line starts-->
                         <div class="grid grid-cols-[160px_224px_144px_224px_144px] gap-4 mt-8">
@@ -184,16 +184,16 @@ function initials_3_Focus() {
                         <div class="divider"></div>
 
                         <!-- Member Initials, role, type line starts here-->
-                        <div class="grid grid-cols-3 gap-4 mt-6">
+                        <div class="grid grid-cols-4 gap-4 mt-6">
 
                             <div class="form-control">
                                 <label class="label_sm-700">
                                     <span class="text-sm text-red-600 align-baseline mr-1">*</span>
                                     Member Initials:
                                 </label>
-                                <input v-model="form3.member_initials" type="text"
+                                <input v-model="form3.member_initials" 
                                     class="input input-sm input-bordered w-48" @focus="initials_3_Focus"
-                                    name="form3.member_initials" id="form3.member_initials" required />
+                                    id="form3.member_initials" required />
                                 <InputError class="mt-2" :message="form3.errors.member_initials" />
                             </div>
 
@@ -286,24 +286,30 @@ function initials_3_Focus() {
                         <div class="divider"></div>
 
                         <!-- Phone line starts here-->
-                        <div class="grid grid-cols-3 gap-4 mt-6 justify-between">
+                        <div class="grid grid-cols-3 gap-8 mt-6">
                             <div class="form-control">
-                                <label class="label_sm-700">Cell:</label>
-                                <input v-model="form3.cell_phone" class="input input-sm input-bordered w-48" type="text"
+                                <label class="label_sm-700 ml-2">
+                                    Cell Phone:
+                                </label>
+                                <input v-model="form3.cell_phone" class="input input-sm input-bordered w-full" type="text"
                                     name="cell_phone" id="cell_phone" />
                                 <InputError class="mt-2" :message="form3.errors.cell_phone" />
                             </div>
-                            
+
                             <div class="form-control">
-                                <label class="label_sm-700">Home:</label>
-                                <input v-model="form3.home_phone" class="input input-sm input-bordered w-48" type="text"
+                                <label class="label_sm-700 ml-2">
+                                    Home Phone:
+                                </label>
+                                <input v-model="form3.home_phone" class="input input-sm input-bordered w-full" type="text"
                                     name="home_phone" id="home_phone" />
                                 <InputError class="mt-2" :message="form3.errors.home_phone" />
                             </div>
-                            
+
                             <div class="form-control">
-                                <label class="label_sm-700">Work:</label>
-                                <input v-model="form3.work_phone" class="input input-sm input-bordered w-48" type="text"
+                                <label class="label_sm-700 ml-2">
+                                    Work Phone:
+                                </label>
+                                <input v-model="form3.work_phone" class="input input-sm input-bordered w-full" type="text"
                                     name="work_phone" id="work_phone" />
                                 <InputError class="mt-2" :message="form3.errors.work_phone" />
                             </div>

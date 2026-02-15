@@ -3,12 +3,15 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
-import { ref, onMounted, onUnmounted, nextTick, watch, onBeforeUnmount } from "vue";
+import ContactLookup from "@/Components/ContactLookup.vue";
+import AddContactForm from "@/Components/AddContactForm.vue";
+import { ref, reactive, onMounted, onUnmounted, nextTick, watch, onBeforeUnmount } from "vue";
 import { Head, Link, useForm, router } from "@inertiajs/vue3";
 
 const props = defineProps({
     filetypes: Object,
     attorneys: Object,
+    firm_members: Array,
 });
 
 const queryString = window.location.search;
@@ -23,6 +26,19 @@ props.filetypes.forEach( filetype => {              // go through filetypes
         default_filetype = filetype.id;                     // hold default filetype.id (used to initialize on the form)
         solEnabled.value = filetype.enable_file_SOL;            // set ref for enable_file_SOL
     }
+});
+
+const display_name = reactive({
+    client: '',
+});
+
+let added_contact_obj = reactive({
+    name: '',
+    id: 0,
+    display_modal: false,
+    accept: false,
+    field: '',
+    new_contact_added: false,
 });
 
 let form = useForm({
@@ -43,12 +59,29 @@ let form = useForm({
     fee_amount: "",
     final_disposition: "",
     filetype_id: default_filetype,                      // start the form with the default filetype, if any
-    contact_id: null,
+    attorney_id: null,
+    client_contact_id: null,
     current_page: urlParams.get('page'),
     show: urlParams.get('show'),
 });
 
 let saved_file_form = { ...form };                              // clone a copy of the file form
+
+const the_mode = ref('file_add');
+
+watch(added_contact_obj, (newValue) => {
+    if (newValue.accept === true && newValue.field === 'file_client') {
+        form.client_contact_id = newValue.id;
+        display_name.client = newValue.name;
+
+        nextTick(() => {
+            newValue.id = 0;
+            newValue.name = '';
+            newValue.field = '';
+            newValue.accept = false;
+        });
+    }
+});
 
 const removeListener = router.on('before', (event) => {         // Inertia onBefore event, before rerouting
     if( !form.isDirty ) return;
@@ -234,18 +267,36 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             </select>
                         </div>
 
-                            <!-- Attorney Line -->
+                            <!-- Attorney and Client Line -->
                         <div class="mt-4 flex items-center">
                             <div class="flex w-32">
-                                 <InputLabel for="contact_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
+                                 <InputLabel for="attorney_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
                             </div>
-                            <select v-model="form.contact_id" id="contact_id" class="select select-bordered select-sm w-64">
+                            <select v-model="form.attorney_id" id="attorney_id" class="select select-bordered select-sm w-64" placeholder="Select Attorney...">
                                 <option v-for="attorney in attorneys" :key="attorney.id" :value="attorney.id">
                                     {{ attorney.display_last_first }}
                                 </option>
                             </select>
+
+                            <div class="flex items-center ml-12">
+                                <InputLabel for="file_client" value="Client:" class="mr-3" /><span class="red_star-700-2 mr-3">*</span>
+                                <ContactLookup
+                                    v-model:contact_id="form.client_contact_id"
+                                    v-model:contact_name="display_name.client"
+                                    v-model:the_mode="the_mode"
+                                    v-model:added_contact_obj="added_contact_obj"
+                                    :id="'file_client'"
+                                    :folder_id="0"
+                                    :next_field="'date_opened'"
+                                    :state="{ mode: 'file_add' }"
+                                    :firm_members="firm_members"
+                                    :file_contacts="[]" />
+                            </div>
                         </div>
-                        <InputError class="mt-2 ml-32" :message="form.errors.contact_id" />
+                        <div class="flex">
+                            <InputError class="mt-2 ml-32" :message="form.errors.attorney_id" />
+                            <InputError class="mt-2 ml-80" :message="form.errors.client_contact_id" />
+                        </div>
 
                             <!-- Date opened and SOL Date line -->
                         <div class="mt-4 flex items-center">
@@ -418,6 +469,9 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                 </div>
             </div>
         </div>
+
+        <!-- Add Contact Form Modal -->
+        <AddContactForm v-model:added_contact_obj="added_contact_obj" :id="'contact_modal_form'" />
 
     </AuthenticatedLayout>
 </template>

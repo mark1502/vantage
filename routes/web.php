@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContactRoleController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\CalendarController;
@@ -52,6 +53,11 @@ Route::middleware('auth','welcomed')->group(function () {
     Route::resource('views', ViewController::class)->names('views');
     Route::resource('folders', FolderController::class)->names('folders');
     Route::resource('folders.entrytypes', EntrytypeController::class)->names('entrytypes');
+
+    // Contact Roles routes
+    Route::post('/contact-roles', [ContactRoleController::class, 'store'])->name('contact-roles.store');
+    Route::put('/contact-roles/{contactRole}', [ContactRoleController::class, 'update'])->name('contact-roles.update');
+    Route::delete('/contact-roles/{contactRole}', [ContactRoleController::class, 'destroy'])->name('contact-roles.destroy');
 
     Route::get('/users/{user}/preferences', [PreferenceController::class, 'index'])->name('preferences.index');
     Route::post('/preferences/eventcolors', [PreferenceController::class, 'eventcolor_update'])->name('preferences.eventcolors');

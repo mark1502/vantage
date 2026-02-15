@@ -28,8 +28,6 @@ class User extends Authenticatable
         'user_type',
         'firm_id',
         'welcomed',
-        'is_active',
-
     ];
 
     /**
@@ -68,6 +66,62 @@ class User extends Authenticatable
     public function preferences()
     {
         return $this->hasMany(Preference::class);
+    }
+
+    /**
+     * Check if the user is currently active.
+     * Active status is tracked via the contact's 'current' field ('C' = current/active).
+     *
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return $this->contact && $this->contact->current === 'C';
+    }
+
+    /**
+     * Scope query to only include active/current users.
+     * Uses the contact's 'current' field to determine status.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereHas('contact', function($q) {
+            $q->where('current', 'C');
+        });
+    }
+
+    /**
+     * Alias for scopeActive - scope to current users.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeCurrent($query)
+    {
+        return $this->scopeActive($query);
+    }
+
+    /**
+     * Get the user's member initials from their contact record.
+     *
+     * @return string|null
+     */
+    public function memberInitials(): ?string
+    {
+        return $this->contact?->member_initials;
+    }
+
+    /**
+     * Get the user's firm role from their contact record.
+     *
+     * @return string|null
+     */
+    public function firmRole(): ?string
+    {
+        return $this->contact?->firm_role;
     }
 
 
