@@ -2,6 +2,8 @@
     import { nextTick, watch } from 'vue';
     import { useForm } from '@inertiajs/vue3';
     import InputError from "@/Components/InputError.vue";
+    import InputLabel from "@/Components/InputLabel.vue";
+    import TextInput from "@/Components/TextInput.vue";
     import axios from 'axios';
 
     const props = defineProps(['id']);
@@ -83,7 +85,7 @@
 
                         added_contact_obj.value.display_modal = false;          // close the modal
                         theForm.reset();                                        // clear the form
-                        
+
                         nextTick(() => {                                        // on nextTick, copy contact_id and name to the parent form, mark accept and added as true
                             added_contact_obj.value.id = response.data.added_contact_id;
                             added_contact_obj.value.name = response.data.added_contact_name;
@@ -104,18 +106,16 @@
 
 </script>
 
-<template>       
+<template>
     <dialog :id="dialog_id" class="modal">
         <div class="modal-box w-11/12 max-w-6xl z-300">
             <h3 class="font-bold text-2xl text-center">Add New Contact</h3>
             <form :id="props.id" name="form4contact" class="max-w-5xl mx-auto mt-4" autocomplete="off">
                 <!-- Name Line starts-->
-                <div class="flex mt-6">
-                    <div class="form-control w-36 max-w-xs mr-4">
-                        <label for="theForm.title" class="label_sm-700 ml-2">
-                            Title<span class="ml-2 red_star-700-2">*</span>
-                        </label>
-                        <select v-model="theForm.title" class="border border-gray-300 rounded p-2.5" id="theForm.title">
+                <div class="flex mt-8">
+                    <div class="flex-col w-36 max-w-xs mr-4">
+                        <div class="flex ml-2"><InputLabel for="theForm.title" value="Title" /><span class="text-sm text-red-600 ml-2">*</span></div>
+                        <select v-model="theForm.title" class="select select-bordered select-sm text-base" id="theForm.title">
                             <option value="" disabled selected>Pick one</option>
                             <option>Mr.</option>
                             <option>Ms.</option>
@@ -128,48 +128,33 @@
                         <InputError class="mt-2" :message="theForm.errors.title" />
                     </div>
                     <div v-if="theForm.title != 'Co.'" class="flex">
-                        <div class="form-control w-56 max-w-xs mr-4">
-                            <label for="theForm.first_name" class="label_sm-700 ml-2">
-                                First Name<span class="red_star-700-2 ml-2">*</span>
-                            </label>
-                            <input v-model="theForm.first_name" type="text"
-                                class="input input-bordered w-full max-w-xs" id="theForm.first_name" required autocomplete="off"/>
+                        <div class="flex-col w-56 max-w-xs mr-4">
+                            <div class="flex ml-2"><InputLabel for="theForm.first_name" value="First Name" /><span class="text-sm text-red-600 ml-2">*</span></div>
+                            <TextInput v-model="theForm.first_name" id="theForm.first_name" class="w-full max-w-xs" required />
                             <InputError class="mt-2" :message="theForm.errors.first_name" />
                         </div>
 
-                        <div class="form-control w-32 max-w-xs mr-4">
-                            <label for="theForm.middle_name" class="label_sm-700 ml-2">
-                                Middle
-                            </label>
-                            <input v-model="theForm.middle_name" type="text"
-                                class="input input-bordered w-full max-w-xs" id="theForm.middle_name" />
+                        <div class="flex-col w-32 max-w-xs mr-4">
+                            <div class="flex ml-2"><InputLabel for="theForm.middle_name" value="Middle" class="ml-2"/><span class="text-sm ml-2 invisible">*</span></div>
+                            <TextInput v-model="theForm.middle_name" id="theForm.middle_name" class="w-full max-w-xs" />
                             <InputError class="mt-2" :message="theForm.errors.middle_name" />
                         </div>
 
-                        <div class="form-control w-56 max-w-xs mr-4">
-                            <label for="theForm.last_name" class="label_sm-700 ml-2">
-                                Last Name<span class="red_star-700-2 ml-2">*</span>
-                            </label>
-                            <input v-model="theForm.last_name" type="text"
-                                class="input input-bordered w-full max-w-xs" id="theForm.last_name" required />
+                        <div class="flex-col w-56 max-w-xs mr-4">
+                            <div class="flex ml-2"><InputLabel for="theForm.last_name" value="Last Name" /><span class="text-sm text-red-600 ml-2">*</span></div>
+                            <TextInput v-model="theForm.last_name" id="theForm.last_name" class="w-full max-w-xs" required />
                             <InputError class="mt-2" :message="theForm.errors.last_name" />
-
                         </div>
 
-                        <div class="form-control w-32 max-w-xs mr-4">
-                            <label for="theForm.srjr" class="label_sm-700 ml-2">
-                                Sr/Jr
-                            </label>
-                            <input v-model="theForm.srjr" type="text" class="input input-bordered w-full max-w-xs" id="theForm.srjr" />
+                        <div class="flex-col w-32 max-w-xs mr-4">
+                            <div class="flex ml-2"><InputLabel for="theForm.srjr" value="Sr/Jr" class="ml-2"/><span class="text-sm ml-2 invisible">*</span></div>
+                            <TextInput v-model="theForm.srjr" id="theForm.srjr" class="w-full max-w-xs" />
                             <InputError class="mt-2" :message="theForm.errors.srjr" />
                         </div>
 
-                        <div class="form-control w-32 max-w-xs">
-                            <label for="theForm.esqphd" class="label_sm-700 ml-2">
-                                Esq/Ph.D
-                            </label>
-                            <input v-model="theForm.esqphd" type="text"
-                                class="input input-bordered w-full max-w-xs" id="theForm.esqphd" />
+                        <div class="flex-col w-32 max-w-xs">
+                            <div class="flex ml-2"><InputLabel for="theForm.esqphd" value="Esq/Ph.D" class="ml-2"/><span class="text-sm ml-2 invisible">*</span></div>
+                            <TextInput v-model="theForm.esqphd" id="theForm.esqphd" class="w-full max-w-xs" />
                             <InputError class="mt-2" :message="theForm.errors.esqphd" />
                         </div>
                     </div>
@@ -177,86 +162,68 @@
                 <InputError class="mt-2" :message="theForm.errors.display_name" />
 
                 <!-- Company Line starts-->
-                <div class="flex mt-4">
-                    <div class="form-control w-1/2 max-w-sm">
-                        <label for="theForm.company" class="label_sm-700 ml-2">
-                            Company
-                        </label>
-                        <input v-model="theForm.company" type="text" class="input input-bordered w-full" id="theForm.company" />
+                <div class="flex mt-6">
+                    <div class="flex-col w-1/2 max-w-sm">
+                        <div class="flex ml-2"><InputLabel for="theForm.company" value="Company" />
+                            <span v-if="theForm.title === 'Co.'" class="text-sm text-red-600 ml-2">*</span>
+                            <span v-else class="text-sm ml-2 invisible">*</span>
+                        </div>
+                        <TextInput v-model="theForm.company" id="theForm.company" class="w-full" />
                         <InputError class="mt-2" :message="theForm.errors.company" />
                     </div>
-                    <div v-if="theForm.title != 'Co.'" class="form-control w-1/2 max-w-sm ml-32">
-                        <label for="theForm.business_title" class="label_sm-700 ml-2">
-                            Business Title
-                        </label>
-                        <input v-model="theForm.business_title" type="text" class="input input-bordered w-full" id="theForm.business_title" />
+                    <div v-if="theForm.title != 'Co.'" class="flex-col w-1/2 max-w-sm ml-32">
+                        <div class="flex ml-2"><InputLabel for="theForm.business_title" value="Business Title" /><span class="text-sm ml-2 invisible">*</span></div>
+                        <TextInput v-model="theForm.business_title" id="theForm.business_title" class="w-full" />
                         <InputError class="mt-2" :message="theForm.errors.business_title" />
                     </div>
                 </div>
 
                 <!-- Address Line starts-->
-                <div class="flex my-4">
-                    <div class="form-control w-1/2 max-w-sm">
-                        <label for="theForm.address" class="label_sm-700 ml-2">
-                            Address
-                        </label>
-                        <textarea v-model="theForm.address" class="textarea textarea-bordered p-2 h-32 w-full" style="line-height: 1.3;" id="theForm.address"></textarea>
+                <div class="flex my-5">
+                    <div class="flex-col w-1/2 max-w-sm">
+                        <InputLabel for="theForm.address" value="Address" class="ml-2"/>
+                        <textarea v-model="theForm.address" id="theForm.address" class="textarea textarea-bordered text-base p-2 h-32 w-full"></textarea>
                         <InputError class="mt-2" :message="theForm.errors.address" />
-
                     </div>
-                    <div class="form-control w-1/2 max-w-sm ml-32">
-                        <label for="theForm.email" class="label_sm-700 ml-2">
-                            Email
-                        </label>
-                        <input v-model="theForm.email" type="text" class="input input-bordered w-full" id="theForm.email" />
+                    <div class="flex-col w-1/2 max-w-sm ml-32">
+                        <InputLabel for="theForm.email" value="Email" class="ml-2"/>
+                        <TextInput v-model="theForm.email" id="theForm.email" class="w-full mb-3" />
                         <InputError class="mt-2" :message="theForm.errors.email" />
-                        <label for="theForm.email_alt" class="label_sm-700 ml-2 mt-2">
-                            Alternate Email
-                        </label>
-                        <input v-model="theForm.email_alt" type="text" class="input input-bordered w-full" id="theForm.email_alt" />
+
+                        <InputLabel for="theForm.email_alt" value="Alternate Email" class="ml-2"/>
+                        <TextInput v-model="theForm.email_alt" id="theForm.email_alt" class="w-full" />
                         <InputError class="mt-2" :message="theForm.errors.email_alt" />
                     </div>
                 </div>
 
                 <!-- Phones Line starts-->
-                <span class="label_sm-700 ml-2">PHONES</span>
-                <div class="flex space-x-4 border-2 rounded-md p-5">
-                    <div class="form-control w-1/5 max-w-sm">
-                        <label for="theForm.work_phone" class="label_sm-700 ml-2">
-                            Work
-                        </label>
-                        <input v-model="theForm.work_phone" type="text" class="input input-bordered w-full" id="theForm.work_phone" />
+                <span class="text-sm font-semibold ml-2">PHONES:</span>
+                <div class="flex space-x-4 border border-base-content rounded p-4">
+                    <div class="flex-col w-1/5 max-w-sm">
+                        <InputLabel for="theForm.work_phone" value="Work" class="ml-2"/>
+                        <TextInput v-model="theForm.work_phone" id="theForm.work_phone" class="w-full" />
                         <InputError class="mt-2" :message="theForm.errors.work_phone" />
                     </div>
-                    <div class="form-control w-1/5 max-w-sm">
-                        <label for="theForm.cell_phone" class="label_sm-700 ml-2">
-                            Cell
-                        </label>
-                        <input v-model="theForm.cell_phone" type="text" class="input input-bordered w-full" id="theForm.cell_phone" />
+                    <div class="flex-col w-1/5 max-w-sm">
+                        <InputLabel for="theForm.cell_phone" value="Cell" class="ml-2"/>
+                        <TextInput v-model="theForm.cell_phone" id="theForm.cell_phone" class="w-full" />
                         <InputError class="mt-2" :message="theForm.errors.cell_phone" />
                     </div>
-                    <div class="form-control w-1/5 max-w-sm">
-                        <label for="theForm.home_phone" class="label_sm-700 ml-2">
-                            Home
-                        </label>
-                        <input v-model="theForm.home_phone" type="text" class="input input-bordered w-full" id="theForm.home_phone" />
+                    <div class="flex-col w-1/5 max-w-sm">
+                        <InputLabel for="theForm.home_phone" value="Home" class="ml-2"/>
+                        <TextInput v-model="theForm.home_phone" id="theForm.home_phone" class="w-full" />
                         <InputError class="mt-2" :message="theForm.errors.home_phone" />
                     </div>
-                    <div class="form-control w-1/5 max-w-sm">
-                        <label for="theForm.fax_phone" class="label_sm-700 ml-2">
-                            Fax
-                        </label>
-                        <input v-model="theForm.fax_phone" type="text" class="input input-bordered w-full" id="theForm.fax_phone" />
+                    <div class="flex-col w-1/5 max-w-sm">
+                        <InputLabel for="theForm.fax_phone" value="Fax" class="ml-2"/>
+                        <TextInput v-model="theForm.fax_phone" id="theForm.fax_phone" class="w-full" />
                         <InputError class="mt-2" :message="theForm.errors.fax_phone" />
                     </div>
-                    <div class="form-control w-1/5 max-w-sm">
-                        <label for="theForm.other_phone" class="label_sm-700 ml-2">
-                            Other
-                        </label>
-                        <input v-model="theForm.other_phone" type="text" class="input input-bordered w-full" id="theForm.other_phone" />
+                    <div class="flex-col w-1/5 max-w-sm">
+                        <InputLabel for="theForm.other_phone" value="Other" class="ml-2"/>
+                        <TextInput v-model="theForm.other_phone" id="theForm.other_phone" class="w-full" />
                         <InputError class="mt-2" :message="theForm.errors.other_phone" />
                     </div>
-
                 </div>
 
                 <div class="modal-action">
@@ -266,5 +233,5 @@
 
             </form>
         </div>
-    </dialog>     
+    </dialog>
 </template>

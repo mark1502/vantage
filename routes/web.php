@@ -55,6 +55,7 @@ Route::middleware('auth','welcomed')->group(function () {
     Route::resource('folders.entrytypes', EntrytypeController::class)->names('entrytypes');
 
     // Contact Roles routes
+    Route::get('/contact-role-ids/{file}', [ContactRoleController::class, 'getContactRoleIds'])->name('contact-roles.ids');
     Route::post('/contact-roles', [ContactRoleController::class, 'store'])->name('contact-roles.store');
     Route::put('/contact-roles/{contactRole}', [ContactRoleController::class, 'update'])->name('contact-roles.update');
     Route::delete('/contact-roles/{contactRole}', [ContactRoleController::class, 'destroy'])->name('contact-roles.destroy');

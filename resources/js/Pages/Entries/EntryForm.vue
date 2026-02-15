@@ -72,7 +72,8 @@ const entry_form = useForm({                            // the entry_form - pass
     read: props.state.read,
     from_to: props.state.from_to,
     new_entrytype_added: false,
-    new_contact_added: false, 
+    new_contact_added: false,
+    pending_contact_roles: [],
 });
 
 let saved_entry_form = {};
@@ -137,6 +138,16 @@ const mark_read = reactive({                            // used for the "Read" c
 let save_clicked = false;                               // use this to avoid repeat of warning before unmounting
 let refresh_entrytype_pending = ref(false);             // use this to stop update_disp (in onUpdate) upon return from posting to add a new entrytype
 
+// Contact role assignment state
+const role_modal = reactive({
+    show: false,
+    contact_id: null,
+    contact_name: '',
+    selected_role_id: null,
+});
+const known_role_contact_ids = ref([...(props.p1.contact_role_ids || [])]);
+let suppress_role_check = false;
+
 watch(() => props.state.row, (row) => {                 // watch the row - calls update_disp on change
     update_disp()
 });
@@ -163,6 +174,36 @@ watch(the_mode, (newMode, oldMode) => {                 // watch for mode change
 
 watch(hotkey_pressed, (hotkey) => {
     handle_hotkey_press(hotkey);
+});
+
+// Watch file_id changes in view mode to fetch contact role IDs
+watch(() => entry_form.file_id, (newVal, oldVal) => {
+    if (suppress_role_check || !newVal) return;
+    if (props.file_view === 'view' && (props.state.mode === 'entry_add' || props.state.mode === 'entry_edit')) {
+        axios.get('/contact-role-ids/' + newVal)
+            .then(response => {
+                known_role_contact_ids.value = response.data || [];
+            })
+            .catch(() => {
+                known_role_contact_ids.value = [];
+            });
+    }
+});
+
+// Watch from_contact_id for role assignment
+watch(() => entry_form.from_contact_id, (newVal, oldVal) => {
+    if (suppress_role_check || !newVal) return;
+    if (props.state.mode === 'entry_add' || props.state.mode === 'entry_edit') {
+        nextTick(() => checkContactRole(newVal, display_name.from));
+    }
+});
+
+// Watch to_contact_id for role assignment
+watch(() => entry_form.to_contact_id, (newVal, oldVal) => {
+    if (suppress_role_check || !newVal) return;
+    if (props.state.mode === 'entry_add' || props.state.mode === 'entry_edit') {
+        nextTick(() => checkContactRole(newVal, display_name.to));
+    }
 });
 
 
@@ -383,6 +424,8 @@ function entry_actions(action, comeback = true) {
         Object.keys(saved_entry_form).forEach(function (key, idx, arr) {    // copy the saved value back to the form
             entry_form[key] = saved_entry_form[key];
         });
+        entry_form.pending_contact_roles = [];                              // clear pending contact roles on revert
+        known_role_contact_ids.value = [...(props.p1.contact_role_ids || [])]; // reset known role contact ids
 
         if (props.state.mode === 'entry_add') {
             display_modal('addcancelled', false);   // close the modal    
@@ -487,12 +530,43 @@ function isNewFileContact() {
 }
 
 
+function checkContactRole(contact_id, contact_name) {
+    if (!contact_id) return;
+    // Already has a role for this file
+    if (known_role_contact_ids.value.includes(contact_id)) return;
+    // Already pending assignment
+    if (entry_form.pending_contact_roles.some(p => p.contact_id === contact_id)) return;
+
+    // Open the role modal
+    role_modal.contact_id = contact_id;
+    role_modal.contact_name = contact_name || '';
+    role_modal.selected_role_id = null;
+    role_modal.show = true;
+    nextTick(() => {
+        document.getElementById('role_assign_modal').checked = true;
+    });
+}
+
+function clicked_roleModal_button(action) {
+    if (action === 'assign') {
+        entry_form.pending_contact_roles.push({
+            contact_id: role_modal.contact_id,
+            role_id: role_modal.selected_role_id,
+        });
+        known_role_contact_ids.value.push(role_modal.contact_id);
+    }
+    // Close modal for both assign and skip
+    role_modal.show = false;
+    document.getElementById('role_assign_modal').checked = false;
+}
+
 function objectChanged(obj_1, obj_2) {
     return JSON.stringify(obj_1) !== JSON.stringify(obj_2);
 }
 
 
 function update_disp() {
+    suppress_role_check = true;                                                                     // suppress role check while populating form
     if (props.p1.entries.data.length && ( props.state.row < props.p1.entries.data.length) ) {       // if there are entries (and active row is within range), update the entry_form
         disp.show_entry_form = true;                                                                // display the entry form on the screen
 
@@ -585,13 +659,15 @@ function update_disp() {
             }
 
             saved_entry_form = { ...entry_form };                                                   // clone a copy of the entry_form
-        }); // end nextTick()        
+            suppress_role_check = false;                                                            // re-enable role check after form is populated
+        }); // end nextTick()
     } // end if length
     else {                                                                                          // else, no entries found
         disp.show_entry_form = false;                                                               // so, do not show the entry_form on the screen
         disp.folder_name = '';
         entry_form.reset();                                                                         // reset the form
         saved_entry_form = { ...entry_form }; // clone a copy of the entry_form                     // clone the empty entry_form
+        suppress_role_check = false;                                                                // re-enable role check
     }
 
     if( keep_row.value > 0 ) keep_row.value = 0                                                    // if there's a keep_row value, reset it to 0
@@ -711,6 +787,8 @@ function selectFileContact( var_in = "from" ){
 function setup_add() {                                                                                  // function to setup addition of new entry
     disp.show_entry_form = true;                                                                        // display the form on the screen
     entry_form.reset();                                                                                 // reset the form
+    entry_form.pending_contact_roles = [];                                                              // clear pending contact roles
+    known_role_contact_ids.value = [...(props.p1.contact_role_ids || [])];                               // reset known role contact ids
     objectClear( display_name );                                                                        // clear display names
     disp.response_status = '';                                                                          // clear the display of response status and the responses received array
     disp.entry_responses_received = [];
@@ -901,55 +979,50 @@ update_disp();
 
 
             <!-- From Row -->
-            <div class="relative">
-                <div class="flex place-items-baseline mt-3">
-                    <label for="entry_from" class="text-sm font-semibold w-28">
-                        {{ props.getFolderData('from_prompt') }}
-                    </label>
+            <div class="flex place-items-baseline mt-3">
+                <label for="entry_from" class="text-sm font-semibold w-28">
+                    {{ props.getFolderData('from_prompt') }}
+                </label>
 
-                    <ContactLookup 
-                        v-model:contact_id="entry_form.from_contact_id"
-                        v-model:contact_name="display_name.from"
-                        v-model:the_mode="the_mode"
-                        v-model:added_contact_obj="added_contact_obj"
-                        :id="'entry_from'"
-                        :folder_id="entry_form.folder_id" 
-                        :next_field="props.getFolderData('hide_to_prompt') == true ? 'entry_note' : 'entry_to'"
-                        :state="props.state" 
-                        :firm_members="props.p1.firm_members"
-                        :file_contacts="props.p1.file_contacts" />
+                <ContactLookup
+                    v-model:contact_id="entry_form.from_contact_id"
+                    v-model:contact_name="display_name.from"
+                    v-model:the_mode="the_mode"
+                    v-model:added_contact_obj="added_contact_obj"
+                    :id="'entry_from'"
+                    :folder_id="entry_form.folder_id"
+                    :next_field="props.getFolderData('hide_to_prompt') == true ? 'entry_note' : 'entry_to'"
+                    :state="props.state"
+                    :firm_members="props.p1.firm_members"
+                    :file_contacts="props.p1.file_contacts" />
 
-                    <InputError class="mt-2 ml-2" :message="entry_form.errors.from_contact_id" />
-                    <!-- <InputError class="mt-2 ml-2" :message="entry_form.errors.from_display_last_first" /> -->
-                    <button v-if="props.file_view === 'file'" type="button" class="btn btn-xs btn-ghost ml-1" @click="disp.show_file_contacts = 'from'">&darr;</button>
-                        
-                </div>
+                <InputError class="mt-2 ml-2" :message="entry_form.errors.from_contact_id" />
+                <!-- <InputError class="mt-2 ml-2" :message="entry_form.errors.from_display_last_first" /> -->
+                <button v-if="props.file_view === 'file'" type="button" class="btn btn-xs btn-ghost ml-1" @click="disp.show_file_contacts = 'from'">&darr;</button>
+
             </div>
 
             <!-- To Row -->
-            <div class="relative" v-if="props.getFolderData('hide_to_prompt') === false">
-                <div class="flex place-items-baseline mt-3 relative">
-                    <label for="entry_to" class="text-sm font-semibold w-28">
-                        {{ props.getFolderData('to_prompt') }}
-                    </label>
+            <div v-if="props.getFolderData('hide_to_prompt') === false" class="flex place-items-baseline mt-3">
+                <label for="entry_to" class="text-sm font-semibold w-28">
+                    {{ props.getFolderData('to_prompt') }}
+                </label>
 
-                    <ContactLookup 
-                        v-model:contact_id="entry_form.to_contact_id" 
-                        v-model:contact_name="display_name.to"
-                        v-model:the_mode="the_mode" 
-                        v-model:added_contact_obj="added_contact_obj" 
-                        :id="'entry_to'"
-                        :folder_id="entry_form.folder_id" 
-                        :next_field="'entry_note'"
-                        :state="props.state" 
-                        :firm_members="props.p1.firm_members"
-                        :file_contacts="props.p1.file_contacts" />
+                <ContactLookup
+                    v-model:contact_id="entry_form.to_contact_id"
+                    v-model:contact_name="display_name.to"
+                    v-model:the_mode="the_mode"
+                    v-model:added_contact_obj="added_contact_obj"
+                    :id="'entry_to'"
+                    :folder_id="entry_form.folder_id"
+                    :next_field="'entry_note'"
+                    :state="props.state"
+                    :firm_members="props.p1.firm_members"
+                    :file_contacts="props.p1.file_contacts" />
 
-                    <InputError class="mt-2" :message="entry_form.errors.to_contact_id" />
-                    <InputError class="mt-2" :message="entry_form.errors.to_display_last_first" />
-                    <button v-if="props.file_view === 'file'" type="button" class="btn btn-xs btn-ghost ml-1" @click="disp.show_file_contacts = 'to'">&darr;</button>
-
-                </div>
+                <InputError class="mt-2" :message="entry_form.errors.to_contact_id" />
+                <InputError class="mt-2" :message="entry_form.errors.to_display_last_first" />
+                <button v-if="props.file_view === 'file'" type="button" class="btn btn-xs btn-ghost ml-1" @click="disp.show_file_contacts = 'to'">&darr;</button>
 
             </div>
 
@@ -1129,6 +1202,31 @@ update_disp();
             <div class="modal-action justify-center mt-12">
                 <button type="button" class="btn mr-10 w-20 gap-0" @click="entry_actions('revert')"><u>Y</u>es</button>
                 <button type="button" class="btn gap-0" @click="display_modal('addcancelled', false)"><u>N</u>o</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Role Assignment Modal -->
+    <input hidden type="checkbox" id="role_assign_modal" class="modal-toggle" />
+    <div class="modal">
+        <div class="modal-box w-11/12 max-w-md">
+            <h3 class="font-bold text-xl text-center">Assign Role</h3>
+            <p class="text-sm text-center mt-2">{{ role_modal.contact_name }}</p>
+            <div class="flex items-baseline mt-6">
+                <label for="role_select" class="text-sm font-semibold w-20">Role:</label>
+                <select v-model="role_modal.selected_role_id" id="role_select"
+                    class="select select-bordered select-sm rounded-md font-normal text-sm text-base-content bg-base-100 w-64">
+                    <option :value="null">-- Select a role --</option>
+                    <option v-for="r in props.p1.roles" :key="r.id" :value="r.id">
+                        {{ r.name }}
+                    </option>
+                </select>
+            </div>
+            <div class="modal-action justify-center mt-8">
+                <button type="button" class="btn btn-primary mr-6 w-24"
+                    @click="clicked_roleModal_button('assign')">Assign</button>
+                <button type="button" class="btn w-24"
+                    @click="clicked_roleModal_button('skip')">Skip</button>
             </div>
         </div>
     </div>

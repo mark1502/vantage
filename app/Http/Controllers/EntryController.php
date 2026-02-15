@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Models\Entry;
 use App\Models\Folder;
 use App\Models\Contact;
+use App\Models\ContactRole;
 use App\Models\File;
 use App\Models\Response;
 use App\Models\Entrytype;
@@ -15,6 +16,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreEntryRequest;
 use App\Models\Filetype;
+use App\Models\Role;
 
 class EntryController extends Controller
 {
@@ -51,7 +53,17 @@ class EntryController extends Controller
                 ->paginate($show ? $show : 15)                                      // paginate by show value, if available, else 15
                 ->withQueryString();
 
-        return Inertia::render('Entries/Index', 
+        // Load the assigned attorney from contact_roles
+        $assignedAttorney = $file->assignedAttorney;
+
+        // Load the client from contact_roles
+        $clientContactRole = ContactRole::where('file_id', $file->id)
+                        ->where('is_client', true)
+                        ->where('is_attorney', false)
+                        ->with('contact:id,display_last_first')
+                        ->first();
+
+        return Inertia::render('Entries/Index',
             [   'file' => $file,                                                                            // return file record
                 'entries' => $entries,                                                                              // entries
                 'view_folder_id' => $viewfolder_id,                                                                 // id of folder being viewed
@@ -61,6 +73,10 @@ class EntryController extends Controller
                 'filetypes' => $this->getFileTypes( $file->firm_id, $refresh ),                         // all the firm's filetypes (for the file edit and the droplist)
                 'folders' => $this->getFirmFolders( $file->firm_id, $refresh, $request->new_entrytype_added ),  // folders (with their entrytypes)
                 'file_contacts' => $this->getFileContacts( $file->id, $refresh, $request->new_contact_added ),  // all contacts in this file
+                'assigned_attorney_id' => $assignedAttorney?->contact_id,
+                'client_name' => $clientContactRole?->contact?->display_last_first ?? '',
+                'contact_role_ids' => $this->getContactRoleIds($file->id),
+                'roles' => $this->getFirmRoles($file->firm_id, $refresh),
             ]);
     }
 
@@ -148,6 +164,9 @@ public function create(File $file, Request $request)        // NOTE: this might 
         }
 
         $entry->save();
+
+        // Handle pending contact roles
+        $this->savePendingContactRoles($request, $file->id);
 
         // if this is a response to another entry, handle it
         if( $request->is_a_response != "N" && !empty($request->is_response_to) ) {
@@ -253,6 +272,9 @@ public function create(File $file, Request $request)        // NOTE: this might 
 
         if( $entry->firm_id === $request->user()->firm_id) {            // only update this record if the firm_id matches the user firm_id
             $entry->save();
+
+            // Handle pending contact roles
+            $this->savePendingContactRoles($request, $entry->file_id);
 
             if( $request->is_a_response == "N" ) {
                 $this->handleIsNoResponse($entry->id);
@@ -801,6 +823,36 @@ public function create(File $file, Request $request)        // NOTE: this might 
         return $sendback;
     }
     
+
+    public function savePendingContactRoles(Request $request, $file_id)
+    {
+        if (!empty($request->pending_contact_roles) && is_array($request->pending_contact_roles)) {
+            foreach ($request->pending_contact_roles as $pendingRole) {
+                ContactRole::firstOrCreate(
+                    [
+                        'file_id' => $file_id,
+                        'contact_id' => $pendingRole['contact_id'],
+                    ],
+                    [
+                        'role_id' => $pendingRole['role_id'] ?? null,
+                    ]
+                );
+            }
+        }
+    }
+
+    public function getContactRoleIds($file_id)
+    {
+        return ContactRole::where('file_id', $file_id)->pluck('contact_id')->toArray();
+    }
+
+    public function getFirmRoles($thefirmid, $refresh = 'full')
+    {
+        if ($refresh === 'full') {
+            return Role::where('firm_id', $thefirmid)->select('id', 'name')->orderBy('name')->get();
+        }
+        return [];
+    }
 
     public function add_new_entrytype(Request $request)
     {

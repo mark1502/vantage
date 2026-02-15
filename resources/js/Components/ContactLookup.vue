@@ -139,11 +139,12 @@
 </script>
 
 <template>
+    <div class="relative inline-block">
     <input v-model="local.name" :id="props.id"  class="input input-bordered input-sm text-sm rounded-sm w-64" placeholder="Enter name: ( Last, First, M. )"
        @input="lookup_contact()" @blur="handleBlur()" @keydown="handleKeyDown" autocomplete="off"
     />
 
-    <table v-if="showLookupList" class="mt-8 ml-4 border border-gray-500 suggestion-table bg-white w-64" >
+    <table v-if="showLookupList" class="absolute left-0 top-full mt-1 z-50 border border-gray-500 suggestion-table bg-white w-64" >
         <tr v-for="contact, index in lookup.contact_list.data" :key="contact.id" @mousedown="clicked_contact_list(index)">
             <td class="pl-4 py-1 text-sm text-base-content bg-base-300 hover:bg-base-100 hover:cursor-default">
                 {{ contact.display_last_first }}
@@ -163,4 +164,5 @@
             </td>
         </tr>
     </table>
+    </div>
 </template>

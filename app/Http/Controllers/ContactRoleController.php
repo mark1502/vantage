@@ -11,6 +11,20 @@ use Illuminate\Http\Request;
 class ContactRoleController extends Controller
 {
     /**
+     * Get contact IDs that have roles for a given file.
+     */
+    public function getContactRoleIds(Request $request, File $file)
+    {
+        if ($file->firm_id !== $request->user()->firm_id) {
+            abort(403, 'Unauthorized');
+        }
+
+        return response()->json(
+            ContactRole::where('file_id', $file->id)->pluck('contact_id')->toArray()
+        );
+    }
+
+    /**
      * Store a newly created contact role for a file.
      */
     public function store(Request $request)

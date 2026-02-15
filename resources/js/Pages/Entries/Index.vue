@@ -27,6 +27,10 @@ const props = defineProps({
     filetypes: Object,
     folders: Object,
     file_contacts: Object,
+    assigned_attorney_id: Number,
+    client_name: String,
+    contact_role_ids: Array,
+    roles: Array,
 });
 
 const state = reactive({
@@ -552,13 +556,15 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                     <!-- Tab 1 - File Information Tab - Starts Here-->
                     <div v-if="state.tab === 1">
                         <!-- File Info Form -->
-                        <FileForm 
+                        <FileForm
                             ref="FileForm_ref"
-                            v-model:the_mode="state.mode" 
+                            v-model:the_mode="state.mode"
                             :file="props.file"
-                            :attorneys="props.attorneys" 
+                            :attorneys="props.attorneys"
                             :filetypes="props.filetypes"
-                            :index_form="index_form" 
+                            :assigned_attorney_id="props.assigned_attorney_id"
+                            :client_name="props.client_name"
+                            :index_form="index_form"
                         />
                     </div>
                     <!-- end of tab 1 content panel -->

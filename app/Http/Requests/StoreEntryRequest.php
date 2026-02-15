@@ -38,6 +38,9 @@ class StoreEntryRequest extends FormRequest
                     'is_a_response' => 'in:N,P,F',
                     'is_response_to' => 'integer|numeric|nullable',
                     'amount' => 'numeric|nullable',
+                    'pending_contact_roles' => 'array|nullable',
+                    'pending_contact_roles.*.contact_id' => 'required|integer',
+                    'pending_contact_roles.*.role_id' => 'nullable|integer',
                 ];
     }
 

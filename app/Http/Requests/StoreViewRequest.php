@@ -49,7 +49,10 @@ class StoreViewRequest extends FormRequest
                     'read' => 'string|max:20|required',
                     'from_to' => 'string|max:20|required',
                     'new_entrytype_added' => 'boolean',
-                    'new_contact_added' => 'boolean'
+                    'new_contact_added' => 'boolean',
+                    'pending_contact_roles' => 'array|nullable',
+                    'pending_contact_roles.*.contact_id' => 'required|integer',
+                    'pending_contact_roles.*.role_id' => 'nullable|integer',
                 ];
     }
 

@@ -193,6 +193,7 @@ class FileController extends Controller
         // Load the client from contact_roles
         $clientContactRole = ContactRole::where('file_id', $file->id)
                         ->where('is_client', true)
+                        ->where('is_attorney', false)
                         ->with('contact:id,display_last_first')
                         ->first();
 
@@ -263,20 +264,12 @@ class FileController extends Controller
                 [
                     'file_id' => $file->id,
                     'is_attorney' => true,
+                    'is_client' => true,    // attorney for client, so true
                 ],
                 [
                     'contact_id' => $request->attorney_id,
-                    'is_client' => false,
                 ]
             );
-            // disp.openurl = '/files/' + disp.id + '/entries?page=' + props.files.current_page + '&show=' + state.show + '&filepart=info';
-            // return redirect('/files?page=' . $request->current_page . '&show=' . $request->show);
-            
-            // if( $request->comeback == true ) {
-            //     return redirect('/files/?page=' .  $request->current_page . '&show=' . $request->show);
-            // }
-                // NOTE: skip return now, because file edit is in entries index            
-            // return redirect( route( 'files.index', [ 'page' => $request->current_page, 'show' => $request->show ] ) );
     }
 
     /**

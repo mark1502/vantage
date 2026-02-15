@@ -199,24 +199,26 @@
 
         <!-- Attorney and Client Line -->
         <div class="mt-4 flex items-center">
-            <div class="flex w-32">
-                <InputLabel for="attorney_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
+            <div class="flex items-baseline w-1/2 p-0">
+                <div class="flex w-32">
+                    <InputLabel for="attorney_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
+                </div>
+                <select v-model="file_form.attorney_id" id="attorney_id" @change="form_change()" class="select select-bordered select-sm w-64">
+                    <!-- <option :value="null" /> -->
+                    <option v-for="attorney in attorneys" :key="attorney.id" :value="attorney.id">
+                        {{ attorney.display_last_first }}
+                    </option>
+                </select>
             </div>
-            <select v-model="file_form.attorney_id" id="attorney_id" @change="form_change()" class="select select-bordered select-sm w-64">
-                <!-- <option :value="null" /> -->
-                <option v-for="attorney in attorneys" :key="attorney.id" :value="attorney.id">
-                    {{ attorney.display_last_first }}
-                </option>
-            </select>
-
-            <div class="flex items-center ml-12">
-                <InputLabel value="Client:" class="mr-3" />
-                <input
+            <div class="flex items-baseline w-1/2">
+                <InputLabel value="Client:" class="w-24" />
+                <!-- <input
                     :value="client_name"
                     type="text"
                     disabled
                     class="input input-sm input-bordered w-64 disabled:input-bordered disabled:text-base-content disabled:bg-base-200"
-                />
+                /> -->
+                <span class="text-sm text-base-content">{{ client_name }}</span>
             </div>
         </div>
         <InputError class="mt-2 ml-32" :message="file_form.errors.attorney_id" />

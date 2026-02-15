@@ -269,17 +269,20 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
 
                             <!-- Attorney and Client Line -->
                         <div class="mt-4 flex items-center">
-                            <div class="flex w-32">
-                                 <InputLabel for="attorney_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
+                            <div class="flex items-baseline w-1/2 p-0">
+                                <div class="flex w-32">
+                                     <InputLabel for="attorney_id" value="Attorney:" /><span class="red_star-700-2 ml-2">*</span>
+                                </div>
+                                <select v-model="form.attorney_id" id="attorney_id" class="select select-bordered select-sm w-64" placeholder="Select Attorney...">
+                                    <option v-for="attorney in attorneys" :key="attorney.id" :value="attorney.id">
+                                        {{ attorney.display_last_first }}
+                                    </option>
+                                </select>
                             </div>
-                            <select v-model="form.attorney_id" id="attorney_id" class="select select-bordered select-sm w-64" placeholder="Select Attorney...">
-                                <option v-for="attorney in attorneys" :key="attorney.id" :value="attorney.id">
-                                    {{ attorney.display_last_first }}
-                                </option>
-                            </select>
-
-                            <div class="flex items-center ml-12">
-                                <InputLabel for="file_client" value="Client:" class="mr-3" /><span class="red_star-700-2 mr-3">*</span>
+                            <div class="flex items-baseline w-1/2">
+                                <div class="flex w-24">
+                                    <InputLabel for="file_client" value="Client:" /><span class="red_star-700-2 ml-2">*</span>
+                                </div>
                                 <ContactLookup
                                     v-model:contact_id="form.client_contact_id"
                                     v-model:contact_name="display_name.client"
@@ -294,8 +297,12 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             </div>
                         </div>
                         <div class="flex">
-                            <InputError class="mt-2 ml-32" :message="form.errors.attorney_id" />
-                            <InputError class="mt-2 ml-80" :message="form.errors.client_contact_id" />
+                            <div class="w-1/2">
+                                <InputError class="mt-2 ml-32" :message="form.errors.attorney_id" />
+                            </div>
+                            <div class="w-1/2">
+                                <InputError class="mt-2 ml-24" :message="form.errors.client_contact_id" />
+                            </div>
                         </div>
 
                             <!-- Date opened and SOL Date line -->

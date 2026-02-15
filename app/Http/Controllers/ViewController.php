@@ -7,7 +7,9 @@ use App\Models\Entry;
 use App\Models\Folder;
 use App\Models\Contact;
 use App\Models\File;
+use App\Models\ContactRole;
 use App\Models\Response;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -262,6 +264,8 @@ class ViewController extends Controller
             'attorneys' => $this->getAttorneys($firm_id, $refresh),
             'file_contacts' => $this->getFileContacts_fake( $user->id, $refresh), // send a fake array to avoid problem in EntryForm.vue (where contact lookup is done on the client)
             'expecting_response' => $this->getExpectingResponse(),
+            'contact_role_ids' => [],
+            'roles' => $this->getFirmRoles($firm_id, $refresh),
         ]);
     }
 
@@ -314,6 +318,9 @@ class ViewController extends Controller
         }
 
         $entry->save();                                                                                 // save the entry
+
+        // Handle pending contact roles
+        $this->savePendingContactRoles($request, $entry->file_id);
 
         // if this is a response to another entry, handle it
         if( $request->is_a_response != "N" && !empty($request->is_response_to) ) {
@@ -382,6 +389,9 @@ class ViewController extends Controller
 
             $entry->save();                                                                                 // save the entry
 
+            // Handle pending contact roles
+            $this->savePendingContactRoles($request, $entry->file_id);
+
             if( $request->is_a_response === "N" ) {
                 $this->handleIsNoResponse($entry->id);
             } else if( $request->is_a_response !== "N" && !empty($request->is_response_to) ) {
@@ -399,6 +409,31 @@ class ViewController extends Controller
     }
 
 
+
+    public function savePendingContactRoles(Request $request, $file_id)
+    {
+        if (!empty($request->pending_contact_roles) && is_array($request->pending_contact_roles)) {
+            foreach ($request->pending_contact_roles as $pendingRole) {
+                ContactRole::firstOrCreate(
+                    [
+                        'file_id' => $file_id,
+                        'contact_id' => $pendingRole['contact_id'],
+                    ],
+                    [
+                        'role_id' => $pendingRole['role_id'] ?? null,
+                    ]
+                );
+            }
+        }
+    }
+
+    public function getFirmRoles($thefirmid, $refresh = 'full')
+    {
+        if ($refresh === 'full') {
+            return Role::where('firm_id', $thefirmid)->select('id', 'name')->orderBy('name')->get();
+        }
+        return [];
+    }
 
     public function getFirmFolders( $thefirmid, $refresh = 'full' )
     {

@@ -29,6 +29,8 @@ const props = defineProps({
     attorneys: Object,
     file_contacts: Object,
     expecting_response: Object,
+    contact_role_ids: Array,
+    roles: Array,
 });
 
 const state = reactive({
