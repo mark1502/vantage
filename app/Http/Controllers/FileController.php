@@ -53,9 +53,11 @@ class FileController extends Controller
                         ->orderBy('name')
                         ->get();
 
-        $attorneys = Contact::where('firm_id', $request->user()->firm_id)
+        $attorneys = Contact::select('id','display_last_first')
+                    ->where('firm_id', $request->user()->firm_id)
                     ->where('is_firm_member', true)
                     ->where('firm_role', 'Attorney')
+                    ->orderBy('display_last_first')
                     ->get();
 
         $firm_members = Contact::select('id', 'display_last_first')
@@ -65,7 +67,6 @@ class FileController extends Controller
                     ->get();
 
         return inertia::render('Files/Create',[
-            // 'editmode' => 'create',
             'filetypes' => $filetypes,
             'attorneys' => $attorneys,
             'firm_members' => $firm_members,

@@ -77,6 +77,7 @@ class EntryController extends Controller
                 'client_name' => $clientContactRole?->contact?->display_last_first ?? '',
                 'contact_role_ids' => $this->getContactRoleIds($file->id),
                 'roles' => $this->getFirmRoles($file->firm_id, $refresh),
+                'file_contact_roles' => $this->getFileContactRoles($file->id, $refresh),
             ]);
     }
 
@@ -340,6 +341,7 @@ public function create(File $file, Request $request)        // NOTE: this might 
 
         if( $what === 'id' ) {                                          // if what we want back is the folder id
             if( $var_in === 'info' ) $sendback = -1;                        // if 'info', sendback is -1
+            else if( $var_in === 'file_contacts' ) $sendback = -2;           // if 'file_contacts', sendback is -2
             else $sendback = array_search( $var_in, $folder_list );         // else, sendback is the position in array
         } else if( $what === 'name' ) {                                 // else if we want the folder name
             if( $var_in >= 0 && $var_in < 12 ) $sendback = $folder_list[ $var_in ]; // sendback is folder name
@@ -839,6 +841,23 @@ public function create(File $file, Request $request)        // NOTE: this might 
                 );
             }
         }
+    }
+
+    public function getFileContactRoles($file_id, $refresh = 'full')
+    {
+        if ($refresh === 'full' || $refresh === 'ContactRoles') {
+            return ContactRole::where('file_id', $file_id)
+                ->with(['contact:id,display_last_first', 'role:id,name'])
+                ->get()
+                ->map(fn($cr) => [
+                    'id' => $cr->id,
+                    'contact_name' => $cr->contact?->display_last_first ?? '',
+                    'role_name' => $cr->role?->name ?? '',
+                    'is_client' => $cr->is_client,
+                    'is_attorney' => $cr->is_attorney,
+                ]);
+        }
+        return [];
     }
 
     public function getContactRoleIds($file_id)

@@ -81,6 +81,10 @@ class Contact extends Model
         return $query->where('is_firm_member', false);
     }
 
+    public function files() {
+        return $this->belongsToMany(File::class, 'contact_roles') ;
+    }
+
     public function fileRoles()
     {
         return $this->hasMany(ContactRole::class);

@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('contact_roles', function (Blueprint $table) {
-            $table->id();
+            $table->increments('id');
             $table->unsignedInteger('file_id');
             $table->unsignedInteger('contact_id');
-            $table->unsignedBigInteger('role_id')->nullable();
+            $table->unsignedInteger('role_id')->nullable();
             $table->boolean('is_client')->default(false);
             $table->boolean('is_attorney')->default(false);
             $table->timestamps();

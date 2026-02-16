@@ -232,7 +232,7 @@ update_disp();
                         
                         <!-- Right half - for text areas -->
                         <div class="w-1/2 mx-4">
-                            <div class="text-xl font-md text-base-content mt-2 ml-2">
+                            <div class="text-xl font-bold text-base-content mt-2 ml-2">
                                 Contact Info:
                             </div>
                                 
@@ -256,9 +256,9 @@ update_disp();
 
                                 <p v-if="contact1.other_phone" class="font-mono">Other: {{ contact1.other_phone }}</p>
                             <!-- moved untile the end of div from outside the dive ti inside, due to no records -->
-                            <div class="pt-3">
-                                <p class="text-lg font-md text-base-content ml-2">Associated Files:</p>
-                                <p v-if="contact1.files.length" class="bg-base-200 text-base text-left p-2 rounded-lg">
+                            <div class="pt-4">
+                                <p class="text-lg font-semibold text-base-content ml-2">Associated Files:</p>
+                                <p v-if="contact1.files.length" class="bg-base-200 text-sm text-left p-2 rounded-lg">
                                     <div v-for="file in contact1.files" :key="file.id">
                                         &bull; {{ file.name }}
                                     </div>
@@ -268,7 +268,7 @@ update_disp();
                                 </p>
                             </div>
                             <div class="pt-3">
-                                <p class="text-lg font-md text-base-content ml-2">Notes:</p>
+                                <p class="text-lg font-semibold text-base-content ml-2">Notes:</p>
                                 <p class="bg-base-200 whitespace-pre-wrap text-left p-2 rounded-lg min-h-20">{{ contact1.note }}</p>
                             </div>
                                     

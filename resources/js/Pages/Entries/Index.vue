@@ -31,6 +31,7 @@ const props = defineProps({
     client_name: String,
     contact_role_ids: Array,
     roles: Array,
+    file_contact_roles: Array,
 });
 
 const state = reactive({
@@ -146,11 +147,19 @@ function display_modal(which_modal, OnOff = null) {                             
 
 function refreshEntryList() {                                                       // function is called from filepart droplist - reloads the entrylist or shows the file info tab
     let isInfoTab = state.folder_name === 'info' ? true : false;                    // is the file info tab to be displayed? (T/F)
+    let isContactsTab = state.folder_name === 'file_contacts' ? true : false;       // is the file contacts tab to be displayed? (T/F)
 
-    state.tab = isInfoTab ? 1 : 2;                                                  // state tab - display the file info tab (1) or the entry list (2)
+    state.tab = isInfoTab ? 1 : (isContactsTab ? 3 : 2);                           // state tab - file info (1), entries (2), or file contacts (3)
     state.mode = isInfoTab ? 'file_show' : 'browse';                                // state mode is 'file_show', otherwise 'browse'
 
     if( isInfoTab ) {                                                              // if infotab, then blur active element
+        document.activeElement.blur();
+    } else if( isContactsTab ) {                                                   // if contacts tab, reload contact roles
+        router.reload({
+            only: ['file_contact_roles'],
+            replace: true,
+            headers: { 'X-Custom-Refresh': 'ContactRoles' },
+        });
         document.activeElement.blur();
     } else {                                                                        // else, if not infotab, then reload the entries
         router.reload({
@@ -448,6 +457,10 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
     state.tab = 1;
     state.mode = 'file_show';
     document.activeElement.blur();
+} else if( props.view_folder_id == -2 || state.folder_name === 'file_contacts' ) {      // may start showing the file contacts tab
+    state.tab = 3;
+    state.mode = 'browse';
+    document.activeElement.blur();
 }
 
 </script>
@@ -525,6 +538,9 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                             </optgroup>
                             <optgroup label="Timeline:">
                                 <option value="all">File Timeline</option>
+                            </optgroup>
+                            <optgroup label="Contacts:">
+                                <option value="file_contacts">File Contacts</option>
                             </optgroup>
                             <optgroup label="File Details:" class="my-2">
                                 <option value="info">File Details</option>
@@ -708,6 +724,37 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                         </div>
                     </div>
                     <!-- end of tab 2 content panel -->
+
+                    <!-- Tab 3 - File Contacts Tab - Starts Here-->
+                    <div v-if="state.tab === 3">
+                        <h2 class="text-xl font-bold text-base-content mb-4 ml-2">File Contacts</h2>
+                        <div v-if="props.file_contact_roles && props.file_contact_roles.length > 0">
+                            <table class="w-full max-w-3xl border border-base-content text-sm font-sans font-normal">
+                                <thead class="text-left bg-gray-300 text-gray-800">
+                                    <tr>
+                                        <th class="border-b border-r border-gray-700 pl-2 py-1.5">Contact Name</th>
+                                        <th class="border-b border-r border-gray-700 pl-2 py-1.5">Role</th>
+                                        <th class="border-b border-gray-700 pl-2 py-1.5">Designation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="cr in props.file_contact_roles" :key="cr.id"
+                                        class="border-b border-gray-400 bg-base-100">
+                                        <td class="pl-2 py-1.5 border-r border-base-content">{{ cr.contact_name }}</td>
+                                        <td class="pl-2 py-1.5 border-r border-base-content">{{ cr.role_name }}</td>
+                                        <td class="pl-2 py-1.5">
+                                            <span v-if="cr.is_client" class="badge badge-sm badge-info mr-1">Client</span>
+                                            <span v-if="cr.is_attorney" class="badge badge-sm badge-accent mr-1">Attorney</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div v-else class="border p-4 text-xl text-center">
+                            No Contacts Assigned To This File
+                        </div>
+                    </div>
+                    <!-- end of tab 3 content panel -->
                 </div>
             </div>
         </div>
