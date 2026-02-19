@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('date_sol')->nullable();
             $table->date('date_opened')->nullable();
             $table->date('date_filed')->nullable();
-            $table->date('date_closed')->nullable();
+            $table->date('date_closed')->nullable();                // Note: use date_closed to "delete" files
             $table->date('date_archived')->nullable();
             $table->string('court_filed')->nullable();
             $table->string('docket_number')->nullable();
@@ -28,13 +28,10 @@ return new class extends Migration
             $table->string('fee_arrangement')->nullable();
             $table->string('fee_amount')->nullable();
             $table->string('final_disposition')->nullable();
-            $table->unsignedInteger('filetype_id')->nullable(); // if for the filetype
-            // $table->unsignedInteger('contact_id');              // assigned_atty - firm member in contacts file
+            $table->unsignedInteger('filetype_id')->nullable();     // id for the filetype
             $table->unsignedInteger('firm_id');
             $table->timestamps();
-            // $table->softDeletes(); No more softDeletes, filter on closed date instead
             $table->unique(['firm_id', 'name']);
-            // $table->index(['firm_id', 'contact_id']);
             $table->index(['firm_id', 'date_opened']);
             $table->index(['firm_id', 'date_closed']);
             $table->index(['firm_id', 'date_sol']);

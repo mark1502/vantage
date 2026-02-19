@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\ContactRole;
 use App\Models\File;
 use App\Models\Contact;
-use App\Models\Role;
 use Illuminate\Http\Request;
 
 class ContactRoleController extends Controller
@@ -20,7 +19,7 @@ class ContactRoleController extends Controller
         }
 
         return response()->json(
-            ContactRole::where('file_id', $file->id)->pluck('contact_id')->toArray()
+            ContactRole::where('file_id', $file->id)->pluck('contact_id')->unique()->values()->toArray()
         );
     }
 
@@ -39,18 +38,9 @@ class ContactRoleController extends Controller
         $validated = $request->validate([
             'file_id' => 'required|integer',
             'contact_id' => 'required|integer',
-            'role_id' => 'nullable|integer',
-            'is_client' => 'boolean',
-            'is_attorney' => 'boolean',
+            'role' => 'required|string|in:' . implode(',', array_keys(ContactRole::ROLE_LABELS)),
+            'role_label' => 'nullable|string|max:255',
         ]);
-
-        // If role_id is provided, ensure it belongs to the user's firm
-        if ($request->role_id) {
-            $role = Role::find($request->role_id);
-            if ($role->firm_id !== $request->user()->firm_id) {
-                return back()->withErrors(['role_id' => 'You can only select roles from your firm.']);
-            }
-        }
 
         // Ensure contact belongs to the user's firm
         $contact = Contact::find($request->contact_id);
@@ -58,16 +48,18 @@ class ContactRoleController extends Controller
             return back()->withErrors(['contact_id' => 'You can only select contacts from your firm.']);
         }
 
-        try {
-            ContactRole::create($validated);
+        ContactRole::firstOrCreate(
+            [
+                'file_id' => $validated['file_id'],
+                'contact_id' => $validated['contact_id'],
+                'role' => $validated['role'],
+            ],
+            [
+                'role_label' => $validated['role_label'] ?? ContactRole::ROLE_LABELS[$validated['role']] ?? $validated['role'],
+            ]
+        );
 
-            return back()->with('success', 'Contact role added successfully.');
-        } catch (\Exception $e) {
-            if (str_contains($e->getMessage(), 'A file can only have one client')) {
-                return back()->withErrors(['is_client' => 'This file already has a client assigned.']);
-            }
-            throw $e;
-        }
+        return back()->with('success', 'Contact role added successfully.');
     }
 
     /**
@@ -83,29 +75,13 @@ class ContactRoleController extends Controller
         }
 
         $validated = $request->validate([
-            'role_id' => 'nullable|integer|exists:roles,id',
-            'is_client' => 'boolean',
-            'is_attorney' => 'boolean',
+            'role' => 'required|string|in:' . implode(',', array_keys(ContactRole::ROLE_LABELS)),
+            'role_label' => 'nullable|string|max:255',
         ]);
 
-        // If role_id is provided, ensure it belongs to the user's firm
-        if ($request->role_id) {
-            $role = Role::find($request->role_id);
-            if ($role->firm_id !== $request->user()->firm_id) {
-                return back()->withErrors(['role_id' => 'You can only select roles from your firm.']);
-            }
-        }
+        $contactRole->update($validated);
 
-        try {
-            $contactRole->update($validated);
-
-            return back()->with('success', 'Contact role updated successfully.');
-        } catch (\Exception $e) {
-            if (str_contains($e->getMessage(), 'A file can only have one client')) {
-                return back()->withErrors(['is_client' => 'This file already has a client assigned.']);
-            }
-            throw $e;
-        }
+        return back()->with('success', 'Contact role updated successfully.');
     }
 
     /**

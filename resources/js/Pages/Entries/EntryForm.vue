@@ -143,7 +143,8 @@ const role_modal = reactive({
     show: false,
     contact_id: null,
     contact_name: '',
-    selected_role_id: null,
+    selected_role: '',
+    custom_role_label: '',
 });
 const known_role_contact_ids = ref([...(props.p1.contact_role_ids || [])]);
 let suppress_role_check = false;
@@ -540,7 +541,8 @@ function checkContactRole(contact_id, contact_name) {
     // Open the role modal
     role_modal.contact_id = contact_id;
     role_modal.contact_name = contact_name || '';
-    role_modal.selected_role_id = null;
+    role_modal.selected_role = '';
+    role_modal.custom_role_label = '';
     role_modal.show = true;
     nextTick(() => {
         document.getElementById('role_assign_modal').checked = true;
@@ -549,9 +551,13 @@ function checkContactRole(contact_id, contact_name) {
 
 function clicked_roleModal_button(action) {
     if (action === 'assign') {
+        const roleLabel = role_modal.selected_role === 'other'
+            ? role_modal.custom_role_label
+            : (props.p1.role_options[role_modal.selected_role] || role_modal.selected_role);
         entry_form.pending_contact_roles.push({
             contact_id: role_modal.contact_id,
-            role_id: role_modal.selected_role_id,
+            role: role_modal.selected_role,
+            role_label: roleLabel,
         });
         known_role_contact_ids.value.push(role_modal.contact_id);
     }
@@ -1214,13 +1220,19 @@ update_disp();
             <p class="text-sm text-center mt-2">{{ role_modal.contact_name }}</p>
             <div class="flex items-baseline mt-6">
                 <label for="role_select" class="text-sm font-semibold w-20">Role:</label>
-                <select v-model="role_modal.selected_role_id" id="role_select"
+                <select v-model="role_modal.selected_role" id="role_select"
                     class="select select-bordered select-sm rounded-md font-normal text-sm text-base-content bg-base-100 w-64">
-                    <option :value="null">-- Select a role --</option>
-                    <option v-for="r in props.p1.roles" :key="r.id" :value="r.id">
-                        {{ r.name }}
+                    <option value="">-- Select a role --</option>
+                    <option v-for="(label, key) in props.p1.role_options" :key="key" :value="key">
+                        {{ label }}
                     </option>
                 </select>
+            </div>
+            <div v-if="role_modal.selected_role === 'other'" class="flex items-baseline mt-4">
+                <label for="custom_role_label" class="text-sm font-semibold w-20">Label:</label>
+                <input v-model="role_modal.custom_role_label" id="custom_role_label" type="text"
+                    placeholder="Enter custom role label"
+                    class="input input-bordered input-sm w-64 text-sm text-base-content bg-base-100" />
             </div>
             <div class="modal-action justify-center mt-8">
                 <button type="button" class="btn btn-primary mr-6 w-24"

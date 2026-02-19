@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Models\Firm;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+// use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class Contact extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $guarded = [];
 
@@ -94,7 +94,7 @@ class Contact extends Model
     public function filesWithRoles()
     {
         return $this->belongsToMany(File::class, 'contact_roles')
-            ->withPivot(['role_id', 'is_client', 'is_attorney'])
+            ->withPivot(['role', 'role_label', 'is_protected'])
             ->withTimestamps();
     }
 }

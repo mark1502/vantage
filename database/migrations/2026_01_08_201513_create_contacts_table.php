@@ -15,8 +15,8 @@ return new class extends Migration
             $table->increments('id');
             $table->unsignedInteger('firm_id');
             $table->string('title', 5);
-            $table->string('last_name');
-            $table->string('first_name');
+            $table->string('last_name')->nullable();
+            $table->string('first_name')->nullable();
             $table->string('middle_name')->nullable();
             $table->string('srjr')->nullable();
             $table->string('esqphd')->nullable();
@@ -37,11 +37,11 @@ return new class extends Migration
             $table->string('note',1000)->nullable();
             $table->boolean('is_firm_member')->default(false);
             $table->string('current', 1)->default('C');
-            $table->unsignedInteger('user_id')->nullable();  // if a firm member, user_id
+            $table->unsignedInteger('user_id')->nullable();     // if a firm member, user_id
             $table->string('member_initials')->nullable();
             $table->string('firm_role')->nullable();
+            $table->boolean('faux_deleted')->default(false);    // use this to filter "deleted" contacts rather than softDeletes
             $table->timestamps();
-            $table->softDeletes();
             $table->unique(['firm_id', 'display_name']);
             $table->unique(['firm_id', 'member_initials']);
             $table->index(['firm_id', 'display_last_first']);

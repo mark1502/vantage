@@ -15,18 +15,19 @@ return new class extends Migration
             $table->increments('id');
             $table->unsignedInteger('file_id');
             $table->unsignedInteger('contact_id');
-            $table->unsignedInteger('role_id')->nullable();
-            $table->boolean('is_client')->default(false);
-            $table->boolean('is_attorney')->default(false);
+            $table->string('role');
+            $table->string('role_label')->nullable();
+            $table->boolean('is_protected')->default(false);
+            $table->boolean('is_file_attorney')->default(false);
+            $table->boolean('is_file_client')->default(false);
             $table->timestamps();
 
             // Foreign key constraints
             $table->foreign('file_id')->references('id')->on('files')->onDelete('cascade');
             $table->foreign('contact_id')->references('id')->on('contacts')->onDelete('cascade');
-            $table->foreign('role_id')->references('id')->on('roles')->onDelete('set null');
 
-            // Prevent duplicate contact assignments to same file
-            $table->unique(['file_id', 'contact_id']);
+            // A contact can hold multiple different roles on a file
+            $table->unique(['file_id', 'contact_id', 'role']);
         });
     }
 

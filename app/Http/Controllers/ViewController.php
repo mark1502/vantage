@@ -9,7 +9,6 @@ use App\Models\Contact;
 use App\Models\File;
 use App\Models\ContactRole;
 use App\Models\Response;
-use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -265,7 +264,7 @@ class ViewController extends Controller
             'file_contacts' => $this->getFileContacts_fake( $user->id, $refresh), // send a fake array to avoid problem in EntryForm.vue (where contact lookup is done on the client)
             'expecting_response' => $this->getExpectingResponse(),
             'contact_role_ids' => [],
-            'roles' => $this->getFirmRoles($firm_id, $refresh),
+            'role_options' => ContactRole::ROLE_LABELS,
         ]);
     }
 
@@ -418,21 +417,14 @@ class ViewController extends Controller
                     [
                         'file_id' => $file_id,
                         'contact_id' => $pendingRole['contact_id'],
+                        'role' => $pendingRole['role'],
                     ],
                     [
-                        'role_id' => $pendingRole['role_id'] ?? null,
+                        'role_label' => $pendingRole['role_label'] ?? ContactRole::ROLE_LABELS[$pendingRole['role']] ?? $pendingRole['role'],
                     ]
                 );
             }
         }
-    }
-
-    public function getFirmRoles($thefirmid, $refresh = 'full')
-    {
-        if ($refresh === 'full') {
-            return Role::where('firm_id', $thefirmid)->select('id', 'name')->orderBy('name')->get();
-        }
-        return [];
     }
 
     public function getFirmFolders( $thefirmid, $refresh = 'full' )

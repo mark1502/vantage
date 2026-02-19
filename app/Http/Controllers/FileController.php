@@ -6,8 +6,8 @@ use App\Models\Contact;
 use App\Models\ContactRole;
 use App\Models\File;
 use App\Models\Filetype;
-use App\Models\Role;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class FileController extends Controller
@@ -128,32 +128,24 @@ class FileController extends Controller
 
             $newCase->save();
 
-            $AttorneyRole = Role::select('id')
-                ->where( 'firm_id', $newCase->firm_id )
-                ->where( 'name', 'Attorney' )
-                ->first();
-
             // Create ContactRole for assigned attorney
             ContactRole::create([
                 'file_id' => $newCase->id,
                 'contact_id' => $request->attorney_id,
-                'role_id' => $AttorneyRole->id,
-                'is_attorney' => true,
-                'is_client' => true,
+                'role' => 'attorney_for_client',
+                'role_label' => 'Attorney for Client',
+                'is_protected' => true,
+                'is_file_attorney' => true,
             ]);
 
             // Create ContactRole for client
-            $ClientRole = Role::select('id')
-                ->where( 'firm_id', $newCase->firm_id )
-                ->where( 'name', 'Client' )
-                ->first();
-
             ContactRole::create([
                 'file_id' => $newCase->id,
                 'contact_id' => $request->client_contact_id,
-                'role_id' => $ClientRole->id,
-                'is_client' => true,
-                'is_attorney' => false,
+                'role' => 'client',
+                'role_label' => 'Client',
+                'is_protected' => true,
+                'is_file_client' => true,
             ]);
 
             return redirect( route( 'files.index', [ 'page' => $request->current_page, 'show' => $request->show ] ) );
@@ -193,8 +185,7 @@ class FileController extends Controller
 
         // Load the client from contact_roles
         $clientContactRole = ContactRole::where('file_id', $file->id)
-                        ->where('is_client', true)
-                        ->where('is_attorney', false)
+                        ->where('is_file_client', true)
                         ->with('contact:id,display_last_first')
                         ->first();
 
@@ -260,17 +251,31 @@ class FileController extends Controller
 
             $file->save();
 
-            // Update or create ContactRole for assigned attorney
-            ContactRole::updateOrCreate(
-                [
-                    'file_id' => $file->id,
-                    'is_attorney' => true,
-                    'is_client' => true,    // attorney for client, so true
-                ],
-                [
-                    'contact_id' => $request->attorney_id,
-                ]
-            );
+            // Update the file's designated attorney
+            DB::transaction(function () use ($file, $request) {
+                // Clear is_file_attorney on all roles for this file
+                ContactRole::where('file_id', $file->id)
+                    ->where('is_file_attorney', true)
+                    ->update(['is_file_attorney' => false]);
+
+                // Find or create the attorney role for the new attorney
+                $attorneyRole = ContactRole::firstOrCreate(
+                    [
+                        'file_id' => $file->id,
+                        'contact_id' => $request->attorney_id,
+                        'role' => 'attorney_for_client',
+                    ],
+                    [
+                        'role_label' => 'Attorney for Client',
+                    ]
+                );
+
+                // Mark as file attorney and protected
+                $attorneyRole->update([
+                    'is_file_attorney' => true,
+                    'is_protected' => true,
+                ]);
+            });
     }
 
     /**

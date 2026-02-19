@@ -52,7 +52,8 @@ class StoreViewRequest extends FormRequest
                     'new_contact_added' => 'boolean',
                     'pending_contact_roles' => 'array|nullable',
                     'pending_contact_roles.*.contact_id' => 'required|integer',
-                    'pending_contact_roles.*.role_id' => 'nullable|integer',
+                    'pending_contact_roles.*.role' => 'required|string',
+                    'pending_contact_roles.*.role_label' => 'nullable|string|max:255',
                 ];
     }
 

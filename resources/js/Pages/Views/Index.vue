@@ -30,7 +30,7 @@ const props = defineProps({
     file_contacts: Object,
     expecting_response: Object,
     contact_role_ids: Array,
-    roles: Array,
+    role_options: Object,
 });
 
 const state = reactive({

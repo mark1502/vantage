@@ -16,7 +16,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreEntryRequest;
 use App\Models\Filetype;
-use App\Models\Role;
 
 class EntryController extends Controller
 {
@@ -28,7 +27,7 @@ class EntryController extends Controller
         $refresh = $request->header('X-Custom-Refresh') ?? 'full';                  // if refresh flag is set in the header, otherwise full
         $show = $request->query('show');                                            // how many rows to show
         $filepart = $request->query('filepart');                                    // what file part (folder) to display
-        $viewfolder_id = $this->get_folder_info( $filepart );                       // get the folder id from the filepart, or -1 for 'info', or 0 'all'
+        $viewfolder_id = $this->get_folder_info( $filepart );                       // get the folder id from the filepart, or -1 for 'info', -2 for file contacts, or 0 'all'
 
         $entries = Entry::query();                                                  // start building the entry query
         
@@ -53,13 +52,11 @@ class EntryController extends Controller
                 ->paginate($show ? $show : 15)                                      // paginate by show value, if available, else 15
                 ->withQueryString();
 
-        // Load the assigned attorney from contact_roles
-        $assignedAttorney = $file->assignedAttorney;
+        $assignedAttorney = $file->assignedAttorney;                                // Load the assigned attorney (File.php) from contact_roles
 
         // Load the client from contact_roles
         $clientContactRole = ContactRole::where('file_id', $file->id)
-                        ->where('is_client', true)
-                        ->where('is_attorney', false)
+                        ->where('is_file_client', true)
                         ->with('contact:id,display_last_first')
                         ->first();
 
@@ -76,7 +73,7 @@ class EntryController extends Controller
                 'assigned_attorney_id' => $assignedAttorney?->contact_id,
                 'client_name' => $clientContactRole?->contact?->display_last_first ?? '',
                 'contact_role_ids' => $this->getContactRoleIds($file->id),
-                'roles' => $this->getFirmRoles($file->firm_id, $refresh),
+                'role_options' => ContactRole::ROLE_LABELS,
                 'file_contact_roles' => $this->getFileContactRoles($file->id, $refresh),
             ]);
     }
@@ -273,6 +270,15 @@ public function create(File $file, Request $request)        // NOTE: this might 
 
         if( $entry->firm_id === $request->user()->firm_id) {            // only update this record if the firm_id matches the user firm_id
             $entry->save();
+
+            // Check if from_contact changed and cleanup old contact role
+            if ($entry->wasChanged('from_contact_id') && $entry->getOriginal('from_contact_id')) {
+                $this->cleanupContactRole($entry->file_id, $entry->getOriginal('from_contact_id'));
+            }
+            // Check if to_contact changed and cleanup old contact role
+            if ($entry->wasChanged('to_contact_id') && $entry->getOriginal('to_contact_id')) {
+                $this->cleanupContactRole($entry->file_id, $entry->getOriginal('to_contact_id'));
+            }
 
             // Handle pending contact roles
             $this->savePendingContactRoles($request, $entry->file_id);
@@ -834,9 +840,10 @@ public function create(File $file, Request $request)        // NOTE: this might 
                     [
                         'file_id' => $file_id,
                         'contact_id' => $pendingRole['contact_id'],
+                        'role' => $pendingRole['role'],
                     ],
                     [
-                        'role_id' => $pendingRole['role_id'] ?? null,
+                        'role_label' => $pendingRole['role_label'] ?? ContactRole::ROLE_LABELS[$pendingRole['role']] ?? $pendingRole['role'],
                     ]
                 );
             }
@@ -847,14 +854,16 @@ public function create(File $file, Request $request)        // NOTE: this might 
     {
         if ($refresh === 'full' || $refresh === 'ContactRoles') {
             return ContactRole::where('file_id', $file_id)
-                ->with(['contact:id,display_last_first', 'role:id,name'])
+                ->with(['contact:id,display_last_first'])
                 ->get()
                 ->map(fn($cr) => [
                     'id' => $cr->id,
                     'contact_name' => $cr->contact?->display_last_first ?? '',
-                    'role_name' => $cr->role?->name ?? '',
-                    'is_client' => $cr->is_client,
-                    'is_attorney' => $cr->is_attorney,
+                    'role_name' => $cr->role_label ?? (ContactRole::ROLE_LABELS[$cr->role] ?? $cr->role),
+                    'role' => $cr->role,
+                    'is_protected' => $cr->is_protected,
+                    'is_file_attorney' => $cr->is_file_attorney,
+                    'is_file_client' => $cr->is_file_client,
                 ]);
         }
         return [];
@@ -862,15 +871,34 @@ public function create(File $file, Request $request)        // NOTE: this might 
 
     public function getContactRoleIds($file_id)
     {
-        return ContactRole::where('file_id', $file_id)->pluck('contact_id')->toArray();
+        return ContactRole::where('file_id', $file_id)->pluck('contact_id')->unique()->values()->toArray();
     }
 
-    public function getFirmRoles($thefirmid, $refresh = 'full')
+    private function cleanupContactRole($file_id, $contact_id)
     {
-        if ($refresh === 'full') {
-            return Role::where('firm_id', $thefirmid)->select('id', 'name')->orderBy('name')->get();
+        // Don't remove protected, file attorney, or file client roles
+        $contactRoles = ContactRole::where('file_id', $file_id)
+            ->where('contact_id', $contact_id)
+            ->where('is_protected', false)
+            ->where('is_file_attorney', false)
+            ->where('is_file_client', false)
+            ->get();
+
+        if ($contactRoles->isEmpty()) return;
+
+        // Check if any other entries in this file reference this contact
+        $otherEntries = Entry::where('file_id', $file_id)
+            ->where(function ($q) use ($contact_id) {
+                $q->where('from_contact_id', $contact_id)
+                  ->orWhere('to_contact_id', $contact_id);
+            })
+            ->exists();
+
+        if (!$otherEntries) {
+            foreach ($contactRoles as $contactRole) {
+                $contactRole->delete();
+            }
         }
-        return [];
     }
 
     public function add_new_entrytype(Request $request)

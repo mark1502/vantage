@@ -30,7 +30,7 @@ const props = defineProps({
     assigned_attorney_id: Number,
     client_name: String,
     contact_role_ids: Array,
-    roles: Array,
+    role_options: Object,
     file_contact_roles: Array,
 });
 
@@ -734,7 +734,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                     <tr>
                                         <th class="border-b border-r border-gray-700 pl-2 py-1.5">Contact Name</th>
                                         <th class="border-b border-r border-gray-700 pl-2 py-1.5">Role</th>
-                                        <th class="border-b border-gray-700 pl-2 py-1.5">Designation</th>
+                                        <th class="border-b border-gray-700 pl-2 py-1.5">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -743,8 +743,9 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                         <td class="pl-2 py-1.5 border-r border-base-content">{{ cr.contact_name }}</td>
                                         <td class="pl-2 py-1.5 border-r border-base-content">{{ cr.role_name }}</td>
                                         <td class="pl-2 py-1.5">
-                                            <span v-if="cr.is_client" class="badge badge-sm badge-info mr-1">Client</span>
-                                            <span v-if="cr.is_attorney" class="badge badge-sm badge-accent mr-1">Attorney</span>
+                                            <span v-if="cr.is_file_attorney" class="badge badge-sm badge-primary mr-1">File Attorney</span>
+                                            <span v-if="cr.is_file_client" class="badge badge-sm badge-secondary mr-1">File Client</span>
+                                            <span v-if="cr.is_protected && !cr.is_file_attorney && !cr.is_file_client" class="badge badge-sm badge-info mr-1">Protected</span>
                                         </td>
                                     </tr>
                                 </tbody>

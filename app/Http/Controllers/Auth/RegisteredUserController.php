@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Models\Firm;
 use App\Models\User;
-use App\Models\Role;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Filetype;
@@ -82,16 +81,6 @@ class RegisteredUserController extends Controller
             $new_entrytype->name = $base_entrytype->name;
             $new_entrytype->folder_id = $base_entrytype->folder_id;
             $new_entrytype->save();
-        }
-
-            // Create base roles for this law firm
-        $base_roles = Role::where( 'firm_id', 1 )->get();
-
-        foreach ( $base_roles as $base_role ) {
-            $new_role = new Role;
-            $new_role->firm_id = $new_firm->id;
-            $new_role->name = $base_role->name;
-            $new_role->save();
         }
 
             // now, create the new user and make an 'Admin' user for the new firm

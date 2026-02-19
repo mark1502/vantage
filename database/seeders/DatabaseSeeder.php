@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
             FileSeeder::class,
             FiletypeSeeder::class,
             EntrytypeSeeder::class,
-            RoleSeeder::class,
         ]);
 
 

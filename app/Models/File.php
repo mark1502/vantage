@@ -39,27 +39,25 @@ class File extends Model
     // Helper to get the client contact role
     public function client() {
         return $this->hasOne(ContactRole::class)
-            ->where('is_client', true);
+            ->where('is_file_client', true);
     }
 
     // Helper to get the assigned attorney contact role
     public function assignedAttorney() {
         return $this->hasOne(ContactRole::class)
-            ->where('is_attorney', true)
-            ->where('is_client', true);
+            ->where('is_file_attorney', true);
     }
 
     // Helper to get opposing counsel contact role
     public function opposingCounsel() {
         return $this->hasOne(ContactRole::class)
-            ->where('is_attorney', true)
-            ->where('is_client', false);
+            ->where('role', 'opposing_counsel');
     }
 
     // Many-to-many relationship with pivot data
     public function contactsWithRoles() {
         return $this->belongsToMany(Contact::class, 'contact_roles')
-            ->withPivot(['role_id', 'is_client', 'is_attorney'])
+            ->withPivot(['role', 'role_label', 'is_protected', 'is_file_attorney', 'is_file_client'])
             ->withTimestamps();
     }
 }
