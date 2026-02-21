@@ -134,7 +134,6 @@ class FileController extends Controller
                 'contact_id' => $request->attorney_id,
                 'role' => 'attorney_for_client',
                 'role_label' => 'Attorney for Client',
-                'is_protected' => true,
                 'is_file_attorney' => true,
             ]);
 
@@ -144,7 +143,6 @@ class FileController extends Controller
                 'contact_id' => $request->client_contact_id,
                 'role' => 'client',
                 'role_label' => 'Client',
-                'is_protected' => true,
                 'is_file_client' => true,
             ]);
 
@@ -273,7 +271,6 @@ class FileController extends Controller
                 // Mark as file attorney and protected
                 $attorneyRole->update([
                     'is_file_attorney' => true,
-                    'is_protected' => true,
                 ]);
             });
     }

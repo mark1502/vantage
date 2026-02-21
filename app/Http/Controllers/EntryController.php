@@ -242,11 +242,14 @@ public function create(File $file, Request $request)        // NOTE: this might 
 
 
     public function update( StoreEntryRequest $request, $file_id, Entry $entry )
-    {        
-        $entry->entrytype_id = $request->entrytype_id;
+    {   
+        $hold_from_id = $entry->from_contact_id;
+        $hold_to_id = $entry->to_contact_id;
 
-        $entry->date1 = $request->date1;
-        $entry->date2 = empty($request->date2) ? null : $request->date2; // if empty, use null
+        $entry->entrytype_id = $request->entrytype_id;                      // set the entrytype
+
+        $entry->date1 = $request->date1;                                    // set date1
+        $entry->date2 = empty($request->date2) ? null : $request->date2;    // set date2, if empty, use null
 
         $entry->from_contact_id = $request->from_contact_id;
 
@@ -271,17 +274,22 @@ public function create(File $file, Request $request)        // NOTE: this might 
         if( $entry->firm_id === $request->user()->firm_id) {            // only update this record if the firm_id matches the user firm_id
             $entry->save();
 
-            // Check if from_contact changed and cleanup old contact role
-            if ($entry->wasChanged('from_contact_id') && $entry->getOriginal('from_contact_id')) {
-                $this->cleanupContactRole($entry->file_id, $entry->getOriginal('from_contact_id'));
-            }
-            // Check if to_contact changed and cleanup old contact role
-            if ($entry->wasChanged('to_contact_id') && $entry->getOriginal('to_contact_id')) {
-                $this->cleanupContactRole($entry->file_id, $entry->getOriginal('to_contact_id'));
-            }
+            // // Check if from_contact changed and cleanup old contact role
+            // if ($entry->wasChanged('from_contact_id') && $entry->getOriginal('from_contact_id')) {
+            //     $this->cleanupContactRole($entry->file_id, $entry->getOriginal('from_contact_id'));
+            // }
+            // // Check if to_contact changed and cleanup old contact role
+            // if ($entry->wasChanged('to_contact_id') && $entry->getOriginal('to_contact_id')) {
+            //     $this->cleanupContactRole($entry->file_id, $entry->getOriginal('to_contact_id'));
+            // }
 
             // Handle pending contact roles
             $this->savePendingContactRoles($request, $entry->file_id);
+
+                // if the initial from or to contact is no longer in this entry, check if they're still in the file
+            if( $hold_from_id !== $entry->from_contact_id && $hold_from_id !== $entry->to_contact_id ) $this->checkInFile ( $hold_from_id, $entry->file_id );
+            if( $hold_to_id !== $entry->from_contact_id && $hold_to_id !== $entry->to_contact_id ) $this->checkInFile ( $hold_to_id, $entry->file_id );
+
 
             if( $request->is_a_response == "N" ) {
                 $this->handleIsNoResponse($entry->id);
@@ -291,7 +299,13 @@ public function create(File $file, Request $request)        // NOTE: this might 
             }
     
             if( $request->comeback == true ) {
-                return redirect('/files/' . $entry->file_id . '/entries?page=' . $request->current_page . '&show=' . $request->show . '&filepart=' . $request->filepart);
+                return to_route( 'entries.index', [ 'file' => $entry->file_id,
+                                                    'page' => $request->current_page,
+                                                    'show' => $request->show,
+                                                    'filepart' => $request->filepart,
+                                                  ]);
+
+                // return redirect('/files/' . $entry->file_id . '/entries?page=' . $request->current_page . '&show=' . $request->show . '&filepart=' . $request->filepart);
             }
     
         }
@@ -310,11 +324,28 @@ public function create(File $file, Request $request)        // NOTE: this might 
             ]);
         
         if( $request->entry_id == $entry->id ) {
+            // Capture contacts before deletion for cleanup
+            $fromContactId = $entry->from_contact_id;
+            $toContactId = $entry->to_contact_id;
+
             $this->handleIsNoResponse($entry->id);  // delete the response for this entry
             $entry->delete();                       // delete this entry
+
+            // Clean up contact roles for contacts no longer referenced in any entry
+            if ($fromContactId) {
+                $this->checkInFile( $fromContactId, $entry->file_id );
+            }
+            if ($toContactId && $toContactId !== $fromContactId) {
+                $this->checkInFile( $toContactId, $entry->file_id );
+            }
         }
 
-        return redirect('/files/' . $entry->file_id . '/entries?page=' . $request->current_page . '&show=' . $request->show . '&filepart=' . $request->filepart);
+        // return redirect('/files/' . $entry->file_id . '/entries?page=' . $request->current_page . '&show=' . $request->show . '&filepart=' . $request->filepart);
+        return to_route('entries.index', [  'file' => $entry->file_id,
+                                      'page' => $request->current_page,
+                                      'show' => $request->show,
+                                      'filepart' => $request->filepart,
+                                    ]);
     }
 
 
@@ -625,6 +656,27 @@ public function create(File $file, Request $request)        // NOTE: this might 
         return $default_entrytype;
     }
 
+        // check if a contact is still in a file, and if not, delete the contact_roles entry
+    public function checkInFile( $contact_id, $file_id ) {
+        $fileAtty = ContactRole::where( 'file_id', $file_id )->where( 'is_file_attorney', true )->first();
+        $fileClient = ContactRole::where( 'file_id', $file_id )->where( 'is_file_client', true )->first();
+
+        if( $contact_id !== $fileAtty && $contact_id !== $fileClient ) {
+            $exists_from = Entry::where('file_id', $file_id )->where( 'from_contact_id', $contact_id )->exists();
+            $exists_to = Entry::where('file_id', $file_id )->where( 'to_contact_id', $contact_id )->exists();
+
+            if( $exists_from === false && $exists_to === false ) {
+                $contactRole = ContactRole::where( 'file_id', $file_id )
+                                            ->where( 'contact_id', $contact_id )
+                                            ->first();
+                if( $contactRole ) {
+                    $contactRole->delete();
+                }
+            }
+        } // endIf ! file atty or client
+    }
+
+
     public function handleIsNoResponse($entry_id_in)
     {
         $found_response = Response::where('entry_id', $entry_id_in)->first();       // look for a response from this entry
@@ -861,7 +913,6 @@ public function create(File $file, Request $request)        // NOTE: this might 
                     'contact_name' => $cr->contact?->display_last_first ?? '',
                     'role_name' => $cr->role_label ?? (ContactRole::ROLE_LABELS[$cr->role] ?? $cr->role),
                     'role' => $cr->role,
-                    'is_protected' => $cr->is_protected,
                     'is_file_attorney' => $cr->is_file_attorney,
                     'is_file_client' => $cr->is_file_client,
                 ]);
@@ -879,7 +930,6 @@ public function create(File $file, Request $request)        // NOTE: this might 
         // Don't remove protected, file attorney, or file client roles
         $contactRoles = ContactRole::where('file_id', $file_id)
             ->where('contact_id', $contact_id)
-            ->where('is_protected', false)
             ->where('is_file_attorney', false)
             ->where('is_file_client', false)
             ->get();

@@ -1,21 +1,22 @@
 <?php
 
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
-use App\Http\Controllers\FileController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ViewController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\EntryController;
-use App\Http\Controllers\FolderController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactRoleController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WelcomeController;
-use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\EntryController;
+use App\Http\Controllers\EntrytypeController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\FiletypeController;
+use App\Http\Controllers\FolderController;
 use App\Http\Controllers\PreferenceController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ViewController;
+use App\Http\Controllers\WelcomeController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
     // dd('here');

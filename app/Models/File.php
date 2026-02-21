@@ -57,7 +57,7 @@ class File extends Model
     // Many-to-many relationship with pivot data
     public function contactsWithRoles() {
         return $this->belongsToMany(Contact::class, 'contact_roles')
-            ->withPivot(['role', 'role_label', 'is_protected', 'is_file_attorney', 'is_file_client'])
+            ->withPivot(['role', 'role_label', 'is_file_attorney', 'is_file_client'])
             ->withTimestamps();
     }
 }

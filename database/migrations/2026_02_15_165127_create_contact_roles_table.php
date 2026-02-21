@@ -17,7 +17,6 @@ return new class extends Migration
             $table->unsignedInteger('contact_id');
             $table->string('role');
             $table->string('role_label')->nullable();
-            $table->boolean('is_protected')->default(false);
             $table->boolean('is_file_attorney')->default(false);
             $table->boolean('is_file_client')->default(false);
             $table->timestamps();

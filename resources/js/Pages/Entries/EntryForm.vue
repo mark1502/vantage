@@ -1268,14 +1268,16 @@ update_disp();
 
 </template>
 
-<style scoped>
-/* To change the border color in light mode */
+<style>
 .dp__theme_light {
-  --dp-border-color: #d1d5db; /* Sets the default border color to red */
+  --dp-border-color: #d1d5db;
+  --dp-background-color: var(--color-base-100);
+  --dp-text-color: var(--color-base-content);
 }
 
-/* To change the border color in dark mode (if 'dark' prop is set to true) */
 .dp__theme_dark {
-  --dp-border-color: #4b5563; /* Sets the default border color to green */
+  --dp-border-color: #4b5563;
+  --dp-background-color: var(--color-base-100);
+  --dp-text-color: var(--color-base-content);
 }
 </style>

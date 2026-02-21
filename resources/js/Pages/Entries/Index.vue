@@ -745,7 +745,6 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                         <td class="pl-2 py-1.5">
                                             <span v-if="cr.is_file_attorney" class="badge badge-sm badge-primary mr-1">File Attorney</span>
                                             <span v-if="cr.is_file_client" class="badge badge-sm badge-secondary mr-1">File Client</span>
-                                            <span v-if="cr.is_protected && !cr.is_file_attorney && !cr.is_file_client" class="badge badge-sm badge-info mr-1">Protected</span>
                                         </td>
                                     </tr>
                                 </tbody>

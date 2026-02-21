@@ -94,7 +94,7 @@ class Contact extends Model
     public function filesWithRoles()
     {
         return $this->belongsToMany(File::class, 'contact_roles')
-            ->withPivot(['role', 'role_label', 'is_protected'])
+            ->withPivot(['role', 'role_label'])
             ->withTimestamps();
     }
 }

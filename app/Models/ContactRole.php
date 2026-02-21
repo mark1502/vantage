@@ -12,7 +12,6 @@ class ContactRole extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'is_protected' => 'boolean',
         'is_file_attorney' => 'boolean',
         'is_file_client' => 'boolean',
     ];
@@ -68,11 +67,6 @@ class ContactRole extends Model
     public function scopeOpposingCounsel($query)
     {
         return $query->where('role', 'opposing_counsel');
-    }
-
-    public function scopeProtected($query)
-    {
-        return $query->where('is_protected', true);
     }
 
     public function scopeFileAttorney($query)
