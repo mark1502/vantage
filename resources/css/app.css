@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@vuepic/vue-datepicker/dist/main.css';
 
 @plugin "daisyui";
 
@@ -29,6 +30,75 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
+/* ============================================================
+   Vue Datepicker (vdtp) — global styles
+   ============================================================ */
+
+/* Theme overrides: map dp__ variables to DaisyUI tokens */
+/*
+
+/* Date picker input */
+.vdtp_date .dp__input {
+  height: 32px;
+  width: 120px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Time picker input */
+.vdtp_time .dp__input {
+  height: 32px;
+  width: 180px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Main container widths */
+.vdtp_main_date .dp__main {
+  width: 120px;
+}
+
+.vdtp_main_time .dp__main {
+  width: 200px;
+}
+
+
+/* The rest of the vdtp aren't used */
+
+.vdtp_time-disabled .dp__input {
+  height: 32px;
+  width: 180px;
+  border-radius: 6px;
+  border: 0;
+  font-size: 14px;
+}
+
+.vdtp_date-disabled .dp__input {
+  height: 32px;
+  width: 120px;
+  border-radius: 6px;
+  border: 0;
+  font-size: 14px;
+}
+
+/* Small variant */
+.vdtp_sm .dp__input {
+  height: 32px;
+  width: 180px;
+  border-radius: 6px;
+  border-color: lightgray;
+  font-size: 14px;
+}
+
+.vdtp-disabled_sm .dp__input {
+  height: 32px;
+  width: 180px;
+  border-radius: 6px;
+  border: 0;
+  font-size: 14px;
+}
+
+
 @layer base {
   *,
   ::after,

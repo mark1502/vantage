@@ -5,8 +5,7 @@ import InputError from "@/Components/InputError.vue";
 import ContactLookup from "@/Components/ContactLookup.vue";
 import AddContactForm from "@/Components/AddContactForm.vue";
 import FileLookup_form from '@/Pages/Files/FileLookup_form.vue';
-import VueDatePicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css'
+import { VueDatePicker } from '@vuepic/vue-datepicker';
 import axios from 'axios';
 
 // Inject the theme ref and the setTheme function
@@ -931,11 +930,13 @@ update_disp();
                         {{ props.getFolderData('date1_prompt') }}
                     </label>
                     <div class="">
-                        <VueDatePicker v-model="entry_form.date1" uid="entry_date1" id="entry_date1" :model-type="'yyyy-MM-dd HH:mm:ss'"
-                        :class="isTimePicker() ? 'vdtp_main_time vdtp_time' : 'vdtp_main_date vdtp_date'"
-                        :enable-time-picker="isTimePicker()" :is24="false" time-picker-inline week-start="0" minutes-increment="5"
-                        :flow="isTimePicker() ? ['calendar', 'time'] : []" :auto-apply="isTimePicker() ? false : true"
-                        text-input hide-input-icon :clearable="false" @closed="entry_datepicker_closed('date1')" required :dark="isDark"
+                        <VueDatePicker v-model="entry_form.date1" :model-type="'yyyy-MM-dd HH:mm:ss'"
+                        class="" :class="isTimePicker() ? 'vdtp_main_time vdtp_time' : 'vdtp_main_date vdtp_date'"
+                        :time-config="{ enableTimePicker: isTimePicker(), is24: false, timePickerInline: true, minutesIncrement: 5 }"
+                        week-start="0"
+                        :auto-apply="isTimePicker() ? false : true"
+                        text-input :input-attrs="{ id: 'dp-input-entry_date1', clearable: false, hideInputIcon: true }"
+                        @closed="entry_datepicker_closed('date1')" required :dark="isDark"
                          />
 
                         <InputError class="mt-1 ml-5" :message="entry_form.errors.date1" />
@@ -950,14 +951,16 @@ update_disp();
                 </div>
                 <!-- Date 2 Row -->
                 <div v-else-if="props.getFolderData('hide_date2_prompt') === false" class="flex items-baseline">
-                    <label for="dp-input-entry_date2" class="text-sm font-semibold ml-6">
+                    <label for="dp-input-entry_date2" class="text-sm font-semibold ml-4">
                         {{ props.getFolderData('date2_prompt') }}
                     </label>
-                    <VueDatePicker v-model="entry_form.date2" uid="entry_date2" :model-type="'yyyy-MM-dd HH:mm:ss'"
+                    <VueDatePicker v-model="entry_form.date2" :model-type="'yyyy-MM-dd HH:mm:ss'"
                         class="pl-1 ml-2" :class="isTimePicker() ? 'vdtp_main_time vdtp_time' : 'vdtp_main_date vdtp_date'"
-                        :enable-time-picker="isTimePicker()" :is24="false" time-picker-inline week-start="0" minutes-increment="5"
-                        :flow="isTimePicker() ? ['calendar', 'time'] : []" :auto-apply="isTimePicker() ? false : true"
-                        text-input hide-input-icon :clearable="false" @closed="entry_datepicker_closed('date2')" @blur="checkEditMode()" :dark="isDark" />
+                        :time-config="{ enableTimePicker: isTimePicker(), is24: false, timePickerInline: true, minutesIncrement: 5 }"
+                        week-start="0"
+                        :auto-apply="isTimePicker() ? false : true"
+                        text-input :input-attrs="{ id: 'dp-input-entry_date2', clearable: false, hideInputIcon: true }"
+                        @closed="entry_datepicker_closed('date2')" @blur="checkEditMode()" :dark="isDark"/>
                 </div>
             </div>
 
@@ -1047,10 +1050,11 @@ update_disp();
                     <label for="dp-input-entry_date_response_expected" class="text-sm font-semibold w-64 mr-1">
                         Response Expected Date:
                     </label>
-                    <VueDatePicker v-model="entry_form.date_response_expected" uid="entry_date_response_expected"
-                        :model-type="'yyyy-MM-dd HH:mm:ss'" :enable-time-picker="false" week-start="0"
-                        class="pl-1 text-sm font-normal vdtp_main_date vdtp_date" text-input hide-input-icon auto-apply
-                        :clearable="false" @closed="entry_datepicker_closed('date_response_expected')" :dark="isDark" />                        
+                    <VueDatePicker v-model="entry_form.date_response_expected"
+                        :model-type="'yyyy-MM-dd HH:mm:ss'" :time-config="{ enableTimePicker: false }" week-start="0"
+                        class="pl-1 text-sm font-normal vdtp_main_date vdtp_date" text-input auto-apply
+                        :input-attrs="{ id: 'dp-input-entry_date_response_expected', clearable: false, hideInputIcon: true }"
+                        @closed="entry_datepicker_closed('date_response_expected')" :dark="isDark" />                        
                 </div>
 
             <!-- Response Status Message -->
@@ -1267,17 +1271,3 @@ update_disp();
 
 
 </template>
-
-<style>
-.dp__theme_light {
-  --dp-border-color: #d1d5db;
-  --dp-background-color: var(--color-base-100);
-  --dp-text-color: var(--color-base-content);
-}
-
-.dp__theme_dark {
-  --dp-border-color: #4b5563;
-  --dp-background-color: var(--color-base-100);
-  --dp-text-color: var(--color-base-content);
-}
-</style>

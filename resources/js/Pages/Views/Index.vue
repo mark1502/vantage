@@ -8,11 +8,10 @@ import EntryForm from "@/Pages/Entries/EntryForm.vue";
 import Pagination from '@/Components/Pagination.vue'
 
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { reactive, ref, computed, watch, onMounted, onUnmounted, onUpdated, nextTick } from "vue";
+import { reactive, ref, computed, onMounted, onUnmounted, onUpdated, nextTick } from "vue";
 // import { preventDefault } from '@fullcalendar/core/internal';
 
-import VueDatePicker from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css'
+import { VueDatePicker } from '@vuepic/vue-datepicker';
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -95,6 +94,10 @@ const table_heading = reactive({
 });
 
 
+const emptyRows = computed(() => {
+    return Math.max(0, state.show - props.entries.data.length);
+});
+
 function refreshView() {
     router.reload( { 
         only: ['entries','view_folder_id','view','initials','from_to','read'], 
@@ -128,27 +131,29 @@ function refreshView() {
 
     // this sets the color of the listbox entries
 function setViewClass(index) {
-    let sendback = '';
+    let entry = props.entries.data[index];
     let textcolor = 'text-base-content';
     let bgcolor = 'bg-base-100';
+    let border = '';
 
-    if (state.mode == 'entry_edit' || state.mode == 'entry_add') {          // if adding or entering, then gray out the listbox entries
-        textcolor = 'text-base-100';
-    } else if (props.entries.data[index].expecting_response == true) {      // else if entry expects a response, set the color
-        let thestat = determine_response_expectation(props.entries.data[index].date_response_expected);
+    if (state.mode === 'entry_edit' || state.mode === 'entry_add') {          // if adding or entering, then gray out the listbox entries
+        textcolor = 'text-base-300';
+        bgcolor = 'bg-base-100';
+    } else if (entry.expecting_response == true) {                            // else if entry expects a response, set the color
+        let thestat = determine_response_expectation(entry.date_response_expected);
         textcolor = thestat === 'Awaiting response' ? 'text-green-600' : 'text-red-500';
     }
 
-    if (index == state.row) {                                               // if it is the highlighted row
-        if ( props.entries.data[index].expecting_response == false ) {      // if entry does not expect a response, set text color to white
-            textcolor = 'text-white'
+    if (index === state.row) {                                                // if it is the highlighted row
+        textcolor = 'text-gray-900 dark:text-gray-900';
+        if (entry.expecting_response) {
+            textcolor = determine_response_expectation(entry.date_response_expected) === 'Awaiting response' ? 'text-green-600' : 'text-red-500';
         }
-        bgcolor = 'bg-blue-800';                                            // set highlighted row background color
+        bgcolor = 'bg-blue-200 dark:bg-blue-200';
+        border = 'border-l-4 border-l-blue-600';
     }
 
-    sendback = textcolor + ' ' + bgcolor;
-
-    return sendback;
+    return textcolor + ' ' + bgcolor + ' ' + border;
 }
 
 function viewList_click( what, index = null ) {                                 // there was a click on the list, buttons or entry form buttons
@@ -614,11 +619,13 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id" :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)" 
+                                                <tr v-for="entry, index in entries.data" :key="entry.id"
+                                                    class="border-b border-gray-400"
+                                                    :class="setViewClass(index)"
+                                                    @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1 border-r border-gray-900 w-28">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-28">
                                                         {{ reformat_date(entry.date1, getFolderData('input_time')) }}
                                                     </td>
                                                     <td class="border-x border-gray-900 w-40 pl-1 text-left">
@@ -627,6 +634,11 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                     <td class="border-x border-gray-900 w-40 pl-1">
                                                         {{ display_entry_contact( entry, 'to' ) }}
                                                     </td>
+                                                </tr>
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
+                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -645,11 +657,13 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id" :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)" 
+                                                <tr v-for="entry, index in entries.data" :key="entry.id"
+                                                    class="border-b border-gray-400"
+                                                    :class="setViewClass(index)"
+                                                    @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1 border-r border-gray-900 w-16">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-16">
                                                         {{ reformat_date(entry.date1, getFolderData('input_time')) }}
                                                     </td>
                                                     <td class="border-x border-gray-900 w-12 pl-1 text-left">
@@ -658,6 +672,11 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                     <td class="border-x border-gray-900 w-80 pl-1">
                                                         {{ entry.note }}
                                                     </td>
+                                                </tr>
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
+                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -676,11 +695,13 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id" :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)" 
+                                                <tr v-for="entry, index in entries.data" :key="entry.id"
+                                                    class="border-b border-gray-400"
+                                                    :class="setViewClass(index)"
+                                                    @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1 border-r border-gray-900 w-32">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-32">
                                                         {{ reformat_date(entry.date1, getFolderData('input_time')) }}
                                                     </td>
                                                     <td class="border-x border-gray-900 w-12 pl-1 text-left">
@@ -689,6 +710,11 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                     <td class="border-x border-gray-900 w-80 pl-1">
                                                         {{ props.folders[entry.folder_id - 1].entrytypes.find( (entrytype) => entrytype.id === entry.entrytype_id).name }}
                                                     </td>
+                                                </tr>
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
+                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -707,11 +733,13 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id" :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)" 
+                                                <tr v-for="entry, index in entries.data" :key="entry.id"
+                                                    class="border-b border-gray-400"
+                                                    :class="setViewClass(index)"
+                                                    @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1 border-r border-gray-900 w-36">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-36">
                                                         {{ reformat_date(entry.date1, props.folders[entry.folder_id-1].input_time, entry.all_day) }}
                                                     </td>
                                                     <td class="border-x border-gray-900 w-12 pl-1 text-left">
@@ -720,6 +748,11 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                     <td class="border-x border-gray-900 w-80 pl-1">
                                                         {{ props.folders[entry.folder_id - 1].entrytypes.find( (entrytype) => entrytype.id === entry.entrytype_id).name }}
                                                     </td>
+                                                </tr>
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
+                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -738,8 +771,10 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id" :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)" 
+                                                <tr v-for="entry, index in entries.data" :key="entry.id"
+                                                    class="border-b border-gray-400"
+                                                    :class="setViewClass(index)"
+                                                    @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
                                                     <td class="border-x border-gray-900 w-40 pl-1 text-left">
@@ -748,9 +783,14 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                     <td class="border-x border-gray-900 w-40 pl-1">
                                                         {{ display_entry_contact( entry, 'from' ) }}
                                                     </td>
-                                                    <td class="pl-1 pr-2 py-1 border-r border-gray-900 w-28">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-28">
                                                         {{ reformat_date( entry.date_response_expected ) }}
                                                     </td>
+                                                </tr>
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
+                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -943,14 +983,14 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     <span class="">Starting: </span>
                     <VueDatePicker v-model="state.date_from" :enable-time-picker="false" :teleport="true"
                         week-start="0" :model-type="'yyyy-MM-dd'" :format="'MM/dd/yyyy'"
-                        class="pl-1 text-sm font-normal vdtp_main_date vdtp_date" hide-input-icon auto-apply
-                        :clearable="true" @closed="" />
+                        class="pl-1 text-sm font-normal vdtp_main_date vdtp_date" auto-apply
+                        :input-attrs="{ hideInputIcon: true, clearable: true }" @closed="" />
 
                     <span class="ml-4">Ending: </span>
                     <VueDatePicker v-model="state.date_to" :enable-time-picker="false" :teleport="true"
                         week-start="0" :model-type="'yyyy-MM-dd'" :format="'MM/dd/yyyy'"
-                        class="pl-1 text-sm font-normal vdtp_main_date vdtp_date" hide-input-icon auto-apply
-                        :clearable="true" @closed="" />
+                        class="pl-1 text-sm font-normal vdtp_main_date vdtp_date" auto-apply
+                        :input-attrs="{ hideInputIcon: true, clearable: true }" @closed="" />
 
                 </div>
                 <div class="modal-action justify-center mt-12 absolute inset-x-0 bottom-5">
@@ -964,81 +1004,6 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
 </template>
 
 <style>
-.vdtp .dp__input {
-    height: 48px;
-    width: 252px;
-    border-radius: 4px;
-    border-color: lightgray;
-}
-
-.vdtp-disabled .dp__input {
-    height: 48px;
-    width: 252px;
-    border-radius: 4px;
-    border: 0;
-}
-
-.vdtp_time .dp__input {
-    height: 32px;
-    width: 180px;
-    border-radius: 6px;
-    border-color: lightgray;
-    font-size: 14px;
-}
-
-.vdtp_time-disabled .dp__input {
-    height: 32px;
-    width: 180px;
-    border-radius: 6px;
-    border: 0;
-    font-size: 14px;
-}
-
-.vdtp_date .dp__input {
-    height: 32px;
-    width: 120px;
-    border-radius: 6px;
-    border-color: lightgray;
-    font-size: 14px;
-}
-
-.vdtp_date-disabled .dp__input {
-    height: 32px;
-    width: 120px;
-    border-radius: 6px;
-    border: 0;
-    font-size: 14px;
-}
-
-.vdtp_main_date .dp__main {
-    width: 120px;
-}
-
-.vdtp_main_time .dp__main {
-    width: 200px;
-}
-
-.vdtp_sm .dp__input {
-    height: 32px;
-    width: 180px;
-    border-radius: 6px;
-    border-color: lightgray;
-    font-size: 14px;
-}
-
-.vdtp-disabled_sm .dp__input {
-    height: 32px;
-    width: 180px;
-    border-radius: 6px;
-    border: 0;
-    font-size: 14px;
-}
-
-/* .dp__main  {
-  width: 200px;
-}
- */
-
 input[type="text"]:disabled {
     background: #FAFAFA;
 }

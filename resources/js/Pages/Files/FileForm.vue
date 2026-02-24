@@ -5,8 +5,7 @@
     import axios from 'axios';
 
     import TextInput from "@/Components/TextInput.vue";
-    import VueDatePicker from '@vuepic/vue-datepicker';
-    import '@vuepic/vue-datepicker/dist/main.css'
+    import { VueDatePicker } from '@vuepic/vue-datepicker';
     import InputLabel from "@/Components/InputLabel.vue";
 
     const the_mode = defineModel('the_mode');           // the_mode is passed in from the parent component, it can be set to 'file_edit' or 'file_show'

@@ -22,7 +22,7 @@
     },
     "dependencies": {
         "@fullcalendar/vue3": "^6.1.15",
-        "@vuepic/vue-datepicker": "^11.0.1",
+        "@vuepic/vue-datepicker": "^12.1.0",
         "fullcalendar": "^6.1.15"
     }
 }
