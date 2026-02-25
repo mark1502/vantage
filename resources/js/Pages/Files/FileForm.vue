@@ -189,10 +189,8 @@
         <div class="flex w-32">
             <InputLabel for="filetype_id" value="File Type:" disabled /><span class="red_star-700-2 ml-2">*</span>
         </div>
-        <select v-model="file_form.filetype_id" @change="form_change()" class="select select-bordered select-sm w-64 disabled:text-base-content" disabled >
-            <option v-if="!saved_file_form.filetype_id" :value="null">Select file type . . .</option>
-            <option v-for="filetype in filetypes" :key="filetype.id" :value="filetype.id">{{ filetype.name }}</option>
-        </select>
+        <!-- <input type="text" :value="props.file.filetype?.name ?? ''" class="input input-bordered input-sm w-64" readonly /> -->
+         <span class="text-sm mr-6 text-base-content border rounded-sm p-2 w-64 dark:border-base-content/20 cursor-not-allowed">{{ props.file.filetype?.name }}</span>
         <!-- <button @click="click_AddType" class="ml-6 btn btn-xs btn-outline btn-primary">Add New Type</button> -->
     </div>
 

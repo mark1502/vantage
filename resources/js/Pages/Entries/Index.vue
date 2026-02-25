@@ -734,14 +734,13 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                         - &nbsp;Delete
                                     </button>
                                     <button
-                                        v-if="props.firm_document_base_path"
+                                        v-if="props.firm_document_base_path && entries.data.length && entries.data[state.row]?.linked_document_path"
                                         type="button"
                                         id="docbutton"
                                         class="btn btn-outline btn-sm h-10 gap-0"
-                                        :disabled="entries.total === 0"
                                         @click="entryList_click('doc_button')"
                                     >
-                                        📎&nbsp;{{ entries.data.length && entries.data[state.row]?.linked_document_path ? 'Open Doc' : 'Add Doc' }}
+                                        📎&nbsp;Open Doc
                                     </button>
                                 </div>
                             </div>

@@ -63,7 +63,12 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
 
                         <div class="flex-col mb-5">
                             <InputLabel for="address" value="Address" class="ml-2" />
-                            <TextInput v-model="form.address" id="address" class="w-full mt-1" />
+                            <textarea
+                                v-model="form.address"
+                                id="address"
+                                rows="4"
+                                class="textarea textarea-bordered text-base w-full mt-1 resize-none overflow-y-auto"
+                            ></textarea>
                             <InputError class="mt-1" :message="form.errors.address" />
                         </div>
 

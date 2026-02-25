@@ -46,7 +46,7 @@ class FirmController extends Controller
         $firm->document_base_path = $request->document_base_path ?: null;
         $firm->save();
 
-        return redirect()->route('firm.edit')->with('success', 'Firm settings saved.');
+        return redirect()->route('adminmenu');
     }
 
     public function browseDirectory(Request $request): JsonResponse

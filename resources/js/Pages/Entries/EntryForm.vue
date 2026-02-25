@@ -977,7 +977,7 @@ update_disp();
                 <div>
 
                     <select v-model="entry_form.entrytype_id" id="entry_entrytype_select" @blur="checkEditMode()" @change="checkEditMode()"
-                        class="w-72 p-1.5 select select-bordered select-sm rounded-md font-normal text-sm text-base-content bg-base-100">
+                        class="w-72 select select-bordered select-sm rounded-md font-normal text-sm text-base-content bg-base-100">
                         <option v-for="etype, index in props.p1.folders[props.getFolderRow()].entrytypes" :key="etype.id" :value="etype.id">
                             {{ etype.name }}
                         </option>

@@ -17,6 +17,12 @@
                         <tbody>
                             <tr>
                                 <td class="py-3 pr-6">
+                                    <Link class="btn btn-primary text-white px-8 w-40" :href="route('firm.edit')">Firm Settings</Link>
+                                </td>
+                                <td class="py-3 text-base-content">Manage firm profile and document storage settings</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-6">
                                     <Link class="btn btn-primary text-white px-8 w-40" href="/users">User List</Link>
                                 </td>
                                 <td class="py-3 text-base-content">Manage user accounts, roles, and permissions</td>
@@ -39,12 +45,7 @@
                                 </td>
                                 <td class="py-3 text-base-content">Manage folder categories for organizing entries</td>
                             </tr> -->
-                            <tr>
-                                <td class="py-3 pr-6">
-                                    <Link class="btn btn-primary text-white px-8 w-40" :href="route('firm.edit')">Firm Settings</Link>
-                                </td>
-                                <td class="py-3 text-base-content">Manage firm profile and document storage settings</td>
-                            </tr>
+
                             <!-- <tr>
                                 <td class="py-3 pr-6">
                                     <Link class="btn btn-primary text-white px-8 w-40" href="/test_form">Test Form</Link>

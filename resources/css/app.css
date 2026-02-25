@@ -42,7 +42,10 @@
   height: 32px;
   width: 120px;
   border-radius: 6px;
-  font-size: 14px;
+  border-color: color-mix(in srgb, var(--color-base-content), transparent 80%);
+  font-size: 0.875rem;
+  color: var(--color-base-content);
+  background-color: var(--color-base-100);
 }
 
 /* Time picker input */
@@ -50,7 +53,10 @@
   height: 32px;
   width: 180px;
   border-radius: 6px;
-  font-size: 14px;
+  border-color: color-mix(in srgb, var(--color-base-content), transparent 80%);
+  font-size: 0.875rem;
+  color: var(--color-base-content);
+  background-color: var(--color-base-100);
 }
 
 /* Main container widths */
@@ -60,42 +66,6 @@
 
 .vdtp_main_time .dp__main {
   width: 200px;
-}
-
-
-/* The rest of the vdtp aren't used */
-
-.vdtp_time-disabled .dp__input {
-  height: 32px;
-  width: 180px;
-  border-radius: 6px;
-  border: 0;
-  font-size: 14px;
-}
-
-.vdtp_date-disabled .dp__input {
-  height: 32px;
-  width: 120px;
-  border-radius: 6px;
-  border: 0;
-  font-size: 14px;
-}
-
-/* Small variant */
-.vdtp_sm .dp__input {
-  height: 32px;
-  width: 180px;
-  border-radius: 6px;
-  border-color: lightgray;
-  font-size: 14px;
-}
-
-.vdtp-disabled_sm .dp__input {
-  height: 32px;
-  width: 180px;
-  border-radius: 6px;
-  border: 0;
-  font-size: 14px;
 }
 
 
