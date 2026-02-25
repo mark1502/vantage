@@ -32,6 +32,7 @@ const props = defineProps({
     contact_role_ids: Array,
     role_options: Object,
     file_contact_roles: Array,
+    firm_document_base_path: String,
 });
 
 const state = reactive({
@@ -97,6 +98,15 @@ function entryList_click(what, index = null) {                            // the
                 state.folder_row = getFolderRow();                              // set the folder row
 
                 if( what === 'list_double' ) list_actions('edit');              // if double_click, start the edit mode
+            }
+            break;
+        case 'doc_button':
+            if (props.entries.data.length && props.entries.data[state.row]?.linked_document_path) {
+                const entry = props.entries.data[state.row];
+                const filename = entry.linked_document_path.split(/[\\/]/).pop();
+                window.open(route('entries.document', { entry: entry.id, filename }), '_blank');
+            } else {
+                list_actions('edit');
             }
             break;
         case 'right':
@@ -636,8 +646,13 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                     </td>
                                                     <!-- find the contact in file_contacts -->
                                                     <td class="border-base-content w-40 pl-1">
-                                                        {{ props.file_contacts.find((contact) => contact.id ===
-                                                        entry.from_contact_id ).display_last_first }}
+                                                        <span class="flex items-center gap-1">
+                                                            <span>{{ props.file_contacts.find((contact) => contact.id ===
+                                                            entry.from_contact_id ).display_last_first }}</span>
+                                                            <span v-if="props.firm_document_base_path && entry.linked_document_path"
+                                                                title="Has linked document"
+                                                                class="text-xs opacity-50">📎</span>
+                                                        </span>
                                                     </td>
                                                     <!-- next is only shown for listFormat 4, which doesn't exist right now -->
                                                     <td v-show="disp.listFormat === 4" class="border-gray-900 pl-1">
@@ -717,6 +732,16 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                     </button>
                                     <button type="button" id="deletebutton" class="btn btn-outline btn-error btn-sm h-10 " @click="display_modal('confirm_delete', true)" :disabled="entries.total === 0" >
                                         - &nbsp;Delete
+                                    </button>
+                                    <button
+                                        v-if="props.firm_document_base_path"
+                                        type="button"
+                                        id="docbutton"
+                                        class="btn btn-outline btn-sm h-10 gap-0"
+                                        :disabled="entries.total === 0"
+                                        @click="entryList_click('doc_button')"
+                                    >
+                                        📎&nbsp;{{ entries.data.length && entries.data[state.row]?.linked_document_path ? 'Open Doc' : 'Add Doc' }}
                                     </button>
                                 </div>
                             </div>

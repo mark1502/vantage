@@ -5,6 +5,7 @@ import InputError from "@/Components/InputError.vue";
 import ContactLookup from "@/Components/ContactLookup.vue";
 import AddContactForm from "@/Components/AddContactForm.vue";
 import FileLookup_form from '@/Pages/Files/FileLookup_form.vue';
+import DocumentPicker from "@/Components/DocumentPicker.vue";
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import axios from 'axios';
 
@@ -54,6 +55,7 @@ const entry_form = useForm({                            // the entry_form - pass
     date1: null,
     date2: null,
     note: "",
+    linked_document_path: null,
     date_response_expected: "",
     was_a_response: "",
     was_response_to: null,
@@ -136,6 +138,7 @@ const mark_read = reactive({                            // used for the "Read" c
 
 let save_clicked = false;                               // use this to avoid repeat of warning before unmounting
 let refresh_entrytype_pending = ref(false);             // use this to stop update_disp (in onUpdate) upon return from posting to add a new entrytype
+const showDocumentPicker = ref(false);                  // controls the DocumentPicker modal
 
 // Contact role assignment state
 const role_modal = reactive({
@@ -620,6 +623,7 @@ function update_disp() {
         }
 
         entry_form.note = theEntry.note;                                                            // note
+        entry_form.linked_document_path = theEntry.linked_document_path ?? null;                    // linked_document_path
         entry_form.date_response_expected = theEntry.date_response_expected;                        // date_response_expected
         entry_form.amount = theEntry.amount;                                                        // amount
 
@@ -867,6 +871,7 @@ onBeforeUnmount(() => {                     // For some reason, this event gets 
         'date1',
         'date2',
         'note',
+        'linked_document_path',
         'date_response_expected',
         'is_a_response',
         'is_response_to',
@@ -1042,6 +1047,30 @@ update_disp();
                 </label>
                 <textarea v-model="entry_form.note" id="entry_note" rows="3" @blur="checkEditMode()" @input="checkEditMode()" @change="checkEditMode()"
                     class="w-117.5 textarea textarea-bordered disabled:border-0 text-sm resize-none py-0 px-2 ml-1 text-base-content bg-base-100" />
+            </div>
+
+            <!-- Linked Document Row > Only shown when firm has a document base path configured -->
+            <div v-if="props.p1.firm_document_base_path" class="flex place-items-baseline mt-4">
+                <label for="entry_linked_document" class="text-sm font-semibold w-28">
+                    Linked Doc
+                </label>
+                <input
+                    v-model="entry_form.linked_document_path"
+                    id="entry_linked_document"
+                    type="text"
+                    placeholder="e.g., 2024\Smith\contract.pdf"
+                    @blur="checkEditMode()"
+                    @input="checkEditMode()"
+                    class="input input-bordered input-sm rounded-sm w-80 text-sm text-base-content bg-base-100"
+                />
+                <button
+                    type="button"
+                    class="btn btn-xs btn-outline ml-2"
+                    @click="showDocumentPicker = true"
+                >
+                    Browse…
+                </button>
+                <InputError class="mt-1 ml-2" :message="entry_form.errors.linked_document_path" />
             </div>
 
             <!-- Response Expected Date Row > Hide/Show based on folder -->
@@ -1269,5 +1298,11 @@ update_disp();
         </div>
     </div>
 
+    <!-- Document Picker modal -->
+    <DocumentPicker
+        :show="showDocumentPicker"
+        @close="showDocumentPicker = false"
+        @select="(path) => { entry_form.linked_document_path = path; showDocumentPicker = false; checkEditMode(); }"
+    />
 
 </template>
