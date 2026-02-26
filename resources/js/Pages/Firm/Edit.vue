@@ -100,6 +100,14 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                 The root folder where your firm's documents are stored. Leave blank to disable document linking.
                             </p>
                             <InputError class="mt-1" :message="form.errors.document_base_path" />
+                            <div class="mt-3 ml-2">
+                                <Link :href="route('firm.protocol-setup')" class="text-sm text-blue-500 hover:text-blue-700 underline">
+                                    Protocol Handler Setup Instructions
+                                </Link>
+                                <p class="text-xs text-base-content/50 mt-1">
+                                    Each user's PC needs a one-time setup to open linked documents directly from the app.
+                                </p>
+                            </div>
                         </div>
 
                     </form>

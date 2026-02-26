@@ -1,0 +1,12 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\vantage]
+@="URL:Vantage Protocol"
+"URL Protocol"=""
+
+[HKEY_CURRENT_USER\Software\Classes\vantage\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\vantage\shell\open]
+
+[HKEY_CURRENT_USER\Software\Classes\vantage\shell\open\command]
+@="\"C:\\VantageHandler\\vantage-handler.bat\" \"%1\""

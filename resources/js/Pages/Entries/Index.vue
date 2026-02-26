@@ -103,8 +103,9 @@ function entryList_click(what, index = null) {                            // the
         case 'doc_button':
             if (props.entries.data.length && props.entries.data[state.row]?.linked_document_path) {
                 const entry = props.entries.data[state.row];
-                const filename = entry.linked_document_path.split(/[\\/]/).pop();
-                window.open(route('entries.document', { entry: entry.id, filename }), '_blank');
+                const sep = props.firm_document_base_path.includes('/') ? '/' : '\\';
+                const fullPath = props.firm_document_base_path.replace(/[\\/]+$/, '') + sep + entry.linked_document_path;
+                window.location.href = 'vantage://open?path=' + fullPath;
             } else {
                 list_actions('edit');
             }

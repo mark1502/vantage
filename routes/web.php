@@ -98,6 +98,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
 
     Route::get('/firm/edit', [FirmController::class, 'edit'])->name('firm.edit');
     Route::put('/firm/update', [FirmController::class, 'update'])->name('firm.update');
+    Route::get('/firm/protocol-setup', [FirmController::class, 'protocolSetup'])->name('firm.protocol-setup');
     Route::get('/firm/browse-directory', [FirmController::class, 'browseDirectory'])->name('firm.browse-directory');
 
     Route::get('/entries/{entry}/document/{filename?}', [EntryController::class, 'serve_document'])->name('entries.document');

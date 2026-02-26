@@ -49,6 +49,15 @@ class FirmController extends Controller
         return redirect()->route('adminmenu');
     }
 
+    public function protocolSetup(Request $request)
+    {
+        if ($request->user()->user_type !== 'Admin') {
+            abort(403);
+        }
+
+        return Inertia::render('Firm/ProtocolSetup');
+    }
+
     public function browseDirectory(Request $request): JsonResponse
     {
         $firm = Firm::findOrFail($request->user()->firm_id);
