@@ -44,7 +44,8 @@ class EntryController extends Controller
         $entries = $entries
             ->with(['response' => ['response_to'],                            // the response entry showing what entry this is responsive to
                 'responses_received' => function ($query) {                // the response entries showing entries responding to this entry
-                    $query->orderBy('response_type', 'asc')                 // order by response type (Full or Partial)
+                    $query->with('entry:id,date1,folder_id', 'entry.folder:id,name')
+                        ->orderBy('response_type', 'asc')                 // order by response type (Full or Partial)
                         ->orderBy('response_date', 'asc');
                 },
             ])

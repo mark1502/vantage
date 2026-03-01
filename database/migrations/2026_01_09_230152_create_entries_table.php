@@ -27,20 +27,18 @@ return new class extends Migration
             $table->boolean('on_calendar')->default(false);
             $table->boolean('all_day')->default(false);
             $table->decimal('amount', 7, 2)->nullable();
+            $table->string('linked_document_path', 500)->nullable();
             $table->timestamps();
             // $table->softDeletes();  --> Don't soft delete entries
-            $table->index([ 'file_id', 'folder_id', 'date1' ]);                             // file, folder, date
-            $table->index([ 'file_id', 'date1' ]);                                          // file, date
-            $table->index([ 'file_id', 'expecting_response' ]);                             // file, expecting_response
-            $table->index([ 'firm_id', 'date1' ]);                                          // firm, date    
-            $table->index([ 'firm_id', 'expecting_response', 'date_response_expected' ]);   // firm, expecting_response, date_response_expected
-            $table->index([ 'firm_id', 'on_calendar', 'date_response_expected' ]);          // firm, on_calendar, date_response_expected
-            $table->index([ 'firm_id', 'folder_id', 'date2' ]);                             // firm, folder, date2   
+            $table->index(['file_id', 'folder_id', 'date1']);                             // file, folder, date
+            $table->index(['file_id', 'date1']);                                          // file, date
+            $table->index(['file_id', 'expecting_response']);                             // file, expecting_response
+            $table->index(['firm_id', 'date1']);                                          // firm, date
+            $table->index(['firm_id', 'expecting_response', 'date_response_expected']);   // firm, expecting_response, date_response_expected
+            $table->index(['firm_id', 'on_calendar', 'date_response_expected']);          // firm, on_calendar, date_response_expected
+            $table->index(['firm_id', 'folder_id', 'date2']);                             // firm, folder, date2
             $table->index('from_contact_id');
             $table->index('to_contact_id');
-
-
-
 
         });
     }

@@ -20,8 +20,9 @@ class DatabaseSeeder extends Seeder
             FileSeeder::class,
             FiletypeSeeder::class,
             EntrytypeSeeder::class,
+            SampleDataSeeder::class,
+            PlanSeeder::class,
         ]);
-
 
         // User::factory(10)->create();
 

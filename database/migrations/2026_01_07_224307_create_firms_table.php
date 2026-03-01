@@ -12,14 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('firms', function (Blueprint $table) {
-            $table->increments('id');   //unsignedInteger with auto-increment
+            $table->increments('id');   // unsignedInteger with auto-increment
             $table->string('name');     // allow duplicate firm names (multi state), but make the email for the firm unique
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
-            $table->string('email')->unique();  // each firm has a unique email            
-            $table->string('subscription_type')->nullable();
-            $table->unsignedInteger('subscription_status')->default(0);            
+            $table->string('email')->unique();  // each firm has a unique email
+            $table->string('document_base_path', 500)->nullable();
+            $table->unsignedInteger('max_users')->nullable();
+            $table->unsignedInteger('billing_contact_id')->nullable();
             $table->timestamps();
+
+            $table->foreign('billing_contact_id')->references('id')->on('contacts')->onDelete('cascade');
         });
     }
 

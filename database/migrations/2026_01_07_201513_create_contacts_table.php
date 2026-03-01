@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('other_phone')->nullable();
             $table->string('primary', 1)->nullable();
             $table->string('secondary', 1)->nullable();
-            $table->string('note',1000)->nullable();
+            $table->string('note', 1000)->nullable();
             $table->boolean('is_firm_member')->default(false);
             $table->string('current', 1)->default('C');
             $table->unsignedInteger('user_id')->nullable();     // if a firm member, user_id

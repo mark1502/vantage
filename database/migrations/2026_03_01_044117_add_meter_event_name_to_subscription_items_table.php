@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('entries', function (Blueprint $table) {
-            $table->string('linked_document_path', 500)->nullable()->after('amount');
+        Schema::table('subscription_items', function (Blueprint $table) {
+            $table->string('meter_event_name')->nullable()->after('quantity');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('entries', function (Blueprint $table) {
-            $table->dropColumn('linked_document_path');
+        Schema::table('subscription_items', function (Blueprint $table) {
+            $table->dropColumn('meter_event_name');
         });
     }
 };

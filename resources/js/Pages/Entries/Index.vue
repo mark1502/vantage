@@ -141,6 +141,7 @@ function display_modal(which_modal, OnOff = null) {                             
     else if( which_modal === 'entrychanged' ) modal_name = 'entrychanged_modal';
     else if( which_modal === 'timeline_add' ) modal_name = 'timeline_add_modal';
     else if( which_modal === 'confirm_delete' ) modal_name = 'confirm_delete_modal';
+    else if( which_modal === 'has_responses' ) modal_name = 'has_responses_modal';
 
     if( modal_name != '' && OnOff === 'status' ) {
         return document.getElementById(modal_name).checked;
@@ -153,6 +154,18 @@ function display_modal(which_modal, OnOff = null) {                             
     }
     else if( modal_name != '' && OnOff == null ) {
         document.getElementById(modal_name).checked = !document.getElementById(modal_name).checked;
+    }
+}
+
+const has_responses_data = ref([]);
+
+function handle_delete_click() {
+    const entry = props.entries.data[state.row];
+    if (entry?.responses_received && entry.responses_received.length > 0) {
+        has_responses_data.value = entry.responses_received;
+        display_modal('has_responses', true);
+    } else {
+        display_modal('confirm_delete', true);
     }
 }
 
@@ -258,6 +271,7 @@ function keypress_handler(e) {
         if( e.key === 'Escape' ) {                                                                  // Escape key pressed
             if( state.switch_file === true ) state.switch_file = false;                                  // if while switching file, close switch file
             else if( display_modal('timeline_add', 'status') === true ) close_timeline_add_modal();      // else if timeline add modal, then close it
+            else if( display_modal('has_responses', 'status') === true ) display_modal('has_responses', false);  // else if has responses modal, then close it
             else router.get(route('files.index'));                                                      // else, go back to the files index
         }
         else if( e.key === 'Enter' ) {                                                            // Enter key pressed, so edit
@@ -704,8 +718,8 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                             <div name="right-side" class="w-1/2 justify-items-center ml-4 mt-1">
                                 <div id="disp_card" class="rounded-sm w-145 bg-base-200"
                                     :class="{
-                                        'border border-base-content h-120': state.mode === 'browse',
-                                        'border-4 border-blue-700 h-140': state.mode === 'entry_edit' || state.mode === 'entry_add'
+                                        'border border-base-content min-h-80': state.mode === 'browse',
+                                        'border-4 border-blue-700 min-h-96': state.mode === 'entry_edit' || state.mode === 'entry_add'
                                     }">
 
                                     <!-- HERE is the EntryForm -->
@@ -731,7 +745,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                     <button type="button" id="changebutton" class="btn btn-primary btn-sm h-10 gap-0" @click="list_actions('edit')" :disabled="entries.total === 0">
                                         △ &nbsp;<u>E</u>dit
                                     </button>
-                                    <button type="button" id="deletebutton" class="btn btn-outline btn-error btn-sm h-10 " @click="display_modal('confirm_delete', true)" :disabled="entries.total === 0" >
+                                    <button type="button" id="deletebutton" class="btn btn-outline btn-error btn-sm h-10 " @click="handle_delete_click()" :disabled="entries.total === 0" >
                                         - &nbsp;Delete
                                     </button>
                                     <button
@@ -856,6 +870,38 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                         @click="list_actions('delete')"><u>Y</u>es</button>
                     <button type="button" class="btn gap-0"
                         @click="display_modal('confirm_delete', false)"><u>N</u>o</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Has Responses Warning modal (prevents deletion) -->
+        <input hidden type="checkbox" id="has_responses_modal" name="has_responses_modal" class="modal-toggle" />
+        <div class="modal">
+            <div class="modal-box w-11/12 max-w-3xl">
+                <h3 class="font-bold text-2xl text-center text-error">Cannot Delete This Entry</h3>
+                <p class="text-base mt-4">This entry has responses linked to it. You must remove or delete the responsive entries before deleting this one.</p>
+                <table class="table table-sm mt-4">
+                    <thead>
+                        <tr>
+                            <th>Response Type</th>
+                            <th>Response Date</th>
+                            <th>Entry Date</th>
+                            <th>Folder</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="resp in has_responses_data" :key="resp.id">
+                            <td>{{ resp.response_type === 'F' ? 'Full' : 'Partial' }}</td>
+                            <td>{{ resp.response_date }}</td>
+                            <td>{{ resp.entry?.date1 ?? '' }}</td>
+                            <td>{{ resp.entry?.folder?.name ?? '' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal-action justify-center mt-8">
+                    <button type="button" class="btn btn-primary w-28" @click="display_modal('has_responses', false)">
+                        OK
+                    </button>
                 </div>
             </div>
         </div>
