@@ -24,16 +24,15 @@ class FileController extends Controller
 
         $files = File::with([
             'filetype',
-            'assignedAttorney.contact:id,display_name'
+            'assignedAttorney.contact:id,display_name',
         ])
-        ->where('firm_id', $request->user()->firm_id)
-        ->when($request->query('search'), function($query, $search) {
-            $query->where('name', 'like', '%' . $search . '%');
-        })
-        ->orderBy('name')
-
-        ->paginate($show ? $show : 10)
-        ->withQueryString();
+            ->where('firm_id', $request->user()->firm_id)
+            ->when($request->query('search'), function ($query, $search) {
+                $query->where('name', 'like', '%'.$search.'%');
+            })
+            ->orderBy('name')
+            ->paginate($show ? $show : 10)
+            ->withQueryString();
 
         // dd($file_list);
 
@@ -48,25 +47,31 @@ class FileController extends Controller
      */
     public function create(Request $request)
     {
-        $filetypes = Filetype::select('id','name','enable_file_SOL','set_as_default')
-                        ->where('firm_id', $request->user()->firm_id)
-                        ->orderBy('name')
-                        ->get();
+        if (! $request->user()->firm->canCreateFiles()) {
+            return redirect()->route('files.index')->withErrors([
+                'file_limit' => 'Your firm has reached the free plan limit of 10 files.',
+            ]);
+        }
 
-        $attorneys = Contact::select('id','display_last_first')
-                    ->where('firm_id', $request->user()->firm_id)
-                    ->where('is_firm_member', true)
-                    ->where('firm_role', 'Attorney')
-                    ->orderBy('display_last_first')
-                    ->get();
+        $filetypes = Filetype::select('id', 'name', 'enable_file_SOL', 'set_as_default')
+            ->where('firm_id', $request->user()->firm_id)
+            ->orderBy('name')
+            ->get();
+
+        $attorneys = Contact::select('id', 'display_last_first')
+            ->where('firm_id', $request->user()->firm_id)
+            ->where('is_firm_member', true)
+            ->where('firm_role', 'Attorney')
+            ->orderBy('display_last_first')
+            ->get();
 
         $firm_members = Contact::select('id', 'display_last_first')
-                    ->where('firm_id', $request->user()->firm_id)
-                    ->where('is_firm_member', true)
-                    ->orderBy('display_last_first')
-                    ->get();
+            ->where('firm_id', $request->user()->firm_id)
+            ->where('is_firm_member', true)
+            ->orderBy('display_last_first')
+            ->get();
 
-        return inertia::render('Files/Create',[
+        return inertia::render('Files/Create', [
             'filetypes' => $filetypes,
             'attorneys' => $attorneys,
             'firm_members' => $firm_members,
@@ -76,13 +81,20 @@ class FileController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
+        $firm = $request->user()->firm;
+
+        if (! $firm->canCreateFiles()) {
+            return back()->withErrors([
+                'file_limit' => 'Your firm has reached the free plan limit of 10 files. Please upgrade to a paid subscription to create more files.',
+            ]);
+        }
+
         $verified = $request->validate(
-            [   'name' => 'required|max:255',
+            ['name' => 'required|max:255',
                 'summary' => 'nullable|max:5000',
                 'date_sol' => 'nullable|date_format:Y-m-d',
                 'date_opened' => 'nullable|date_format:Y-m-d',
@@ -101,52 +113,52 @@ class FileController extends Controller
                 'attorney_id' => 'required|integer',
                 'client_contact_id' => 'required|integer',
             ],
-            [   'name' => 'File name is required.',
+            ['name' => 'File name is required.',
                 'attorney_id' => 'Assigned attorney is required.',
                 'client_contact_id' => 'Client is required.',
             ]);
 
-            $newCase = new File;
-            $newCase->name = $request->name;
-            $newCase->summary = $request->summary;
-            $newCase->date_sol = $request->date_sol;
-            $newCase->date_opened = $request->date_opened;
-            $newCase->date_filed = $request->date_filed;
-            $newCase->date_closed = $request->date_closed;
-            $newCase->date_archived = $request->date_archived;
-            $newCase->court_filed = $request->court_filed;
-            $newCase->docket_number = $request->docket_number;
-            $newCase->file_number = $request->file_number;
-            $newCase->referred_by = $request->referred_by;
-            $newCase->referral_amount = $request->referral_amount;
-            $newCase->fee_arrangement = $request->fee_arrangement;
-            $newCase->fee_amount = $request->fee_amount;
-            $newCase->final_disposition = $request->final_disposition;
-            $newCase->filetype_id = $request->filetype_id;
+        $newCase = new File;
+        $newCase->name = $request->name;
+        $newCase->summary = $request->summary;
+        $newCase->date_sol = $request->date_sol;
+        $newCase->date_opened = $request->date_opened;
+        $newCase->date_filed = $request->date_filed;
+        $newCase->date_closed = $request->date_closed;
+        $newCase->date_archived = $request->date_archived;
+        $newCase->court_filed = $request->court_filed;
+        $newCase->docket_number = $request->docket_number;
+        $newCase->file_number = $request->file_number;
+        $newCase->referred_by = $request->referred_by;
+        $newCase->referral_amount = $request->referral_amount;
+        $newCase->fee_arrangement = $request->fee_arrangement;
+        $newCase->fee_amount = $request->fee_amount;
+        $newCase->final_disposition = $request->final_disposition;
+        $newCase->filetype_id = $request->filetype_id;
 
-            $newCase->firm_id = $request->user()->firm_id;
+        $newCase->firm_id = $request->user()->firm_id;
 
-            $newCase->save();
+        $newCase->save();
 
-            // Create ContactRole for assigned attorney
-            ContactRole::create([
-                'file_id' => $newCase->id,
-                'contact_id' => $request->attorney_id,
-                'role' => 'attorney_for_client',
-                'role_label' => 'Attorney for Client',
-                'is_file_attorney' => true,
-            ]);
+        // Create ContactRole for assigned attorney
+        ContactRole::create([
+            'file_id' => $newCase->id,
+            'contact_id' => $request->attorney_id,
+            'role' => 'attorney_for_client',
+            'role_label' => 'Attorney for Client',
+            'is_file_attorney' => true,
+        ]);
 
-            // Create ContactRole for client
-            ContactRole::create([
-                'file_id' => $newCase->id,
-                'contact_id' => $request->client_contact_id,
-                'role' => 'client',
-                'role_label' => 'Client',
-                'is_file_client' => true,
-            ]);
+        // Create ContactRole for client
+        ContactRole::create([
+            'file_id' => $newCase->id,
+            'contact_id' => $request->client_contact_id,
+            'role' => 'client',
+            'role_label' => 'Client',
+            'is_file_client' => true,
+        ]);
 
-            return redirect( route( 'files.index', [ 'page' => $request->current_page, 'show' => $request->show ] ) );
+        return redirect(route('files.index', ['page' => $request->current_page, 'show' => $request->show]));
     }
 
     /**
@@ -168,26 +180,26 @@ class FileController extends Controller
      */
     public function edit(File $file)
     {
-        $filetypes = Filetype::select('id','name')
-                            ->where('firm_id', $file->firm_id)
-                            ->orderBy('name')
-                            ->get();
+        $filetypes = Filetype::select('id', 'name')
+            ->where('firm_id', $file->firm_id)
+            ->orderBy('name')
+            ->get();
 
         $attorneys = Contact::where('firm_id', $file->firm_id)
-                        ->where('is_firm_member', true)
-                        ->where('firm_role', 'Attorney')
-                        ->get();
+            ->where('is_firm_member', true)
+            ->where('firm_role', 'Attorney')
+            ->get();
 
         // Load the assigned attorney from contact_roles
         $assignedAttorney = $file->assignedAttorney;
 
         // Load the client from contact_roles
         $clientContactRole = ContactRole::where('file_id', $file->id)
-                        ->where('is_file_client', true)
-                        ->with('contact:id,display_last_first')
-                        ->first();
+            ->where('is_file_client', true)
+            ->with('contact:id,display_last_first')
+            ->first();
 
-        return inertia::render('Files/Edit',[
+        return inertia::render('Files/Edit', [
             'file' => $file,
             'filetypes' => $filetypes,
             'attorneys' => $attorneys,
@@ -199,14 +211,13 @@ class FileController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, File $file)
     {
         // dd($request);
-        
+
         $verified = $request->validate(
             [
                 'name' => 'required|max:255',
@@ -228,51 +239,51 @@ class FileController extends Controller
                 'attorney_id' => 'required|integer',
             ]);
 
-            // dd($request);
+        // dd($request);
 
-            $file->name = $request->name;
-            $file->summary = $request->summary ?? '';
-            $file->date_sol = $request->date_sol;
-            $file->date_opened = $request->date_opened;
-            $file->date_filed = $request->date_filed;
-            $file->date_closed = $request->date_closed;
-            $file->date_archived = $request->date_archived;
-            $file->court_filed = $request->court_filed ?? '';
-            $file->docket_number = $request->docket_number ?? '';
-            $file->file_number = $request->file_number ?? '';
-            $file->referred_by = $request->referred_by ?? '';
-            $file->referral_amount = $request->referral_amount ?? '';
-            $file->fee_arrangement = $request->fee_arrangement;
-            $file->fee_amount = $request->fee_amount ?? '';
-            $file->final_disposition = $request->final_disposition ?? '';
-            $file->filetype_id = $request->filetype_id;
+        $file->name = $request->name;
+        $file->summary = $request->summary ?? '';
+        $file->date_sol = $request->date_sol;
+        $file->date_opened = $request->date_opened;
+        $file->date_filed = $request->date_filed;
+        $file->date_closed = $request->date_closed;
+        $file->date_archived = $request->date_archived;
+        $file->court_filed = $request->court_filed ?? '';
+        $file->docket_number = $request->docket_number ?? '';
+        $file->file_number = $request->file_number ?? '';
+        $file->referred_by = $request->referred_by ?? '';
+        $file->referral_amount = $request->referral_amount ?? '';
+        $file->fee_arrangement = $request->fee_arrangement;
+        $file->fee_amount = $request->fee_amount ?? '';
+        $file->final_disposition = $request->final_disposition ?? '';
+        $file->filetype_id = $request->filetype_id;
 
-            $file->save();
+        $file->save();
 
-            // Update the file's designated attorney
-            DB::transaction(function () use ($file, $request) {
-                // Clear is_file_attorney on all roles for this file
-                ContactRole::where('file_id', $file->id)
-                    ->where('is_file_attorney', true)
-                    ->update(['is_file_attorney' => false]);
+        // Update the file's designated attorney
+        DB::transaction(function () use ($file, $request) {
+            // Clear is_file_attorney on all roles for this file
+            ContactRole::where('file_id', $file->id)
+                ->where('is_file_attorney', true)
+                ->update(['is_file_attorney' => false]);
 
-                // Find or create the attorney role for the new attorney
-                $attorneyRole = ContactRole::firstOrCreate(
-                    [
-                        'file_id' => $file->id,
-                        'contact_id' => $request->attorney_id,
-                        'role' => 'attorney_for_client',
-                    ],
-                    [
-                        'role_label' => 'Attorney for Client',
-                    ]
-                );
+            // Find or create the attorney role for the new attorney
+            $attorneyRole = ContactRole::firstOrCreate(
+                [
+                    'file_id' => $file->id,
+                    'contact_id' => $request->attorney_id,
+                    'role' => 'attorney_for_client',
+                ],
+                [
+                    'role_label' => 'Attorney for Client',
+                ]
+            );
 
-                // Mark as file attorney and protected
-                $attorneyRole->update([
-                    'is_file_attorney' => true,
-                ]);
-            });
+            // Mark as file attorney and protected
+            $attorneyRole->update([
+                'is_file_attorney' => true,
+            ]);
+        });
     }
 
     /**
@@ -289,19 +300,18 @@ class FileController extends Controller
     public function lookup_file(Request $request)
     {
         $verified = $request->validate(
-            [ 'search' => 'string|max:255',
+            ['search' => 'string|max:255',
             ]);
-            
+
         $files_found = File::query()
-            ->select('id','name')
+            ->select('id', 'name')
             ->where('firm_id', $request->user()->firm_id)
-            ->where('name', 'like', '%' . $request->search . '%')
+            ->where('name', 'like', '%'.$request->search.'%')
             ->orderBy('name')
 
             ->simplePaginate(8);
-            // ->withQueryString();
+        // ->withQueryString();
 
         return $files_found;
     }
-
 }

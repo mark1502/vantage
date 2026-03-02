@@ -475,7 +475,7 @@ function addUser_Cancel() {     // closes the attorney form
 
                             <div v-if="state.addUser == 0">
                                 <p class="pt-4 mx-24">
-                                    Anyone in your law firm who will use this application should be added as a user. &nbsp;Administrative users are responsible for managing who can log into the application.
+                                    Each person in your firm who will use this application should be added as a user. &nbsp;Administrative users are responsible for managing who can log into the application.
                                 </p>
                                 <p class="pt-4 mx-24">
                                     Because you are currently an <b>Administrative User</b>,

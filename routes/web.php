@@ -12,6 +12,7 @@ use App\Http\Controllers\FirmController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViewController;
 use App\Http\Controllers\WelcomeController;
@@ -102,6 +103,11 @@ Route::middleware('auth', 'welcomed')->group(function () {
     Route::get('/firm/browse-directory', [FirmController::class, 'browseDirectory'])->name('firm.browse-directory');
 
     Route::get('/entries/{entry}/document/{filename?}', [EntryController::class, 'serve_document'])->name('entries.document');
+
+    Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+    Route::post('/subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
+    Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('subscription.success');
+    Route::get('/subscription/billing-portal', [SubscriptionController::class, 'billingPortal'])->name('subscription.billing-portal');
 
 });
 

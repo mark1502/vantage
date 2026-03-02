@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { reactive, ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 import Pagination from '@/Components/Pagination.vue';
 import InputLabel from "@/Components/InputLabel.vue";
 
@@ -11,9 +11,14 @@ import InputLabel from "@/Components/InputLabel.vue";
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
-const props = defineProps({ 
+const props = defineProps({
     files: Object
 });
+
+const page = usePage();
+const subscription = computed(() => page.props.subscription);
+const isAdmin = computed(() => page.props.auth.user.user_type === 'Admin');
+const atFileLimit = computed(() => !subscription.value?.can_create_files);
 
 const search = ref(urlParams.get('search') || '');      // search field, set to the search parameter in the URL, or empty if not present
 const file1 = ref(null);                                // ref used for code shortcut to the file
@@ -102,7 +107,7 @@ function handleTheKeypress( e ) {
     let changeit = false;
     if(e.altKey && e.key==='a') {                           // alt-a (Add)
         e.preventDefault();
-        router.get(disp.createurl);
+        if (!atFileLimit.value) router.get(disp.createurl);
     } else if(e.altKey && e.key==='c') {                    // alt-c (Change)
         e.preventDefault();
         router.get(disp.editurl);
@@ -239,11 +244,34 @@ update_disp();                                                                  
                             <div v-else class="border p-4 mt-8 text-xl font-bold text-center">No Matching Files Found!
                             </div>
 
+                        <!-- File limit indicator (free plan only) -->
+                            <div v-if="subscription?.file_limit" class="mt-4 px-2">
+                                <div class="flex items-center justify-between text-sm mb-1">
+                                    <span>{{ subscription.file_count }} of {{ subscription.file_limit }} files used</span>
+                                    <span v-if="atFileLimit" class="text-error font-semibold">Limit reached</span>
+                                </div>
+                                <progress
+                                    class="progress w-full"
+                                    :class="atFileLimit ? 'progress-error' : 'progress-primary'"
+                                    :value="subscription.file_count"
+                                    :max="subscription.file_limit"
+                                ></progress>
+                                <div v-if="atFileLimit" class="mt-2 text-sm">
+                                    <Link v-if="isAdmin" :href="route('subscription.index')" class="link link-primary font-semibold">
+                                        Upgrade to create unlimited files
+                                    </Link>
+                                    <span v-else>Contact your firm admin to upgrade the subscription.</span>
+                                </div>
+                            </div>
+
                         <!-- Here are the Buttons -->
                             <div name="control_buttons" class="flex mt-8 justify-around">
-                                <Link id="addbutton" :href='disp.createurl' class="btn btn-primary gap-0 w-24">
+                                <Link v-if="!atFileLimit" id="addbutton" :href='disp.createurl' class="btn btn-primary gap-0 w-24">
                                     + &nbsp;<u>A</u>dd
                                 </Link>
+                                <button v-else disabled class="btn btn-primary gap-0 w-24 btn-disabled">
+                                    + &nbsp;Add
+                                </button>
                                 <!-- <Link v-if="files.total !== 0" id="editbutton" :href='disp.editurl' class="btn btn-outline btn-primary gap-0"> △ &nbsp;<u>C</u>hange</Link> -->
                                 <Link v-if="files.total !== 0" id="openbutton" :href='disp.openurl' class="btn btn-primary gap-0 w-32" :disable="disable_button">
                                     🗁 &nbsp;<u>O</u>pen

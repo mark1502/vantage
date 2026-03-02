@@ -39,6 +39,12 @@
                                 </td>
                                 <td class="py-3 text-base-content">Manage entry types within each folder</td>
                             </tr>
+                            <tr>
+                                <td class="py-3 pr-6">
+                                    <Link class="btn btn-primary text-white px-8 w-40" :href="route('subscription.index')">Subscription</Link>
+                                </td>
+                                <td class="py-3 text-base-content">Manage your firm's subscription and billing</td>
+                            </tr>
                             <!-- <tr>
                                 <td class="py-3 pr-6">
                                     <Link class="btn btn-primary text-white px-8 w-40" href="/folders">Folder Types</Link>

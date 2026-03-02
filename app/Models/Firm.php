@@ -33,4 +33,35 @@ class Firm extends Model
     {
         return ! empty($this->document_base_path);
     }
+
+    public function syncSubscriptionQuantity(): void
+    {
+        if (! $this->subscribed('default')) {
+            return;
+        }
+
+        $seatCount = Contact::where('firm_id', $this->id)
+            ->firmMembers()
+            ->current()
+            ->count();
+
+        $this->subscription('default')->updateQuantity($seatCount);
+    }
+
+    public function fileCount(): int
+    {
+        return File::where('firm_id', $this->id)->count();
+    }
+
+    public function fileLimit(): ?int
+    {
+        return $this->subscribed('default') ? null : 10;
+    }
+
+    public function canCreateFiles(): bool
+    {
+        $limit = $this->fileLimit();
+
+        return $limit === null || $this->fileCount() < $limit;
+    }
 }
