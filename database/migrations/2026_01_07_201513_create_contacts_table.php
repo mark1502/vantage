@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('secondary', 1)->nullable();
             $table->string('note', 1000)->nullable();
             $table->boolean('is_firm_member')->default(false);
-            $table->string('current', 1)->default('C');
+            $table->string('account_status', 1)->default('N');
             $table->unsignedInteger('user_id')->nullable();     // if a firm member, user_id
             $table->string('member_initials')->nullable();
             $table->string('firm_role')->nullable();

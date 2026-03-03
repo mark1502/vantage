@@ -3,12 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Firm;
-use App\Models\Contact;
-use App\Models\Preference;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
@@ -54,12 +51,13 @@ class User extends Authenticatable
         ];
     }
 
-
-    public function firm() {
+    public function firm()
+    {
         return $this->belongsTo(Firm::class);
     }
 
-    public function contact() {
+    public function contact()
+    {
         return $this->hasOne(Contact::class);
     }
 
@@ -70,44 +68,29 @@ class User extends Authenticatable
 
     /**
      * Check if the user is currently active.
-     * Active status is tracked via the contact's 'current' field ('C' = current/active).
-     *
-     * @return bool
+     * Active status is tracked via the contact's 'account_status' field ('A' = active).
      */
     public function isActive(): bool
     {
-        return $this->contact && $this->contact->current === 'C';
+        return $this->contact && $this->contact->account_status === 'A';
     }
 
     /**
-     * Scope query to only include active/current users.
-     * Uses the contact's 'current' field to determine status.
+     * Scope query to only include active users.
+     * Uses the contact's 'account_status' field to determine status.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeActive($query)
     {
-        return $query->whereHas('contact', function($q) {
-            $q->where('current', 'C');
+        return $query->whereHas('contact', function ($q) {
+            $q->where('account_status', 'A');
         });
     }
 
     /**
-     * Alias for scopeActive - scope to current users.
-     *
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function scopeCurrent($query)
-    {
-        return $this->scopeActive($query);
-    }
-
-    /**
      * Get the user's member initials from their contact record.
-     *
-     * @return string|null
      */
     public function memberInitials(): ?string
     {
@@ -116,13 +99,9 @@ class User extends Authenticatable
 
     /**
      * Get the user's firm role from their contact record.
-     *
-     * @return string|null
      */
     public function firmRole(): ?string
     {
         return $this->contact?->firm_role;
     }
-
-
 }

@@ -141,10 +141,10 @@ database/
 - **Internal firm members**: `is_firm_member = true`, has `user_id` linking to User record
 
 **Active Status Tracking:**
-- The `contacts.current` field is the **single source of truth** for active/inactive status
-  - `'C'` = Current/Active user
-  - `'I'` = Inactive user (or any value other than 'C')
-- The `users.is_active` column is NOT used (will be dropped)
+- The `contacts.account_status` field is the **single source of truth** for active/inactive status
+  - `'A'` = Active (firm members who are currently active)
+  - `'I'` = Inactive (deactivated firm members)
+  - `'N'` = Normal (default for external contacts)
 
 **Firm Member Data:**
 - `member_initials` - stored in contacts table only (unique per firm)
@@ -158,17 +158,16 @@ $user->isActive();  // returns bool
 
 // Query active users
 User::active()->get();
-User::current()->get();  // alias for active()
 
 // Access member data
 $user->memberInitials();  // instead of $user->contact->member_initials
 $user->firmRole();        // instead of $user->contact->firm_role
 
 // Contact scopes
-Contact::current()->get();                    // current/active contacts only
+Contact::active()->get();                    // active contacts only
 Contact::firmMembers()->get();                // firm members only
 Contact::externalContacts()->get();           // external contacts only
-Contact::firmMembers()->current()->get();     // current firm members
+Contact::firmMembers()->active()->get();     // active firm members
 ```
 
 **Why This Architecture:**

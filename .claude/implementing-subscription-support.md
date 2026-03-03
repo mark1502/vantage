@@ -101,7 +101,7 @@ Steps 1–6 are complete. The core subscription infrastructure is in place: Stri
 
 ### Step 6: Add seat syncing — DONE
 - Added `Firm::syncSubscriptionQuantity()` method:
-  - Counts active firm member contacts (`Contact::firmMembers()->current()->count()`)
+  - Counts active firm member contacts (`Contact::firmMembers()->active()->count()`)
   - Calls `$this->subscription('default')->updateQuantity($seatCount)` on Stripe
   - No-ops silently if the firm has no active subscription
 - Hooked into firm member creation points:

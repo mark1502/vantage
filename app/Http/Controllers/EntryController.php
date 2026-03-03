@@ -870,10 +870,10 @@ class EntryController extends Controller
     {
         if ($refresh === 'full') {                                    // if full refresh, get all current firm members
             $firm_members = Contact::query()
-                ->select('display_last_first', 'id', 'current', 'firm_role')
+                ->select('display_last_first', 'id', 'account_status', 'firm_role')
                 ->where('firm_id', $thefirmid)
                 ->where('is_firm_member', true)
-                ->where('current', 'C')
+                ->where('account_status', 'A')
                 ->orderBy('display_last_first')
                 ->get();
         } else {                                                      // else, return empty array
@@ -888,10 +888,10 @@ class EntryController extends Controller
     {
         if ($refresh === 'full') {
             $attorneys = Contact::query()
-                ->select('display_last_first', 'id', 'current', 'firm_role')
+                ->select('display_last_first', 'id', 'account_status', 'firm_role')
                 ->where('firm_id', $thefirmid)
                 ->where('is_firm_member', true)
-                ->where('current', 'C')   // remove current filter for now, will handle in User later
+                ->where('account_status', 'A')
                 ->where('firm_role', 'Attorney')
                 ->orderBy('display_last_first')
                 ->get();

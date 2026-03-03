@@ -86,6 +86,7 @@ class WelcomeController extends Controller
             $contact->display_last_first = $verified2['display_last_first'];
             // now add firm and user info
             $contact->is_firm_member = true;    // is a firm member
+            $contact->account_status = 'A';     // Active account for new firm member
             $contact->user_id = $user->id;      // the firm member's user_id
             $contact->email = $user->email;     // copy the user email to the contact
             $contact->firm_id = $firm->id;      // the firmm_id
@@ -138,6 +139,7 @@ class WelcomeController extends Controller
             $aContact->member_initials = $verified3['member_initials'];
             $aContact->email = $verified3['email'];
             $aContact->is_firm_member = true;
+            $aContact->account_status = 'A';  // Active account for new firm member
             $aContact->firm_id = $user->firm_id;
             $aContact->user_id = $aUser->id;
             $aContact->firm_role = $verified3['firm_role'];
@@ -145,7 +147,7 @@ class WelcomeController extends Controller
             $aContact->display_last_first = $verified3['display_last_first'];
             $aContact->save();
 
-            $firm->syncSubscriptionQuantity();
+            $firm->syncSubscriptionQuantity();      // added a user, so update the subscription quantity with stripe
         } elseif ($request['formtype'] == 'editUser') {
 
             $verified3 = $request->validate(

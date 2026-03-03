@@ -42,7 +42,7 @@ class Firm extends Model
 
         $seatCount = Contact::where('firm_id', $this->id)
             ->firmMembers()
-            ->current()
+            ->active()
             ->count();
 
         $this->subscription('default')->updateQuantity($seatCount);

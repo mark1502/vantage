@@ -92,7 +92,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Adams, John',
             'display_last_first' => 'Adams, John',
             'is_firm_member' => true,
-            'current' => 'C',
+            'account_status' => 'A',
             'member_initials' => 'JA',
             'firm_role' => 'Attorney',
         ]);
@@ -105,7 +105,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Chen, Sarah',
             'display_last_first' => 'Chen, Sarah',
             'is_firm_member' => true,
-            'current' => 'C',
+            'account_status' => 'A',
             'member_initials' => 'SC',
             'firm_role' => 'Paralegal',
         ]);
@@ -119,7 +119,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Garcia, Maria',
             'display_last_first' => 'Garcia, Maria',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         $contacts['thompson'] = Contact::create([
@@ -130,7 +130,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Thompson, Robert',
             'display_last_first' => 'Thompson, Robert',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         $contacts['whitfield'] = Contact::create([
@@ -141,7 +141,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Whitfield, Eleanor',
             'display_last_first' => 'Whitfield, Eleanor',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         $contacts['morrison'] = Contact::create([
@@ -152,7 +152,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Morrison, James',
             'display_last_first' => 'Morrison, James',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         $contacts['park'] = Contact::create([
@@ -163,7 +163,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Park, Dr. Lisa',
             'display_last_first' => 'Park, Lisa',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         $contacts['westside'] = Contact::create([
@@ -173,7 +173,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Westside Medical Center',
             'display_last_first' => 'Westside Medical Center',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         $contacts['apex'] = Contact::create([
@@ -183,7 +183,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Apex Insurance Co',
             'display_last_first' => 'Apex Insurance Co',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         $contacts['nguyen'] = Contact::create([
@@ -194,7 +194,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'Nguyen, David',
             'display_last_first' => 'Nguyen, David',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         $contacts['brightpath'] = Contact::create([
@@ -204,7 +204,7 @@ class SampleDataSeeder extends Seeder
             'display_name' => 'BrightPath Solutions LLC',
             'display_last_first' => 'BrightPath Solutions LLC',
             'is_firm_member' => false,
-            'current' => 'C',
+            'account_status' => 'N',
         ]);
 
         return $contacts;

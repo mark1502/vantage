@@ -16,7 +16,7 @@ class SubscriptionController extends Controller
 
         $firm = $request->user()->firm;
         $plan = Plan::where('slug', 'standard')->where('is_active', true)->first();
-        $seatCount = Contact::where('firm_id', $firm->id)->firmMembers()->current()->count();
+        $seatCount = Contact::where('firm_id', $firm->id)->firmMembers()->active()->count();
         $isSubscribed = $firm->subscribed('default');
 
         $subscription = null;
@@ -54,7 +54,7 @@ class SubscriptionController extends Controller
             return back()->withErrors(['interval' => 'This billing interval is not available.']);
         }
 
-        $seatCount = Contact::where('firm_id', $firm->id)->firmMembers()->current()->count();
+        $seatCount = Contact::where('firm_id', $firm->id)->firmMembers()->active()->count();
 
         $checkout = $firm->newSubscription('default', $priceId)
             ->quantity($seatCount)

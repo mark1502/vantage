@@ -89,6 +89,7 @@ class UserController extends Controller
         $contact->display_name = $request->display_name;
         $contact->display_last_first = $request->display_last_first;
 
+        $contact->account_status = 'A';
         $contact->save();
 
         $user->firm->syncSubscriptionQuantity();
@@ -112,6 +113,7 @@ class UserController extends Controller
                 'home_phone' => $contact->home_phone,
                 'work_phone' => $contact->work_phone,
                 'cell_phone' => $contact->cell_phone,
+                'account_status' => $contact->account_status,
             ],
             'user' => [
                 'user_type' => $user->user_type,
@@ -138,6 +140,7 @@ class UserController extends Controller
                 'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
                 'firm_role' => ['required', Rule::in(['Attorney', 'Paralegal', 'Clerical'])],
                 'user_type' => ['required', Rule::in(['Standard', 'Admin'])],
+                'account_status' => ['required', Rule::in(['A', 'I'])],
                 'work_phone' => 'nullable|max:255',
                 'home_phone' => 'nullable|max:255',
                 'cell_phone' => 'nullable|max:255',
@@ -202,8 +205,11 @@ class UserController extends Controller
         $contact->home_phone = $request->home_phone;
         $contact->work_phone = $request->work_phone;
         $contact->cell_phone = $request->cell_phone;
+        $contact->account_status = $request->account_status;
 
         $contact->save();
+
+        $user->firm->syncSubscriptionQuantity();
 
         return redirect('/users?page='.$request->current_page.'&show='.$request->show);
 

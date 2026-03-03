@@ -31,7 +31,7 @@ let form3 = useForm({
     cell_phone: props.contact.cell_phone,
     firm_role: props.contact.firm_role,
     user_type: props.user.user_type,
-    current: props.contact.current,
+    account_status: props.contact.account_status,
     email: props.user.email,
     password: "",
     password_confirmation: "",
@@ -235,12 +235,13 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                             <div class="form-control">
                                 <label class="label_sm-700">
                                     <span class="text-sm text-red-600 align-baseline mr-1">*</span>
-                                    Status:
+                                    Account Status:
                                 </label>
-                                <select v-model="form3.current" class="select select-sm select-bordered w-48">
-                                    <option value="C">Current Member</option>
-                                    <option value="F">Former Member</option>
+                                <select v-model="form3.account_status" class="select select-sm select-bordered w-48">
+                                    <option value="A">Active</option>
+                                    <option value="I">Inactive</option>
                                 </select>
+                                <InputError class="mt-2" :message="form3.errors.account_status" />
                             </div>
 
                         </div>
