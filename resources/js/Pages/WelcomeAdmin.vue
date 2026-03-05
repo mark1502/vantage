@@ -1,19 +1,26 @@
 <script setup>
 import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
+// import InputLabel from "@/Components/InputLabel.vue";
+// import PrimaryButton from "@/Components/PrimaryButton.vue";
+// import TextInput from "@/Components/TextInput.vue";
 
-// import { Head, Link, useForm } from "@inertiajs/inertia-vue3";
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { reactive, computed } from "vue";
-import { EMPTY_ARR } from "@vue/shared";
+// import { EMPTY_ARR } from "@vue/shared";
 
-import Pagination from '@/Components/Pagination.vue'
+// import Pagination from '@/Components/Pagination.vue'
 
-const state = reactive({ count: 0, addUser: 0 });
+const state = reactive({ 
+    count: 0,
+    addingAttorney: 0,
+    attorneyAdded: false,
+});
 
-const steps = reactive([
+const canProceedFromStep3 = computed(() => {                        // computed to determine if the Next button is disabled if the user is not an attorney or has not added one
+    return form2.firm_role === 'Attorney' || state.attorneyAdded;
+});
+
+const steps = reactive([                                            // The headings on the Step indicator
     { id: 1, label: "Welcome", active: true },
     { id: 2, label: "Law Firm Information", active: false },
     { id: 3, label: "My User Information", active: false },
@@ -35,7 +42,7 @@ function decrement() {
     isActive();
 }
 
-function isActive() {
+function isActive() {                       // determines the active step and sets the others to inactive
     for ( let i = 0; i < 5; i++ ) {
         steps[i].active = state.count === i ? true : false;
     }
@@ -60,36 +67,34 @@ const props = defineProps({
     contact_cell_phone: String,
     contact_display_name: String,
     contact_display_last_first: String,
-    // userlist: Object,
-    // user2edit: Object,
 });
 
 
 let form = useForm({            // form for law firm info
     formtype: "firm",
-    name: "",
-    address: "",
-    phone: "",
+    name: props.firm_name ?? "",
+    address: props.firm_address ?? "",
+    phone: props.firm_phone ?? "",
 });
 
 let form2 = useForm({           // form for admin user info
     formtype: "user",
-    title: "",
-    first_name: "",
-    middle_name: "",
-    last_name: "",
-    srjr: "",
-    member_initials: "",
-    firm_role: "",
-    work_phone: "",
-    home_phone: "",
-    cell_phone: "",
-    display_name: "",
-    display_last_first: "",
+    title: props.contact_title ?? "",
+    first_name: props.contact_first_name ?? "",
+    middle_name: props.contact_middle_name ?? "",
+    last_name: props.contact_last_name ?? "",
+    srjr: props.contact_srjr ?? "",
+    member_initials: props.contact_member_initials ?? "",
+    firm_role: props.contact_firm_role ?? "",
+    work_phone: props.contact_work_phone ?? "",
+    home_phone: props.contact_home_phone ?? "",
+    cell_phone: props.contact_cell_phone ?? "",
+    display_name: props.contact_display_name ?? "",
+    display_last_first: props.contact_display_last_first ?? "",
 });
 
 let form3 = useForm({           // form for added attorney, if needed
-    formtype: "addUser",
+    formtype: "addingAttorney",
     title: "",
     first_name: "",
     middle_name: "",
@@ -111,26 +116,26 @@ let form4 = useForm({           // form indicating completion of welcome admin
 });
 
 
-form.name = props.firm_name;
-form.address = props.firm_address;
-form.phone = props.firm_phone;
+// form.name = props.firm_name;
+// form.address = props.firm_address;
+// form.phone = props.firm_phone;
 
-form2.title = props.contact_title;
-form2.first_name = props.contact_first_name;
-form2.middle_name = props.contact_middle_name;
-form2.last_name = props.contact_last_name;
-form2.srjr = props.contact_srjr;
-form2.firm_role = props.contact_firm_role;
-form2.member_initials = props.contact_member_initials;
-form2.work_phone = props.contact_work_phone;
-form2.home_phone = props.contact_home_phone;
-form2.cell_phone = props.contact_cell_phone;
-form2.display_name = props.contact_display_name;
-form2.display_last_first = props.contact_display_last_first;
+// form2.title = props.contact_title;
+// form2.first_name = props.contact_first_name;
+// form2.middle_name = props.contact_middle_name;
+// form2.last_name = props.contact_last_name;
+// form2.srjr = props.contact_srjr;
+// form2.firm_role = props.contact_firm_role;
+// form2.member_initials = props.contact_member_initials;
+// form2.work_phone = props.contact_work_phone;
+// form2.home_phone = props.contact_home_phone;
+// form2.cell_phone = props.contact_cell_phone;
+// form2.display_name = props.contact_display_name;
+// form2.display_last_first = props.contact_display_last_first;
 
 
 function submitFirm() {
-    form.post("/welcomeadmin", {
+    form.post("/welcome_admin", {
         onSuccess: () => increment(),
     });
 }
@@ -138,18 +143,19 @@ function submitFirm() {
 function submitUserInfo() {
     initialsFocus();
     buildNames_form2();
-    form2.post("/welcomeadmin", {
+    form2.post("/welcome_admin", {
         onSuccess: () => increment(),
     });
 }
 
-function submitAddUser() {
+function submitaddingAttorney() {
     initials_3_Focus();
     buildNames_form3();
-    form3.post("/welcomeadmin", {
+    form3.post("/welcome_admin", {
         onSuccess: () => {
             form3.reset();
-            state.addUser = 0;
+            state.addingAttorney = 0;
+            state.attorneyAdded = true;
             state.count += 1;
         },
     });
@@ -218,41 +224,17 @@ function initials_3_Focus() {
 }
 
 
-function addUserClicked() {     // this is now just to add an attorney if necessary
+function addingAttorneyClicked() {     // this is now just to add an attorney if necessary
     form3.reset();
-    state.addUser = 1;
+    state.addingAttorney = 1;
 }
 
-function addUser_Cancel() {     // closes the attorney form
-    state.addUser = 0;
+function addingAttorney_Cancel() {     // closes the attorney form
+    form3.reset();
+    form3.clearErrors();
+    state.addingAttorney = 0;
 }
 
-
-// function editUser(user_in) {
-//     form3.reset();
-//     form3.clearErrors();
-//     // fill in form fields from the passed data
-//     for (let i = 0; i < props.userlist.data.length; i++) {
-//         if (props.userlist.data[i].email == user_in) {
-//             form3.title = props.userlist.data[i].title;
-//             form3.first_name = props.userlist.data[i].first_name;
-//             form3.middle_name = props.userlist.data[i].middle_name;
-//             form3.last_name = props.userlist.data[i].last_name;
-//             form3.srjr = props.userlist.data[i].srjr;
-//             form3.member_initials = props.userlist.data[i].member_initials;
-//             form3.email = props.userlist.data[i].email;
-//             form3.firm_role = props.userlist.data[i].firm_role;
-
-//             form3.user_type = props.userlist.data[i].user_type;
-
-//             form3.formtype = 'editUser';
-//             form3.change_password = false;
-//             break;
-//         }
-//     }
-
-//     state.addUser = 1;
-// }
 
 </script>
 
@@ -336,7 +318,7 @@ function addUser_Cancel() {     // closes the attorney form
                                 My User Information
                             </p>
                             <!-- <p class="mt-2 ml-24 font-semibold">Enter your information:</p> -->
-                            <!-- Form 2 starts here-->
+                        <!-- Form 2 starts here-->
                             <form @submit.prevent="submitUserInfo" autocomplete="off" class="max-w-5xl mx-auto mt-0">
                                 <p class="text-red-800 text-sm text-right">( * ) - required fields</p>
                                 <!-- Form2 - Name Line -->
@@ -411,7 +393,7 @@ function addUser_Cancel() {     // closes the attorney form
                                             <tbody>
                                                 <tr>
                                                     <td>
-                                                        <select v-model="form2.firm_role" id="form2.firm_role" class="select select-bordered">
+                                                        <select v-model="form2.firm_role" id="form2.firm_role" class="select select-bordered w-40">
                                                             <option value="" disabled selected>
                                                                 Pick One
                                                             </option>
@@ -461,19 +443,19 @@ function addUser_Cancel() {     // closes the attorney form
 
                         <!-- DIV count == 3 -->
                         <div v-if="state.count == 3">
-                            <p v-if="state.addUser != 1" class="mt-3 text-3xl font-bold text-center text-blue-800">
+                            <p v-if="state.addingAttorney != 1" class="mt-3 text-3xl font-bold text-center text-blue-800">
                                 Additional Users
                             </p>
-                            <p v-if="state.addUser == 1 && form3.formtype != 'editUser'"
+                            <p v-if="state.addingAttorney == 1 && form3.formtype != 'editUser'"
                                 class="mt-3 text-3xl font-bold text-center text-blue-800">
                                 Add New Attorney
                             </p>
-                            <p v-if="state.addUser == 1 && form3.formtype == 'editUser'"
+                            <p v-if="state.addingAttorney == 1 && form3.formtype == 'editUser'"
                                 class="mt-3 text-3xl font-bold text-center text-blue-800">
                                 Edit User
                             </p>
 
-                            <div v-if="state.addUser == 0">
+                            <div v-if="state.addingAttorney == 0">
                                 <p class="pt-4 mx-24">
                                     Each person in your firm who will use this application should be added as a user. &nbsp;Administrative users are responsible for managing who can log into the application.
                                 </p>
@@ -486,21 +468,21 @@ function addUser_Cancel() {     // closes the attorney form
                                     The management of users, and all other administrative features, are accessible from the  
                                     <b>'Admin Menu'</b> which is found on the upper right of the main screen.
                                 </p>
-                                <p v-if="form2.firm_role != 'Attorney'" class="pt-4 mx-24">
+                                <p v-if="form2.firm_role != 'Attorney' && state.attorneyAdded !== true" class="pt-6 mx-24">
                                     NOTE: Each law firm must have at least one attorney. &nbsp;Please click the button below to add an attorney for your law firm.
                                 </p>
-                                <button v-if="form2.firm_role != 'Attorney'" @click="addUserClicked"
-                                    class="btn bg-emerald-600 hover:bg-emerald-500 mt-4 mb-4 text-center ml-48 w-40">Add Attorney
+                                <button v-if="form2.firm_role != 'Attorney' && state.attorneyAdded !== true" @click="addingAttorneyClicked"
+                                    class="btn bg-emerald-600 hover:bg-emerald-500 mt-5 mb-4 text-center ml-48 w-40">Add Attorney
                                 </button>
                             </div>
 
-                            <div v-if="state.addUser == 1">
+                            <div v-if="state.addingAttorney == 1">
 
                                 <!-- Form 3 starts here -->
-                                <form v-if="state.addUser == 1" @submit.prevent="submitAddUser"
+                                <form v-if="state.addingAttorney == 1" @submit.prevent="submitaddingAttorney"
                                     class="max-w-5xl mx-auto mt-4">
 
-                                <p v-if="state.count == 3 && state.addUser == 1" class="text-red-800 text-sm text-right">( * ) - required fields</p>
+                                <p v-if="state.count == 3 && state.addingAttorney == 1" class="text-red-800 text-sm text-right">( * ) - required fields</p>
                                     <!-- Form 3 - Name Line starts-->
                                     <div class="flex mt-8">
                                         <div class="form-control w-40 max-w-xs mr-4">
@@ -574,7 +556,7 @@ function addUser_Cancel() {     // closes the attorney form
                                                         Attorney
                                                     </option>
                                                 </select> -->
-                                                <p class="text-base">Attorney</p>
+                                                <p class="text-base font-semibold">Attorney</p>
                                                 <!-- <input v-model="form3.firm_role" id="form3.firm_role" value="Attorney" class="input input-bordered" hidden /> -->
                                                 <InputError class="mt-2" :message="form3.errors.firm_role" />
                                             </div>
@@ -619,7 +601,7 @@ function addUser_Cancel() {     // closes the attorney form
                                             <button class="btn btn-outline btn-primary normal-case mr-16"
                                                 @click="form3.change_password = true">Edit User Password</button>
                                         </div>
-                                        <div v-else-if="form3.formtype == 'addUser' || form3.change_password == true">
+                                        <div v-else-if="form3.formtype == 'addingAttorney' || form3.change_password == true">
                                             <div class="flex items-baseline mr-16">
                                                 <label for="form3.password" class="label_sm-700 mr-2">
                                                     <span class="red_star-700-2">*</span>Temporary Password:
@@ -632,7 +614,7 @@ function addUser_Cancel() {     // closes the attorney form
                                         </div>
                                     </div>
 
-                                    <div v-if="form3.formtype == 'addUser' || form3.change_password == true">
+                                    <div v-if="form3.formtype == 'addingAttorney' || form3.change_password == true">
                                         <div class="items-baseline mt-4 absolute right-[390px]">
                                             <div class="flex items-baseline">
                                                 <label for="form3.password_confirmation" class="label_sm-700 mr-2">
@@ -668,11 +650,10 @@ function addUser_Cancel() {     // closes the attorney form
 
                     </div>
                     <div>
-                        <!-- <p v-if="state.count == 1 || state.count == 2 || (state.count == 3 && state.addUser == 1)"
+                        <!-- <p v-if="state.count == 1 || state.count == 2 || (state.count == 3 && state.addingAttorney == 1)"
                             class="absolute top-[266px] right-[340px] text-red-800">( * ) - required fields</p> -->
-                        <div class="pb-[50px] mt-2 flex justify-center">
-                            <button v-if="state.addUser != 1" class="btn btn-primary mr-24" @click="decrement"
-                                :disabled="state.count === 0">
+                        <div class="pb-12 mt-2 flex justify-center">
+                            <button v-if="state.addingAttorney !== 1" class="btn btn-primary mr-24" @click="decrement" :disabled="state.count === 0">
                                 Previous
                             </button>
                             <button v-if="state.count == 0" class="btn btn-primary" @click="increment"
@@ -685,18 +666,18 @@ function addUser_Cancel() {     // closes the attorney form
                             <button v-if="state.count == 2" class="btn btn-primary" @click="submitUserInfo">
                                 Next
                             </button>
-                            <button v-if="state.count == 3 && state.addUser != 1" class="btn btn-primary"
-                                @click="increment">
+                            <button v-if="state.count == 3 && state.addingAttorney != 1" class="btn btn-primary"
+                                @click="increment" :disabled="!canProceedFromStep3">
                                 Next
                             </button>
                             <button v-if="state.count == 4" class="btn btn-primary btn-wide" @click="submitForm4">
                                 Done
                             </button>
                             <div class="flex justify-center">
-                                <button v-if="state.addUser == 1" @click="submitAddUser"
+                                <button v-if="state.addingAttorney == 1" @click="submitaddingAttorney"
                                     class="btn bg-emerald-600 hover:bg-emerald-500 w-24 mr-16">Ok
                                 </button>
-                                <button v-if="state.addUser == 1" @click="addUser_Cancel"
+                                <button v-if="state.addingAttorney == 1" @click="addingAttorney_Cancel"
                                     class="btn bg-emerald-600 hover:bg-emerald-500">Cancel
                                 </button>
                             </div>

@@ -65,7 +65,7 @@ class WelcomeController extends Controller
                     'display_last_first' => 'max:255',
                 ],
                 [
-                    'display_name' => 'This name is taken by another user in your firm.',
+                    'display_name' => 'This name is taken by another user in your firm or is missing required fields.',
                     'member_initials' => 'These initials are taken by another user in your firm.',
                 ]
             );
@@ -94,7 +94,7 @@ class WelcomeController extends Controller
             $contact->save();
         } // end elseif formtype = user
         // else, if the admin is adding another user
-        elseif ($request['formtype'] == 'addUser') {
+        elseif ($request['formtype'] == 'addingAttorney') {
 
             $verified3 = $request->validate(
                 [
@@ -118,7 +118,7 @@ class WelcomeController extends Controller
                 ],
                 [
                     'display_name' => 'This name is taken by another user in your firm.',
-                    'member_initials' => 'These initials are taken by another user in your firm.',
+                    'member_initials' => 'These initials are taken by another user in your firm or is missing required fields.',
                 ]
             );
 

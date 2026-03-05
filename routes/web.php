@@ -32,9 +32,9 @@ Route::get('/', function () {
 
 // welcome routes do not require welcomed middleware, or they wouldn't work
 Route::middleware('auth')->group(function () {
-    Route::get('/welcome_admin', [WelcomeController::class, 'welcome_admin'])->name('welcome_admin');
     Route::get('/welcome_user', [WelcomeController::class, 'welcome_user'])->name('welcome_user');
-    Route::post('/welcomeadmin', [WelcomeController::class, 'postWelcomeAdmin'])->name('postWelcomeAdmin');
+    Route::get('/welcome_admin', [WelcomeController::class, 'welcome_admin'])->name('welcome_admin');
+    Route::post('/welcome_admin', [WelcomeController::class, 'postWelcomeAdmin'])->name('postWelcomeAdmin');
     Route::post('/donewelcomeadmin', [WelcomeController::class, 'doneWelcomeAdmin']);
 });
 

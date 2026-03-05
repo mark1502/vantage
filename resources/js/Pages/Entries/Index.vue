@@ -11,6 +11,7 @@ import { reactive, ref, onMounted, onUnmounted, onUpdated, nextTick, inject, com
 
 import { useTheme } from '@/Composables/useTheme';
 import Pagination from '@/Components/Pagination.vue'
+import { getAvailableFormats, getColumns } from '@/Config/entryViewFormats.js'
 
 // Get access to theme management
 const { theme, setTheme } = useTheme();
@@ -73,6 +74,22 @@ const search = ref('');                 // this doesn't seem to be used here
 
 const disp = reactive({
     listFormat: 1,                      // the format of the main listbox
+});
+
+const currentFormatKey = ref('standard');
+
+const currentFolder = computed(() => {
+    const f = getFolderRow(state.folder_name);
+    return props.folders[f];
+});
+
+const availableFormats = computed(() => {
+    if (props.view_folder_id <= 0) return [];
+    return getAvailableFormats(currentFolder.value);
+});
+
+const activeColumns = computed(() => {
+    return getColumns(currentFormatKey.value, currentFolder.value);
 });
 
 const folder_singular = [  // this array is used to display the singular name of a folder
@@ -229,12 +246,19 @@ function update_listFormat() {                                                  
     }
 
     let f = getFolderRow( state.folder_name );
-    
+
     table_heading.date1 = props.folders[f].date1_prompt;
     table_heading.date2 = props.folders[f].date2_prompt;
     table_heading.from = props.folders[f].from_prompt;
     table_heading.to = props.folders[f].to_prompt;
     table_heading.entrytype = props.folders[f].entrytype_prompt;
+
+    // Reset format to standard on folder change, or if current format not available
+    const folder = props.folders[f];
+    const available = getAvailableFormats(folder);
+    if (!available.find(fmt => fmt.key === currentFormatKey.value)) {
+        currentFormatKey.value = 'standard';
+    }
 }
 
 
@@ -626,59 +650,45 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                 <!-- show table if there are entries, but not if adding a new entry -->
                                 <div v-if="entries.data.length && state.mode != 'entry_add'">
                                     <div>
-                                        <table id="folderlist" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal">
+                                        <table id="folderlist" tabindex="0" class="w-full table-fixed border border-base-content text-sm font-sans font-normal">
                                             <thead class="text-left bg-gray-300 text-gray-800">
                                                 <tr>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
-                                                        {{ table_heading.date1 }}
-                                                    </th>
-                                                    <th v-if="disp.listFormat === 4" class="border-b border-r border-gray-700 pl-1">
-                                                        Folder
-                                                    </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
-                                                        {{ table_heading.entrytype }}
-                                                    </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
-                                                        {{ table_heading.from }}
+                                                    <th v-for="col in activeColumns" :key="col.key"
+                                                        class="border-b border-r border-gray-700 pl-1"
+                                                        :style="{ width: col.width }">
+                                                        {{ col.label(currentFolder) }}
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id"
+                                                <tr v-for="(entry, index) in entries.data" :key="entry.id"
                                                     class="border-b border-gray-400"
                                                     :class="setEntryClass(index)"
                                                     @click.left="entryList_click('list', index)"
                                                     @click.right.prevent="entryList_click('right', index)"
                                                     @dblclick="entryList_click('list_double', index)"
                                                 >
-                                                    <td class="pl-1 pr-2 py-1.5 border-base-content w-28">
-                                                        {{ reformat_date(entry.date1, props.folders[entry.folder_id-1].input_time, entry.all_day) }}
-                                                    </td>
-                                                    <!-- find the entrytype in the folders -->
-                                                    <td class="border-x border-base-content w-40 pl-1">
-                                                        {{ props.folders[entry.folder_id - 1].entrytypes.find((entrytype) =>
-                                                        entrytype.id === entry.entrytype_id).name }}
-                                                    </td>
-                                                    <!-- find the contact in file_contacts -->
-                                                    <td class="border-base-content w-40 pl-1">
-                                                        <span class="flex items-center gap-1">
-                                                            <span>{{ props.file_contacts.find((contact) => contact.id ===
-                                                            entry.from_contact_id ).display_last_first }}</span>
-                                                            <span v-if="props.firm_document_base_path && entry.linked_document_path"
-                                                                title="Has linked document"
-                                                                class="text-xs opacity-50">📎</span>
-                                                        </span>
-                                                    </td>
-                                                    <!-- next is only shown for listFormat 4, which doesn't exist right now -->
-                                                    <td v-show="disp.listFormat === 4" class="border-gray-900 pl-1">
-                                                        {{ props.folders[entry.folder_id - 1].name }}
+                                                    <td v-for="col in activeColumns" :key="col.key"
+                                                        class="pl-1 py-1.5 border-r border-base-content truncate"
+                                                        :style="{ width: col.width }"
+                                                        :title="col.getValue(entry, props)">
+                                                        <template v-if="col.hasLinkedDoc">
+                                                            <span class="flex items-center gap-1">
+                                                                <span class="truncate">{{ col.getValue(entry, props) }}</span>
+                                                                <span v-if="props.firm_document_base_path && entry.linked_document_path"
+                                                                    title="Has linked document"
+                                                                    class="text-xs opacity-50 shrink-0">📎</span>
+                                                            </span>
+                                                        </template>
+                                                        <template v-else>
+                                                            {{ col.getValue(entry, props) }}
+                                                        </template>
                                                     </td>
                                                 </tr>
                                                 <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
-                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-base-content">&nbsp;</td>
-                                                    <td>&nbsp;</td>
-                                                    <td v-show="disp.listFormat === 4">&nbsp;</td>
+                                                    <td v-for="col in activeColumns" :key="'empty-' + col.key"
+                                                        class="pl-1 py-1.5 border-r border-base-content"
+                                                        :style="{ width: col.width }">&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -686,21 +696,31 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                     <!-- if we're browsing the data (not edit or add), then display show droplist and link buttons -->
                                     <div v-if="state.mode === 'browse'"
                                         class="btn-group flex justify-between mt-2 items-center">
-                                        <div>
-                                            <label for="state_show" class="font-semibold text-sm text-blue-600 ml-2 mr-1">
-                                                Show:
-                                            </label>
-                                            <select v-model="state.show" id="state_show"
-                                                @change="refreshEntryList()"
-                                                class="font-normal text-sm p-1 border border-gray-500 bg-base-300 text-base-content rounded">
-                                                <option>6</option>
-                                                <option>8</option>
-                                                <option selected>10</option>
-                                                <option>12</option>
-                                                <option>15</option>
-                                                <option>20</option>
-                                                <option>25</option>
-                                            </select>
+                                        <div class="flex items-center gap-4">
+                                            <div>
+                                                <label for="state_show" class="font-semibold text-sm text-blue-600 ml-2 mr-1">
+                                                    Show:
+                                                </label>
+                                                <select v-model="state.show" id="state_show"
+                                                    @change="refreshEntryList()"
+                                                    class="font-normal text-sm p-1 border border-gray-500 bg-base-300 text-base-content rounded">
+                                                    <option>6</option>
+                                                    <option>8</option>
+                                                    <option selected>10</option>
+                                                    <option>12</option>
+                                                    <option>15</option>
+                                                    <option>20</option>
+                                                    <option>25</option>
+                                                </select>
+                                            </div>
+                                            <div v-if="props.view_folder_id > 0 && availableFormats.length > 1">
+                                                <select v-model="currentFormatKey" id="view_format"
+                                                    class="font-normal text-sm p-1 border border-gray-500 bg-base-300 text-base-content rounded">
+                                                    <option v-for="fmt in availableFormats" :key="fmt.key" :value="fmt.key">
+                                                        {{ fmt.label }}
+                                                    </option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="pr-2">
                                             <Pagination :links="entries.links" :only="['entries', 'view_folder_id']"/>
