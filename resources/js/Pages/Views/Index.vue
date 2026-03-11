@@ -45,6 +45,7 @@ const state = reactive({
     date_from: '',
     date_to: '',
     view_icon: 'images/memo_bw_1.png',
+    add_folder_id: 0,
 });
 
 const disp = reactive({
@@ -174,16 +175,18 @@ function viewList_click( what, index = null ) {                                 
     case 'right':
         alert('right!');
         break;
-    case 'add_button':                                                          // clicked the add button
+    case 'add_button':
         if( props.view_folder_id == 0 ) {
-            document.getElementById('timeline_add_modal').checked = true;       // if clicked while in timeline, then display modal to select folder
+            document.getElementById('timeline_add_modal').showModal();       // if clicked while in timeline, then display modal to select folder
+            return;                                                          // don't proceed to add mode yet - wait for folder selection
         } else {                                                                                          // else, set the add folder and put in add mode
             state.add_folder_id = props.view_folder_id;
-            list_actions( 'add' );
         }
+        list_actions( 'add' );
         break;
     case 'add_close':                                                           // timeline add modal has selected the folder, so close the modal and start add mode
-        document.getElementById('timeline_add_modal').checked = false;
+        document.getElementById('timeline_add_modal').close();
+        state.add_folder_id = Number(state.add_folder_id);                      // ensure folder id is a number (radio values are strings)
         list_actions('add')
     }
 }
@@ -193,7 +196,8 @@ function list_actions( action ) {
         if( state.view === 'memos' ) state.add_folder_id = 5;
         else if( state.view === 'phone' ) state.add_folder_id = 8;
         else if( state.view === 'todo' ) state.add_folder_id = 7;
-
+        else if( state.view === 'events' ) state.add_folder_id = 6;
+        
         state.mode = 'entry_add';
     }
     else if( action === 'edit' ) state.mode = 'entry_edit';
@@ -238,8 +242,8 @@ function keypress_handler(e) {
             hotkey_pressed.value = e;
         }
 
-        if( (  document.getElementById('addcancelled_modal').checked === true                   // if addcancelled_modal is active
-            || document.getElementById('entrychanged_modal').checked === true )                 // or if entrychanged_modal is active
+        if( (  document.getElementById('addcancelled_modal').open === true                   // if addcancelled_modal is active
+            || document.getElementById('entrychanged_modal').open === true )                 // or if entrychanged_modal is active
             && ( e.key === 'y' || e.key === 'Y' || e.key === 'n' || e.key === 'N' ) ) {          // and the 'y' or 'n' key is pressed
             e.preventDefault();                                                                 // preventDefault
             hotkey_pressed.value = e;                                                           // trigger the hotkey
@@ -249,7 +253,7 @@ function keypress_handler(e) {
 
 function clicked_set_date_range() {
     // date_range_filters.showModal();
-    document.getElementById('events_filters_modal').checked = true;
+    document.getElementById('events_filters_modal').showModal();
 }
 
 function clicked_from_to( clicked ) {
@@ -285,7 +289,7 @@ function set_events_filter() {
 
     if( state.date_from === null && state.date_to === null ) disp.events_filter = 'all_events';
     
-    document.getElementById('events_filters_modal').checked = false;
+    document.getElementById('events_filters_modal').close();
 
     if( state.date_from !== null && state.date_to !== null ) {
         disp.date_range = reformat_date( state.date_from ) + ' - ' + reformat_date( state.date_to );
@@ -331,7 +335,9 @@ function getFolderRow() {                                                       
     let folder_id = 0
     let folder_row = 0;
 
-    if( props.view === 'due' || props.view === 'timeline' ) {                           // if view is due or timeleine 
+    if( state.mode === 'entry_add' && state.add_folder_id > 0 ) {                      // if adding an entry, use the selected add folder
+        folder_id = state.add_folder_id;
+    } else if( props.view === 'due' || props.view === 'timeline' ) {                    // if view is due or timeline
         if( entries.length > 0 && state.row < entries.length ) {                        // - if there are entries and the selected row is < # enries (for 0 based array)
             folder_id = entries[state.row].folder_id;                                   // use id of current entry
         }
@@ -439,27 +445,28 @@ function display_entry_contact( entry, fromto ) {
     return $sendback;
 }
 
-// function display_modal( which_modal, OnOff = null ) {                                       // opens or closes a modal
-//     let modal_name = '';
-//     if( which_modal == 'filechanged' ) modal_name = 'filechanged_modal';
-//     else if( which_modal == 'sol' ) modal_name = 'sol_modal';
-//     else if( which_modal == 'entrychanged' ) modal_name = 'entrychanged_modal';
-//     else if( which_modal == 'timeline_add' ) modal_name = 'timeline_add_modal';
-//     else if( which_modal == 'confirm_delete' ) modal_name = 'confirm_delete_modal';
+function display_modal( which_modal, OnOff = null ) {
+    let modal_name = '';
+    if( which_modal == 'confirm_delete' ) modal_name = 'confirm_delete_modal';
+    else if( which_modal == 'timeline_add' ) modal_name = 'timeline_add_modal';
 
-//     if( modal_name != '' && OnOff == 'status' ) {
-//         return document.getElementById(modal_name).checked;
-//     }
-//     else if( modal_name != '' && (OnOff == true || OnOff == 'show' || OnOff == 'on') ) {
-//         document.getElementById(modal_name).checked = true;
-//     }
-//     else if( modal_name != '' && (OnOff == false || OnOff == 'hide' || OnOff == 'off') ) {
-//         document.getElementById(modal_name).checked = false;
-//     }
-//     else if( modal_name != '' && OnOff == null ) {
-//         document.getElementById(modal_name).checked = !document.getElementById(modal_name).checked;
-//     }    
-// }
+    if( modal_name != '' && OnOff === 'status' ) {
+        return document.getElementById(modal_name).open;
+    }
+    else if( modal_name != '' && (OnOff == true || OnOff === 'show' || OnOff === 'on') ) {
+        document.getElementById(modal_name).showModal();
+    }
+    else if( modal_name != '' && (OnOff == false || OnOff === 'hide' || OnOff === 'off') ) {
+        document.getElementById(modal_name).close();
+    }
+    else if( modal_name != '' && OnOff == null ) {
+        document.getElementById(modal_name).open ? document.getElementById(modal_name).close() : document.getElementById(modal_name).showModal();
+    }
+}
+
+function close_timeline_add_modal() {
+    document.getElementById('timeline_add_modal').close();
+}
 
 
 
@@ -569,7 +576,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     
                     <span v-if="state.view === 'events'" class="font-medium text-base text-base-content ml-7 w-24">Date Range: </span>
                     <span v-if="state.view === 'events'" class="font-normal text-xs ml-1"> {{ disp.date_range }}</span>
-                    <button v-if="state.view === 'events'" type="button" class="btn btn-outline btn-primary btn-xs ml-3" @click="clicked_set_date_range()">Change</button>
+                    <button v-if="state.view === 'events'" type="button" id="date_range_button" class="btn btn-outline btn-primary btn-xs ml-3" @click="clicked_set_date_range()">Change</button>
                         
                     
                 </div>
@@ -848,8 +855,12 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
 
                                     <!-- Entry List Button Row -->
                                     <div v-if="state.mode == 'browse'" name="control_buttons" class="mt-6 flex justify-around">
-                                        <button type="button" id="addbutton" class="btn btn-primary btn-sm h-10 gap-0"
+                                        <!-- <button type="button" id="addbutton" class="btn btn-primary btn-sm h-10 gap-0"
                                              @click="list_actions('add')" :disabled="state.view === 'due'">
+                                            + &nbsp;<u>A</u>dd New Entry
+                                        </button> -->
+                                        <button type="button" id="addbutton" class="btn btn-primary btn-sm h-10 gap-0"
+                                             @click="viewList_click('add_button')" :disabled="state.view === 'due'">
                                             + &nbsp;<u>A</u>dd New Entry
                                         </button>
                                         <button type="button" id="changebutton" class="btn btn-primary btn-sm h-10 gap-0"
@@ -901,43 +912,42 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
 
 
         <!-- Put this part before </body> tag - timeline add modal-->
-        <input hidden type="checkbox" id="timeline_add_modal" name="timeline_add_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="timeline_add_modal" class="modal">
             <div class="modal-box w-11/12 max-w-xl">
                 <h3 class="font-bold text-xl text-center">Please Select a Folder For New Entry</h3>
                 <div class="border border-gray-800 mt-4 w-64 mx-auto p-4">
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="corr" value="1" autocomplete="off"> Correspondence
+                        <input type="radio" v-model="state.add_folder_id" id="corr" :value="1" autocomplete="off"> Correspondence
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="plea" value="2" autocomplete="off"> Pleadings and Motions
+                        <input type="radio" v-model="state.add_folder_id" id="plea" :value="2" autocomplete="off"> Pleadings and Motions
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="disc" value="3" autocomplete="off"> Discovery Requests
+                        <input type="radio" v-model="state.add_folder_id" id="disc" :value="3" autocomplete="off"> Discovery Requests
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="docs" value="4" autocomplete="off"> Documents
+                        <input type="radio" v-model="state.add_folder_id" id="docs" :value="4" autocomplete="off"> Documents
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="memo" value="5" autocomplete="off"> Memos and Notes
+                        <input type="radio" v-model="state.add_folder_id" id="memo" :value="5" autocomplete="off"> Memos and Notes
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="events" value="6" autocomplete="off"> Events and Deadlines
+                        <input type="radio" v-model="state.add_folder_id" id="events" :value="6" autocomplete="off"> Events and Deadlines
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="todo" value="7" autocomplete="off"> To-Do (for this file)
+                        <input type="radio" v-model="state.add_folder_id" id="todo" :value="7" autocomplete="off"> To-Do (for this file)
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="phone" value="8" autocomplete="off"> Phone Messages
+                        <input type="radio" v-model="state.add_folder_id" id="phone" :value="8" autocomplete="off"> Phone Messages
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="medrecs" value="9" autocomplete="off"> Medical Records
+                        <input type="radio" v-model="state.add_folder_id" id="medrecs" :value="9" autocomplete="off"> Medical Records
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="medbills" value="10" autocomplete="off"> Medical Bills
+                        <input type="radio" v-model="state.add_folder_id" id="medbills" :value="10" autocomplete="off"> Medical Bills
                     </label><br>
                     <label>
-                        <input type="radio" v-model="state.add_folder_id" id="costs" value="11" autocomplete="off"> Case Costs
+                        <input type="radio" v-model="state.add_folder_id" id="costs" :value="11" autocomplete="off"> Case Costs
                     </label><br>
                 </div>
                 <div class="modal-action justify-center mt-12">
@@ -946,11 +956,10 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     <button type="button" class="btn btn-primary" @click="close_timeline_add_modal()">Cancel</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
         <!-- Put this part before </body> tag - Confirm_Delete modal -->
-        <input hidden type="checkbox" id="confirm_delete_modal" name="confirm_delete_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="confirm_delete_modal" class="modal">
             <div class="modal-box w-11/12 max-w-3xl">
                 <h3 class="font-bold text-2xl text-center">Confirm: Delete Entry</h3>
                 <p class="text-xl mt-4">Do you want to delete this entry?</p>
@@ -959,12 +968,11 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     <button type="button" class="btn gap-0" @click="display_modal( 'confirm_delete', false )"><u>N</u>o</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
-        <!-- Put this part before </body> tag - Confirm_Delete modal -->
-        <input hidden type="checkbox" id="events_filters_modal" name="events_filters_modal" class="modal-toggle" />
-        <div class="modal">
-            <div class="modal-box w-[500px] h-[270px]">
+        <!-- Put this part before </body> tag - Events Filters modal -->
+        <dialog id="events_filters_modal" class="modal">
+            <div class="modal-box w-[500px] h-[270px] overflow-visible">
                 <h3 class="font-bold text-2xl text-center mb-5">Events & Deadlines Date Filter</h3>
             <!-- <div class="font-bold text-lg">
                 Date Filter:
@@ -981,13 +989,13 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                 </div>
                 <div v-if="disp.events_filter === 'date_range'" class="flex items-baseline mt-3 ">
                     <span class="">Starting: </span>
-                    <VueDatePicker v-model="state.date_from" :enable-time-picker="false" :teleport="true"
+                    <VueDatePicker v-model="state.date_from" :enable-time-picker="false"
                         week-start="0" :model-type="'yyyy-MM-dd'" :format="'MM/dd/yyyy'"
                         class="pl-1 text-sm font-normal vdtp_main_date vdtp_date" auto-apply
                         :input-attrs="{ hideInputIcon: true, clearable: true }" @closed="" />
 
                     <span class="ml-4">Ending: </span>
-                    <VueDatePicker v-model="state.date_to" :enable-time-picker="false" :teleport="true"
+                    <VueDatePicker v-model="state.date_to" :enable-time-picker="false"
                         week-start="0" :model-type="'yyyy-MM-dd'" :format="'MM/dd/yyyy'"
                         class="pl-1 text-sm font-normal vdtp_main_date vdtp_date" auto-apply
                         :input-attrs="{ hideInputIcon: true, clearable: true }" @closed="" />
@@ -997,7 +1005,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     <button type="button" class="btn btn-primary btn-outline w-32 gap-0" @click="set_events_filter()">Set Filter</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
 
     </AuthenticatedLayout>

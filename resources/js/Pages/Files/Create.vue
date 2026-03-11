@@ -159,13 +159,13 @@ function show_modal( a_modal, OnOff = null) {
     let the_modal = document.getElementById( modal_name );  // just a shortcut to the modal for cleaner code
 
     if( modal_name !== '' && OnOff === 'status' ) {     // modal specified, return the status
-        return the_modal.checked;
+        return the_modal.open;
     } else if( modal_name !== '' && display_modal ) {   // modal specfied, display it
-        the_modal.checked = true;
-    } else if( modal_name !== '' && !display_modal ) {  // modal specfied, hide it 
-        the_modal.checked = false;
+        the_modal.showModal();
+    } else if( modal_name !== '' && !display_modal ) {  // modal specfied, hide it
+        the_modal.close();
     } else if( modal_name !== '' && OnOff == null ) {   // modal specfied, toggle it
-        the_modal.checked = !the_modal.checked;
+        the_modal.open ? the_modal.close() : the_modal.showModal();
     }
 }
 
@@ -194,14 +194,14 @@ function handleEsc(e) {         // event listener to handle esc press and also y
         show_modal('cancelcreate', true);
 
         if( show_modal( 'sol', 'status') === true) {                                        // if the SOL modal is showing, hide it
-            document.getElementById('sol_modal').checked = false;
+            document.getElementById('sol_modal').close();
         }
     } else if( e.key === 'n' || e.key === 'N' ) {                                           // if the N key is pressed
-        if( document.getElementById('cancelcreate_modal').checked === true ) {              // if cancel modal is showing, close it
+        if( document.getElementById('cancelcreate_modal').open === true ) {              // if cancel modal is showing, close it
             show_modal('cancelcreate', false );
         } 
     } else if( e.key === 'y' || e.key === 'Y' ) {                                           // else if Y key is pressed
-        if (document.getElementById('cancelcreate_modal').checked === true) {               // if cancel modal is showing, cancel/revert
+        if (document.getElementById('cancelcreate_modal').open === true) {               // if cancel modal is showing, cancel/revert
             fileform_actions('revert');
         }
     }
@@ -449,8 +449,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
 
 
         <!-- Put this part before </body> tag - SOL Modal -->
-        <input hidden type="checkbox" id="sol_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="sol_modal" class="modal">
             <div class="modal-box w-11/12 max-w-3xl">
                 <h3 class="font-bold text-2xl text-center">Confirm: SOL Date</h3>
                 <p class="text-xl mt-4">You have not entered a Statute of Limitations date for this file.</p>
@@ -460,12 +459,11 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                     <button type="button" class="btn gap-0" @click="handle_modal_buttons('sol_modal','no')"><u>N</u>o</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
 
         <!-- Put this part before </body> tag - Confirm File Changemodal -->
-        <input hidden type="checkbox" id="cancelcreate_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="cancelcreate_modal" class="modal">
             <div class="modal-box w-11/12 max-w-3xl">
                 <h3 class="font-bold text-2xl text-center">Cancel New File?</h3>
                 <p class="text-xl mt-5">Do you want to cancel adding a new file?</p>
@@ -475,7 +473,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                     <button type="button" class="btn gap-0" @click="handle_modal_buttons('cancelcreate_modal','no')"><u>N</u>o</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
         <!-- Add Contact Form Modal -->
         <AddContactForm v-model:added_contact_obj="added_contact_obj" :id="'contact_modal_form'" />

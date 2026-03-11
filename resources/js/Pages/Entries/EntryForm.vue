@@ -158,10 +158,10 @@ watch(() => props.state.row, (row) => {                 // watch the row - calls
 watch(() => disp.show_file_contacts, (newVal, oldVal) => {  // watch the show_file_contacts - if changed, update the display
     if (newVal === 'from' || newVal === 'to') {          // if the show_file_contacts is set to 'from' or 'to'
         nextTick(() => {
-            document.getElementById('file_contacts_modal').checked = true; // open the file contacts modal
+            document.getElementById('file_contacts_modal').showModal(); // open the file contacts modal
         });
     } else if (newVal === 'off') {
-        document.getElementById('file_contacts_modal').checked = false; // close the file contacts modal
+        document.getElementById('file_contacts_modal').close(); // close the file contacts modal
     }
 });
 
@@ -258,7 +258,7 @@ function clicked_AddTypeButton() {                                      // the u
         () => the_mode.value = 'entry_edit';
     }
     entrytype_form.reset();                                             // clear entrytype form
-    document.getElementById('entrytype_modal').checked = true;          // open the entytype form modal
+    document.getElementById('entrytype_modal').showModal();          // open the entytype form modal
     nextTick(() => {
         document.getElementById('type_name').focus();                   // set the focus to the entrytype name on the form
     });
@@ -286,15 +286,12 @@ function display_modal(which_modal, OnOff = null) {
     else if (which_modal === 'addcancelled') modal_name = 'addcancelled_modal';
 
     nextTick(() => {
-        if (modal_name === 'unsaved') {
-            if ((OnOff === true || OnOff === 'show' || OnOff === 'on')) document.getElementById(modal_name).showModal();           // set to true
-            else if ((OnOff === false || OnOff === 'hide' || OnOff === 'off')) document.getElementById(modal_name).close();   // set to false
-        }
-        else if (modal_name !== '') {
-            if ((OnOff === true || OnOff === 'show' || OnOff === 'on')) document.getElementById(modal_name).checked = true;           // set to true
-            else if ((OnOff === false || OnOff === 'hide' || OnOff === 'off')) document.getElementById(modal_name).checked = false;   // set to false
-            else if (OnOff === null) document.getElementById(modal_name).checked = !document.getElementById(modal_name).checked;        // toggle modal
-            else if (OnOff === 'status') return document.getElementById(modal_name).checked;                                           // status of modal
+        if (modal_name !== '') {
+            const el = document.getElementById(modal_name);
+            if ((OnOff === true || OnOff === 'show' || OnOff === 'on')) el.showModal();
+            else if ((OnOff === false || OnOff === 'hide' || OnOff === 'off')) el.close();
+            else if (OnOff === null) el.open ? el.close() : el.showModal();
+            else if (OnOff === 'status') return el.open;
         }
     });
 }
@@ -324,10 +321,11 @@ function clicked_entrytypeModal_button(clicked_button) {
                 preserveState: true,
                 onSuccess: () => {
                     nextTick( () => {
-                        console.log('back from new entrytype');
                         entry_form.entrytype_id = props.p1.new_entrytype.id;
                         entry_form.new_entrytype_added = true;
-                        document.getElementById('entrytype_modal').checked = false;          // close the entrytype form modal
+                        // document.getElementById('entrytype_modal').close();          // close the entrytype form modal
+                        display_modal('entrytype', false);
+                        console.log('back from new entrytype');
                     });
                 } // onSuccess
             }); // post
@@ -337,7 +335,7 @@ function clicked_entrytypeModal_button(clicked_button) {
         entrytype_form.reset();
     }
 
-    document.getElementById('entrytype_modal').checked = true;
+    document.getElementById('entrytype_modal').showModal();
 }
 
 function clicked_mark_read() {                                                                      // user clicked the mark read checkbox, so handle toggle and update the record
@@ -547,7 +545,7 @@ function checkContactRole(contact_id, contact_name) {
     role_modal.custom_role_label = '';
     role_modal.show = true;
     nextTick(() => {
-        document.getElementById('role_assign_modal').checked = true;
+        document.getElementById('role_assign_modal').showModal();
     });
 }
 
@@ -565,7 +563,7 @@ function clicked_roleModal_button(action) {
     }
     // Close modal for both assign and skip
     role_modal.show = false;
-    document.getElementById('role_assign_modal').checked = false;
+    document.getElementById('role_assign_modal').close();
 }
 
 function objectChanged(obj_1, obj_2) {
@@ -851,7 +849,7 @@ function handle_hotkey_press(e) {
 
     if( props.state.mode === 'entry_add' ) {                                                            // if entry_add mode,the hotkey is from addcancelled_modal (Y or N)
         if( e.key === 'y' || e.key === 'Y') entry_actions('revert');                                    // if y or Y, then revert, otherwise close the modal
-        else if( e.key === 'n' || e.key === 'N' ) document.getElementById('addcancelled_modal').checked = false;
+        else if( e.key === 'n' || e.key === 'N' ) document.getElementById('addcancelled_modal').close();
     }
     if( props.state.mode === 'entry_edit' ) {                                                           // if entry_edit mode, hotkey is from addcancelled_model (Y or N)
         if( e.key === 'y' || e.key === 'Y') clicked_entryform_button('ok');                             // if y or Y, save changes
@@ -914,7 +912,7 @@ update_disp();
                     </label>
                     <input v-model="display_name.file" id="display_casename"
                         autocomplete="off" :disabled="props.state.mode !== 'entry_add'"
-                        class="input input-bordered input-sm rounded-sm w-64 disabled:input-bordered disabled:text-base-content"/>
+                        class="input input-bordered input-sm text-sm rounded-sm w-64 disabled:input-bordered disabled:border-gray-300 disabled:text-base-content"/>
                 </div>
              </div>
             <!-- Folder row - HIDDEN - Should probably remove-->
@@ -1076,8 +1074,8 @@ update_disp();
             <!-- Response Expected Date Row > Hide/Show based on folder -->
             <div v-if="props.getFolderData('hide_responseexpected_prompt') === false" class="mt-4 min-w-full">
                 <div class="flex place-items-baseline">
-                    <label for="dp-input-entry_date_response_expected" class="text-sm font-semibold w-64 mr-1">
-                        Response Expected Date:
+                    <label for="dp-input-entry_date_response_expected" class="text-sm font-semibold w-60 mr-1">
+                        Response Expected By:
                     </label>
                     <VueDatePicker v-model="entry_form.date_response_expected"
                         :model-type="'yyyy-MM-dd HH:mm:ss'" :time-config="{ enableTimePicker: false }" week-start="0"
@@ -1180,8 +1178,7 @@ update_disp();
     <AddContactForm v-model:added_contact_obj="added_contact_obj" :id="'contact_modal_form'" />
 
     <!-- Put this part before </body> tag - Entrytype Modal -->
-    <input hidden type="checkbox" id="entrytype_modal" name="entrytype_modal" class="modal-toggle" />
-    <div class="modal">
+    <dialog id="entrytype_modal" class="modal">
         <div class="modal-box w-11/12 max-w-3xl">
             <h3 class="font-bold text-2xl text-center">
                 Enter a New <span class="font-normal">({{ props.getFolderData('name', 'singular') }})</span> Type
@@ -1212,12 +1209,11 @@ update_disp();
                     @click="display_modal('entrytype', false)">Cancel</button>
             </div>
         </div>
-    </div>
+    </dialog>
 
 
     <!-- Put this part before </body> tag - Confirm Entry Change modal-->
-    <input hidden type="checkbox" id="entrychanged_modal" name="entrychanged_modal" class="modal-toggle" />
-    <div class="modal">
+    <dialog id="entrychanged_modal" class="modal">
         <div class="modal-box w-11/12 max-w-3xl">
             <h3 class="font-bold text-2xl text-center">Confirm: Entry Changes</h3>
             <p class="text-xl mt-4">Information in this entry has been changed.</p>
@@ -1228,12 +1224,11 @@ update_disp();
                 <button type="button" class="btn gap-0" @click="entry_actions('revert')"><u>N</u>o</button>
             </div>
         </div>
-    </div>
+    </dialog>
 
 
     <!-- Put this part before </body> tag - Confirm Add Cancelled modal-->
-    <input hidden type="checkbox" id="addcancelled_modal" name="addcancelled_modal" class="modal-toggle" />
-    <div class="modal">
+    <dialog id="addcancelled_modal" class="modal">
         <div class="modal-box w-11/12 max-w-3xl">
             <h3 class="font-bold text-2xl text-center">Cancel New Entry?</h3>
             <!-- <p class="text-xl mt-4">Cancel new entry?</p> -->
@@ -1243,11 +1238,10 @@ update_disp();
                 <button type="button" class="btn gap-0" @click="display_modal('addcancelled', false)"><u>N</u>o</button>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <!-- Contact Role Assignment Modal -->
-    <input hidden type="checkbox" id="role_assign_modal" class="modal-toggle" />
-    <div class="modal">
+    <dialog id="role_assign_modal" class="modal">
         <div class="modal-box w-11/12 max-w-md">
             <h3 class="font-bold text-xl text-center">Assign Role</h3>
             <p class="text-sm text-center mt-2">{{ role_modal.contact_name }}</p>
@@ -1274,11 +1268,10 @@ update_disp();
                     @click="clicked_roleModal_button('skip')">Skip</button>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <!-- Put this part before </body> tag - File Contacts modal-->
-    <input hidden type="checkbox" id="file_contacts_modal" class="modal-toggle" />
-    <div class="modal">
+    <dialog id="file_contacts_modal" class="modal">
         <div class="modal-box">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="selectFileContact( 'cancel' )">✕</button>
             <h3 class="font-bold text-2xl text-center mb-2">Select File Contact</h3>
@@ -1296,7 +1289,7 @@ update_disp();
                 </div>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <!-- Document Picker modal -->
     <DocumentPicker

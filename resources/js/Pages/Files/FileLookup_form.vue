@@ -86,8 +86,6 @@ function handleKeyDown( event ) {
                 </tr>
             </table>
         </div>
-
-
     </div>
 
 

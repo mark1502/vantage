@@ -211,7 +211,7 @@ class ViewController extends Controller
             // if( $read === 'unread' ) $entries->whereNull( 'date2' );                            // if 'unread', filter where date2 = null
             // else if( $read === 'read' ) $entries->whereNotNull( 'date2' );                      // else if 'read', filter where date2 = !null
 
-            $viewfolder_id = 1;
+            $viewfolder_id = 0;  // NOTE: folder 0 for timeline view!
 
             $entries = $entries                                                                 // because this is a "view", include the file name and the contacts from & to
                 ->with('file:id,name')

@@ -201,7 +201,7 @@ class CalendarController extends Controller
         }
 
         $events = $events->whereBetween('date_response_expected', [$request->start, $request->end])
-            ->with(['file:id,name,contact_id',
+            ->with(['file:id,name',
                 'contact_to:id,display_last_first,member_initials,user_id',
                 'entrytype:id,name',
                 // 'contact_from:id,display_last_first,member_initials',

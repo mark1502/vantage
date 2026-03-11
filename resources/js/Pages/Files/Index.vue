@@ -234,6 +234,21 @@ update_disp();                                                                  
                                             <option>25</option>
                                         </select>
                                     </div>
+                            <!-- File limit indicator (free plan only) -->
+                            <div v-if="subscription?.file_limit" class="flex-1 px-2">
+                                <div class="flex items-center justify-center text-xs mb-1">
+                                    <span>{{ subscription.file_count }} of {{ subscription.file_limit }} files used</span>
+                                    <span v-if="! atFileLimit" class="text-success-content font-semibold ml-2">(free plan)</span>
+                                    <span v-if="atFileLimit" class="text-error font-semibold ml-4">Limit Reached</span>
+                                </div>
+                                <!-- <progress
+                                    class="progress w-full"
+                                    :class="atFileLimit ? 'progress-error' : 'progress-primary'"
+                                    :value="subscription.file_count"
+                                    :max="subscription.file_limit"
+                                ></progress> -->
+                            </div>
+
                                     <div class="pr-2">
                                         <Pagination :links="files.links" :only="['files']"/>
                                     </div>
@@ -244,28 +259,14 @@ update_disp();                                                                  
                             <div v-else class="border p-4 mt-8 text-xl font-bold text-center">No Matching Files Found!
                             </div>
 
-                        <!-- File limit indicator (free plan only) -->
-                            <div v-if="subscription?.file_limit" class="mt-4 px-2">
-                                <div class="flex items-center justify-between text-sm mb-1">
-                                    <span>{{ subscription.file_count }} of {{ subscription.file_limit }} files used</span>
-                                    <span v-if="atFileLimit" class="text-error font-semibold">Limit reached</span>
-                                </div>
-                                <progress
-                                    class="progress w-full"
-                                    :class="atFileLimit ? 'progress-error' : 'progress-primary'"
-                                    :value="subscription.file_count"
-                                    :max="subscription.file_limit"
-                                ></progress>
-                                <div v-if="atFileLimit" class="mt-2 text-sm">
-                                    <Link v-if="isAdmin" :href="route('subscription.index')" class="link link-primary font-semibold">
-                                        Upgrade to create unlimited files
-                                    </Link>
-                                    <span v-else>Contact your firm admin to upgrade the subscription.</span>
-                                </div>
-                            </div>
-
                         <!-- Here are the Buttons -->
-                            <div name="control_buttons" class="flex mt-8 justify-around">
+                            <div v-if="atFileLimit" class="text-sm mt-3 mb-2 ml-2">
+                                <Link v-if="isAdmin" :href="route('subscription.index')" class="link link-primary font-semibold">
+                                    Upgrade to create unlimited files
+                                </Link>
+                                <span v-else class="text-primary">Contact your firm admin to subscribe for unlimited files.</span>
+                            </div>
+                            <div name="control_buttons" class="flex justify-around" :class="atFileLimit ? 'mt-2' : 'mt-8'">
                                 <Link v-if="!atFileLimit" id="addbutton" :href='disp.createurl' class="btn btn-primary gap-0 w-24">
                                     + &nbsp;<u>A</u>dd
                                 </Link>
@@ -297,7 +298,8 @@ update_disp();                                                                  
                                         <p class="">Closed: {{ file1.date_closed ? reformat_date(file1.date_closed) : "No" }}</p>
                                     </div>
                                     <div class="flex font-mono">
-                                        <p class="w-1/2">S.O.L.: {{ file1.date_sol ? reformat_date(file1.date_sol) : "Not set" }}</p>
+                                        <p v-if="file1.filetype.enable_file_SOL == false" class="w-1/2">S.O.L.: N/A</p>
+                                        <p v-else class="w-1/2">S.O.L.: {{ file1.date_sol ? reformat_date(file1.date_sol) : "Not set" }}</p>
                                         <p class="">Filed: &nbsp;{{ file1.date_filed ? reformat_date(file1.date_filed) : "No" }}</p>
                                     </div>
                                         

@@ -132,14 +132,14 @@ function entryList_click(what, index = null) {                            // the
             break;
         case 'add_button':                                                      // clicked the add button
             if( props.view_folder_id === 0 ) {                                   // if viewing the file timeleine
-                document.getElementById('timeline_add_modal').checked = true;   // display modal to select folder for the new entry
+                document.getElementById('timeline_add_modal').showModal();   // display modal to select folder for the new entry
             } else {                                                            // else
                 state.add_folder_id = props.view_folder_id;                     // set the add folder
                 list_actions('add');                                          // start add mode
             }
             break;
         case 'timeline_add_close':                                                       // timeline add modal has selected the folder, so close the modal and start add mode
-            document.getElementById('timeline_add_modal').checked = false;
+            document.getElementById('timeline_add_modal').close();
             list_actions('add');
             break;
     }
@@ -161,16 +161,16 @@ function display_modal(which_modal, OnOff = null) {                             
     else if( which_modal === 'has_responses' ) modal_name = 'has_responses_modal';
 
     if( modal_name != '' && OnOff === 'status' ) {
-        return document.getElementById(modal_name).checked;
+        return document.getElementById(modal_name).open;
     }
     else if( modal_name != '' && (OnOff == true || OnOff === 'show' || OnOff === 'on') ) {
-        document.getElementById(modal_name).checked = true;
+        document.getElementById(modal_name).showModal();
     }
     else if( modal_name != '' && (OnOff == false || OnOff === 'hide' || OnOff === 'off') ) {
-        document.getElementById(modal_name).checked = false;
+        document.getElementById(modal_name).close();
     }
     else if( modal_name != '' && OnOff == null ) {
-        document.getElementById(modal_name).checked = !document.getElementById(modal_name).checked;
+        document.getElementById(modal_name).open ? document.getElementById(modal_name).close() : document.getElementById(modal_name).showModal();
     }
 }
 
@@ -322,8 +322,8 @@ function keypress_handler(e) {
             hotkey_pressed.value = e;                                                                   // set the hotkey being watched in the form
         }
 
-        if( (document.getElementById('addcancelled_modal' ).checked === true                       // if addcancelled_modal is active
-            || document.getElementById('entrychanged_modal' ).checked === true)                     // or if entrychanged_modal is active
+        if( (document.getElementById('addcancelled_modal' ).open === true                       // if addcancelled_modal is active
+            || document.getElementById('entrychanged_modal' ).open === true)                     // or if entrychanged_modal is active
             && (e.key === 'y' || e.key === 'Y' || e.key === 'n' || e.key === 'N') ) {             // and the 'y' or 'n' key is pressed
             e.preventDefault();                                                                         // preventDefault
             hotkey_pressed.value = e;                                                                   // trigger the hotkey
@@ -346,7 +346,7 @@ function keypress_handler(e) {
                 display_modal('filechanged', true);                                                         // display the filechanged modal
             }
         }
-        if( document.getElementById('filechanged_modal').checked === true ) {                   // if filechanged modal is active
+        if( document.getElementById('filechanged_modal').open === true ) {                   // if filechanged modal is active
             if( e.key === 'y' || e.key === 'Y' ) {                                                   // if 'y' or 'Y' is pressed
                 e.preventDefault();                                                                     // preventDefault
                 FileForm_ref.value.fileform_click( 'ok' );                                              // complete form - save the changes
@@ -479,7 +479,7 @@ function SwitchFile() {                                                       //
 
 
 function close_timeline_add_modal() {                                                   // closes the timeline_add_modal
-    document.getElementById('timeline_add_modal').checked = false;
+    document.getElementById('timeline_add_modal').close();
 }
 
 
@@ -650,7 +650,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                 <!-- show table if there are entries, but not if adding a new entry -->
                                 <div v-if="entries.data.length && state.mode != 'entry_add'">
                                     <div>
-                                        <table id="folderlist" tabindex="0" class="w-full table-fixed border border-base-content text-sm font-sans font-normal">
+                                        <table id="entryList" tabindex="0" class="w-full table-fixed border border-base-content text-sm font-sans font-normal">
                                             <thead class="text-left bg-gray-300 text-gray-800">
                                                 <tr>
                                                     <th v-for="col in activeColumns" :key="col.key"
@@ -693,7 +693,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                             </tbody>
                                         </table>
                                     </div>
-                                    <!-- if we're browsing the data (not edit or add), then display show droplist and link buttons -->
+                                <!-- if we're browsing the data (not edit or add), then display show droplist, format droplist and link buttons -->
                                     <div v-if="state.mode === 'browse'"
                                         class="btn-group flex justify-between mt-2 items-center">
                                         <div class="flex items-center gap-4">
@@ -714,7 +714,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                 </select>
                                             </div>
                                             <div v-if="props.view_folder_id > 0 && availableFormats.length > 1">
-                                                <select v-model="currentFormatKey" id="view_format"
+                                                <select v-model="currentFormatKey" id="view_format" @change="$event.target.blur()"
                                                     class="font-normal text-sm p-1 border border-gray-500 bg-base-300 text-base-content rounded">
                                                     <option v-for="fmt in availableFormats" :key="fmt.key" :value="fmt.key">
                                                         {{ fmt.label }}
@@ -820,8 +820,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
 
 
         <!-- Put this part before </body> tag - Timeline Add modal-->
-        <input hidden type="checkbox" id="timeline_add_modal" name="timeline_add_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="timeline_add_modal" class="modal">
             <div class="modal-box w-11/12 max-w-xl">
                 <h3 class="font-bold text-xl text-center">Select The Folder For New Entry</h3>
                 <div class="border border-gray-800 mt-4 w-64 mx-auto p-4">
@@ -877,11 +876,10 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                     <button type="button" class="btn btn-primary" @click="close_timeline_add_modal()">Cancel</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
         <!-- Put this part before </body> tag - Confirm_Delete modal -->
-        <input hidden type="checkbox" id="confirm_delete_modal" name="confirm_delete_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="confirm_delete_modal" class="modal">
             <div class="modal-box w-11/12 max-w-3xl">
                 <h3 class="font-bold text-2xl text-center">Confirm: Delete Entry</h3>
                 <p class="text-xl mt-4">Do you want to delete this entry?</p>
@@ -892,11 +890,10 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                         @click="display_modal('confirm_delete', false)"><u>N</u>o</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
         <!-- Has Responses Warning modal (prevents deletion) -->
-        <input hidden type="checkbox" id="has_responses_modal" name="has_responses_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="has_responses_modal" class="modal">
             <div class="modal-box w-11/12 max-w-3xl">
                 <h3 class="font-bold text-2xl text-center text-error">Cannot Delete This Entry</h3>
                 <p class="text-base mt-4">This entry has responses linked to it. You must remove or delete the responsive entries before deleting this one.</p>
@@ -924,7 +921,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                     </button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
 
     </AuthenticatedLayout>

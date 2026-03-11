@@ -143,17 +143,17 @@
         else if( which_modal == 'entrytype' ) modal_name = 'entrytype_modal';
 
         if( modal_name != '' && OnOff == 'status' ) {
-            return document.getElementById(modal_name).checked;
+            return document.getElementById(modal_name).open;
         }
         else if( modal_name != '' && (OnOff == true || OnOff == 'show' || OnOff == 'on') ) {
-            document.getElementById(modal_name).checked = true;
+            document.getElementById(modal_name).showModal();
         }
         else if( modal_name != '' && (OnOff == false || OnOff == 'hide' || OnOff == 'off') ) {
-            document.getElementById(modal_name).checked = false;
+            document.getElementById(modal_name).close();
         }
         else if( modal_name != '' && OnOff == null ) {
-            document.getElementById(modal_name).checked = !document.getElementById(modal_name).checked;
-        }    
+            document.getElementById(modal_name).open ? document.getElementById(modal_name).close() : document.getElementById(modal_name).showModal();
+        }
     }
 
     // onUnmounted(() => alert('unmounting file form'));
@@ -380,8 +380,7 @@
 
     
         <!-- Put this part before </body> tag - SOL Modal -->
-        <input hidden type="checkbox" id="sol_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="sol_modal" class="modal">
             <div class="modal-box w-11/12 max-w-3xl">
                 <h3 class="font-bold text-2xl text-center">Confirm: SOL Date</h3>
                 <p class="text-xl mt-4">You have not entered a Statute of Limitations date for this file.</p>
@@ -391,12 +390,11 @@
                     <button type="button" class="btn gap-0" @click="fileform_actions('submit')"><u>N</u>o</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
 
         <!-- Put this part before </body> tag - Confirm File Changemodal -->
-        <input hidden type="checkbox" id="filechanged_modal" class="modal-toggle" />
-        <div class="modal">
+        <dialog id="filechanged_modal" class="modal">
             <div class="modal-box w-11/12 max-w-3xl">
                 <h3 class="font-bold text-2xl text-center">Confirm: File Changes</h3>
                 <p class="text-xl mt-4">Some file information has been changed.</p>
@@ -406,6 +404,6 @@
                     <button type="button" class="btn gap-0" @click="fileform_actions('revert')"><u>N</u>o</button>
                 </div>
             </div>
-        </div>
+        </dialog>
 
 </template>
