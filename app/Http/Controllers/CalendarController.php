@@ -17,32 +17,32 @@ class CalendarController extends Controller
      */
     public function index(Request $request)
     {
-        // NOTE: the event data is retrieved int the get_events() function below, which is called from the calendar component.
+        // NOTE: the event data is retrieved in the get_events() function below, which is called from the calendar component.
 
-        $firm_id = $request->user()->firm_id;
+        $firm_id = $request->user()->firm_id;                       // set the firm_id
 
-        $firm_members = Contact::select('id', 'display_last_first', 'member_initials')
+        $firm_members = Contact::select('id', 'display_last_first', 'member_initials')  // get the active firm members (from contacts)
             ->where('firm_id', $firm_id)
             ->where('is_firm_member', true)
             ->where('account_status', 'A')
             ->orderBy('display_last_first')
             ->get();
 
-        $event_types = Entrytype::select('id', 'name')
+        $event_types = Entrytype::select('id', 'name')              // get all event types for the firm
             ->where('firm_id', $firm_id)
             ->where('folder_id', 6)
             ->orderBy('name', 'asc')
             ->get();
 
-        $bg_colors = Preference::where('firm_id', $firm_id)
+        $bg_colors = Preference::where('firm_id', $firm_id)         // get the bg event colors for the firm
             ->where('name', 'event_bg')
             ->get();
 
-        $text_colors = Preference::where('firm_id', $firm_id)
+        $text_colors = Preference::where('firm_id', $firm_id)       // get the text event colors for the firm
             ->where('name', 'event_text')
             ->get();
 
-        return Inertia::render('Calendar/Index', ['firm_members' => $firm_members,
+        return Inertia::render('Calendar/Index', ['firm_members' => $firm_members,      // render the calendar
             'event_types' => $event_types,
             'bg_colors' => $bg_colors,
             'text_colors' => $text_colors,
@@ -54,7 +54,7 @@ class CalendarController extends Controller
      */
     public function create()
     {
-        //
+        // not used
     }
 
     /**
@@ -183,47 +183,52 @@ class CalendarController extends Controller
             })
             ->get();
 
-        // Start of building query to retrieve events
-        $events = Entry::query()
+        $events = Entry::query()                                            // Start building query to retrieve events
             ->where('firm_id', $firm_id)
             ->where('on_calendar', true);
 
-        if ($request->user1 != '1') {  // if not for user 1 (****), then filter calendar for the user
+        if ($request->user1 != '1') {                                       // if not for user 1 (****), then filter calendar for the user
             $events = $events->where('to_contact_id', $request->user1);
         }
 
-        if ($request->include_due == 'false') {                                // if not including due dates, then filter them out
-            $events = $events->where('folder_id', 6);                         // limit to 'Events' folder only
+        if ($request->include_due == 'false') {                             // if not including due dates, then only show events
+            $events = $events->where('folder_id', 6);                       // where 'Events' folder only
         }
-        if ($request->include_due == 'true') {                                // if including due dates
-            $events = $events->where('folder_id', 6);                         // events folder entries
-            $events = $events->orWhere('expecting_response', '=', 1);         // or, entries expecting a response
+        if ($request->include_due == 'true') {                              // if including due dates
+            $events = $events->where('folder_id', 6);                       // where events folder entries
+            $events = $events->orWhere('expecting_response', '=', 1);       // or where, entries expecting a response
         }
 
-        $events = $events->whereBetween('date_response_expected', [$request->start, $request->end])
-            ->with(['file:id,name',
-                'contact_to:id,display_last_first,member_initials,user_id',
-                'entrytype:id,name',
+        $events = $events->whereBetween('date_response_expected', [$request->start, $request->end])     // limit events to the date range
+            ->with(['file:id,name',                                                                     // include the file id and name
+                'contact_to:id,display_last_first,member_initials,user_id',                             // include the contact id and info
+                'entrytype:id,name',                                                                    // include the entrytype
                 // 'contact_from:id,display_last_first,member_initials',
                 // 'folder:id,name,input_time,hide_date2_prompt,hide_to_prompt,hide_amount_prompt',
             ])
-            ->get();
+            ->get();                                                                                    // get the events
         // End of query
 
         $events_back = [];
 
         if ($events) {
-            foreach ($events as $event) {      // for each event, get the user's event colors from the collection
-                $color_bg = $event_colors->where('user_id', $event->contact_to->user_id)->where('name', 'event_bg')->first();
-                $color_text = $event_colors->where('user_id', $event->contact_to->user_id)->where('name', 'event_text')->first();
+            foreach ($events as $event) {                                                               // for each event, get the user's event colors from the event_colors collection
+                $color_bg = $event_colors
+                                ->where('user_id', $event->contact_to->user_id)
+                                ->where('name', 'event_bg')
+                                ->first();
+                $color_text = $event_colors
+                                ->where('user_id', $event->contact_to->user_id)
+                                ->where('name', 'event_text')
+                                ->first();
 
-                if ($event->folder_id == 6) {                                  // if folder 6, so not a due date
-                    $e_title = '('.$event->contact_to->member_initials.') '.$event->entrytype->name.' - '.$event->note;
-                } else {                                                        // else, it is a response due
-                    $e_title = 'Response Due: '.$event->entrytype->name.' - '.$event->note;
+                if ($event->folder_id == 6) {                                                           // if folder 6, it's an event so set the event title
+                    $e_title = '(' . $event->contact_to->member_initials . ') ' . $event->entrytype->name . ' - ' . $event->note;
+                } else {                                                                                // else, it is a response due, so set 'due date' title
+                    $e_title = 'Response Due: '.$event->entrytype->name.' - '.$event->note;                                 
                 }
 
-                $events_back[] = [
+                $events_back[] = [                                                                      // add the event to the array
                     'id' => $event->id,
                     'start' => $event->date_response_expected,
                     'end' => $event->date2,
@@ -287,7 +292,7 @@ class CalendarController extends Controller
     public function event_placement(Request $request)
     {
         $verified = $request->validate(
-            ['formtype' => 'string|max:20|nullable',
+            [   'formtype' => 'string|max:20|nullable',
                 'action' => 'string|max:10|nullable',
                 'entry_id' => 'numeric|integer|required',
                 'allDay' => 'boolean',

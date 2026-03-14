@@ -36,12 +36,18 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
             ],
-            'subscription' => $user ? [
-                'is_subscribed' => $user->firm?->subscribed('default') ?? false,
-                'file_count' => $user->firm?->fileCount() ?? 0,
-                'file_limit' => $user->firm?->fileLimit(),
-                'can_create_files' => $user->firm?->canCreateFiles() ?? false,
-            ] : null,
+            'subscription' => $user ? (function () use ($user) {
+                $firm = $user->firm;
+                $fileCount = $firm?->fileCount() ?? 0;
+                $fileLimit = $firm?->fileLimit();
+
+                return [
+                    'is_subscribed' => $firm?->subscribed('default') ?? false,
+                    'file_count' => $fileCount,
+                    'file_limit' => $fileLimit,
+                    'can_create_files' => $fileLimit === null || $fileCount < $fileLimit,
+                ];
+            })() : null,
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
             ],

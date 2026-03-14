@@ -34,232 +34,30 @@ class ViewController extends Controller
 
         $view = $request->query('view') ?? 'memos';                                             // which view, else 'memos'
         $view_for = $request->query('view_for') ?? $user->contact->member_initials;             // view_for initials, else authenticated user initials
-        // dd($view_for);
+
         $from_to = $request->query('from_to') ?? 'to';                                          // from or to, else 'to'
         $read = $request->query('read') ?? 'unread';                                            // read, unread or both, else 'unread'
 
         $starting = $request->query('starting') ?? null;
         $ending = $request->query('ending') ?? null;
 
-        $entries = Entry::query();                                                              // start the entries query
+        // create the entries query and also receive the $viewfolder_id and the $orderBy
+        [$entries, $viewfolder_id, $orderBy] = $this->setEntriesQuery($firm_id, $view, $view_for, $from_to, $read, $starting, $ending);
 
-        $entries->where('firm_id', $firm_id);                                                   // All views - only include entries where firm_id matches the user firm_id
-
-        if ($view === 'memos') {                                                               // if view is memos
-            $viewfolder_id = 5;
-            $entries->where('folder_id', 5);                                                  // entries where folder_id === 5 (memos)
-
-            if ($view_for !== '****') {                                                        // if view is for a specific user ( not **** )
-                $for = $this->getContactFor($view_for, $firm_id);                             // get the id
-
-                if ($from_to === 'to') {                                                       // if showing entries to
-                    $entries->where('to_contact_id', $for->id);                               // then where to_contact_id === $for->id
-                } elseif ($from_to === 'from') {                                              // else if showing entries from
-                    $entries->where('from_contact_id', $for->id);                             // then where from_contact_id === $for->id
-                } elseif ($from_to === 'both') {                                              // else if both (from or to)
-                    $entries->where(function ($query) use ($for) {
-                        $query->where('to_contact_id', $for->id)
-                            ->orWhere('from_contact_id', $for->id);
-                    });
-                }
-            }
-
-            if ($read === 'unread') {
-                $entries->whereNull('date2');
-            }                            // if 'unread', filter where date2 === null
-            elseif ($read === 'read') {
-                $entries->whereNotNull('date2');
-            }                      // else if 'read', filter where date2 === !null
-            // else if 'both' then don't filter on date2
-
-            $entries = $entries                                                                 // because this is a "view", include the file name and the contacts from & to
-                ->with('file:id,name')
-                ->with('contact_from:id,display_last_first')
-                ->with('contact_to:id,display_last_first')
-                ->with(['response' => ['response_to'],                                        // the response entry showing what this is responsive to (includes contact name for the view)
-                    'responses_received' => function ($query) {                            // the response entries showing entries responding to this entry
-                        $query->orderBy('response_type', 'asc')
-                            ->orderBy('response_date', 'asc');
-                    },
-                ])
-                ->orderBy('date1')
-                ->paginate($show)                                                             // paginate with show value
-                ->withQueryString();
-
-        } elseif ($view === 'phone') {
-            $viewfolder_id = 8;
-            $entries->where('folder_id', 8);                                                  // entries where folder_id === 8 (phone)
-
-            if ($view_for !== '****') {                                                        // if view is for a specific user ( not **** )
-                $for = $this->getContactFor($view_for, $firm_id);                             // get the id
-
-                $entries->where('to_contact_id', $for->id);                                   // if showing to, then where to_contact_id === $for->id
-            }
-
-            if ($read === 'unread') {
-                $entries->whereNull('date2');
-            }                            // if 'unread', filter where date2 = null
-            elseif ($read === 'read') {
-                $entries->whereNotNull('date2');
-            }                      // else if 'read', filter where date2 = !null
-
-            $entries = $entries                                                                 // because this is a "view", include the file name and the contacts from & to
-                ->with('file:id,name')
-                ->with('contact_from:id,display_last_first')
-                ->with('contact_to:id,display_last_first')
-                ->with(['response' => ['response_to'],                                        // the response entry showing what this is responsive to (includes contact name for the view)
-                    'responses_received' => function ($query) {                            // the response entries showing entries responding to this entry
-                        $query->orderBy('response_type', 'asc')
-                            ->orderBy('response_date', 'asc');
-                    },
-                ])
-                ->orderBy('date1')
-                ->paginate($show)
-                ->withQueryString();
-
-        } elseif ($view === 'todo') {
-            $viewfolder_id = 7;
-            $entries->where('folder_id', 7);                                                  // entries where folder_id === 7 (todo)
-
-            if ($view_for !== '****') {                                                        // if view is for a specific user ( not **** )
-                $for = $this->getContactFor($view_for, $firm_id);                             // get the id
-
-                $entries->where('from_contact_id', $for->id);                                   // if showing to, then where to_contact_id === $for->id
-            }
-
-            if ($read === 'unread') {
-                $entries->whereNull('date2');
-            }                            // if 'unread', filter where date2 = null
-            elseif ($read === 'read') {
-                $entries->whereNotNull('date2');
-            }                      // else if 'read', filter where date2 = !null
-
-            $entries = $entries                                                                 // because this is a "view", include the file name and the contacts from & to
-                ->with('file:id,name')
-                ->with('contact_from:id,display_last_first,member_initials')
-                ->with('contact_to:id,display_last_first')
-                ->with(['response' => ['response_to'],                                        // the response entry showing what this is responsive to (includes contact name for the view)
-                    'responses_received' => function ($query) {                            // the response entries showing entries responding to this entry
-                        $query->orderBy('response_type', 'asc')
-                            ->orderBy('response_date', 'asc');
-                    },
-                ])
-                ->orderBy('date1')
-                ->paginate($show)
-                ->withQueryString();
-        } elseif ($view === 'events') {
-            $viewfolder_id = 6;
-            $entries->where('folder_id', 6);                                                  // entries where folder_id === 6 (events)
-
-            if ($view_for !== '****') {                                                        // if view is for a specific user ( not **** )
-                $for = $this->getContactFor($view_for, $firm_id);                             // get the id
-
-                $entries->where('from_contact_id', $for->id);                                   // if showing to, then where to_contact_id === $for->id
-            }
-
-            if ($starting !== null) {
-                $entries->where('date1', '>=', $starting);
-            }
-
-            if ($ending !== null) {
-                $ending = $ending.' 23:59:00';
-                $entries->where('date1', '<=', $ending);
-            }
-            // if( $read === 'unread' ) $entries->whereNull( 'date2' );                            // if 'unread', filter where date2 = null
-            // else if( $read === 'read' ) $entries->whereNotNull( 'date2' );                      // else if 'read', filter where date2 = !null
-
-            $entries = $entries                                                                 // because this is a "view", include the file name and the contacts from & to
-                ->with('file:id,name')
-                ->with('contact_from:id,display_last_first,member_initials')
-                ->with('contact_to:id,display_last_first,member_initials')
-            // do I need responses for events?
-                ->with(['response' => ['response_to'],                                        // the response entry showing what this is responsive to (includes contact name for the view)
-                    'responses_received' => function ($query) {                            // the response entries showing entries responding to this entry
-                        $query->orderBy('response_type', 'asc')
-                            ->orderBy('response_date', 'asc');
-                    },
-                ])
-                ->orderBy('date1')
-                ->paginate($show)
-                ->withQueryString();
-        } elseif ($view === 'timeline') {
-            if ($view_for !== '****') {                                                        // if view is for a specific user ( not **** )
-                $for = $this->getContactFor($view_for, $firm_id);                             // get the id
-
-                // $entries->where( 'from_contact_id', $for->id );                                   // if showing to, then where to_contact_id === $for->id
-                if ($from_to === 'to') {                                                       // if showing entries to
-                    $entries->where('to_contact_id', $for->id);                               // then where to_contact_id === $for->id
-                } elseif ($from_to === 'from') {                                              // else if showing entries from
-                    $entries->where('from_contact_id', $for->id);                             // then where from_contact_id === $for->id
-                } elseif ($from_to === 'both') {                                              // else if both (from or to)
-                    $entries->where(function ($query) use ($for) {
-                        $query->where('to_contact_id', $for->id)
-                            ->orWhere('from_contact_id', $for->id);
-                    });
-                }
-
-            }
-
-            if ($starting !== null) {
-                $entries->where('date1', '>=', $starting);
-            }
-
-            if ($ending !== null) {
-                $ending = $ending.' 23:59:00';
-                $entries->where('date1', '<=', $ending);
-            }
-            // if( $read === 'unread' ) $entries->whereNull( 'date2' );                            // if 'unread', filter where date2 = null
-            // else if( $read === 'read' ) $entries->whereNotNull( 'date2' );                      // else if 'read', filter where date2 = !null
-
-            $viewfolder_id = 0;  // NOTE: folder 0 for timeline view!
-
-            $entries = $entries                                                                 // because this is a "view", include the file name and the contacts from & to
-                ->with('file:id,name')
-                ->with('contact_from:id,display_last_first,member_initials')
-                ->with('contact_to:id,display_last_first,member_initials')
-                ->with(['response' => ['response_to'],                                        // the response entry showing what this is responsive to (includes contact name for the view)
-                    'responses_received' => function ($query) {                            // the response entries showing entries responding to this entry
-                        $query->orderBy('response_type', 'asc')
-                            ->orderBy('response_date', 'asc');
-                    },
-                ])
-                ->orderBy('date1')
-                ->paginate($show)
-                ->withQueryString();
-        } elseif ($view === 'due') {
-            $entries->where('expecting_response', true);                                        // get entries expecting a response
-
-            if ($view_for !== '****') {                                                        // if view is for a specific user ( not **** )
-                $for = $this->getContactFor($view_for, $firm_id);                             // get the id
-
-                if ($from_to === 'to') {                                                       // if showing entries expected to
-                    $entries->where('from_contact_id', $for->id);                             // then where from_contact_id === $for->id
-                } elseif ($from_to === 'from') {                                              // else if showing entries expected from
-                    $entries->where('to_contact_id', $for->id);                               // then where to_contact_id === $for->id
-                } elseif ($from_to === 'both') {                                              // else if both (from or to)
-                    $entries->where(function ($query) use ($for) {
-                        $query->where('to_contact_id', $for->id)
-                            ->orWhere('from_contact_id', $for->id);
-                    });
-                }
-            }
-
-            $viewfolder_id = 1;                                                                 // Note: viewfolder_id doesn't matter for due view, but set this anyhow
-
-            $entries = $entries                                                                 // because this is a "view", include the file name and the contacts from & to
-                ->with('file:id,name')
-                ->with('contact_from:id,display_last_first,member_initials')
-                ->with('contact_to:id,display_last_first,member_initials')
-                ->with(['response' => ['response_to'],                                        // the response entry showing what this is responsive to (includes contact name for the view)
-                    'responses_received' => function ($query) {                              // the response entries showing entries responding to this entry
-                        $query->orderBy('response_type', 'asc')
-                            ->orderBy('response_date', 'asc');
-                    },
-                ])
-                ->orderBy('date_response_expected')                                           // order by the date a response is expected
-                ->paginate($show)
-                ->withQueryString();
-        } // End if $view
+        // now, exuecute the query and then render the View
+        $entries = $entries
+            ->with('file:id,name')
+            ->with('contact_from:id,display_last_first,member_initials')
+            ->with('contact_to:id,display_last_first,member_initials')
+            ->with(['response' => ['response_to'],
+                'responses_received' => function ($query) {
+                    $query->orderBy('response_type', 'asc')
+                        ->orderBy('response_date', 'asc');
+                },
+            ])
+            ->orderBy($orderBy)
+            ->paginate($show)
+            ->withQueryString();
 
         return Inertia::render('Views/Index',
             ['view' => $view,
@@ -283,7 +81,7 @@ class ViewController extends Controller
      */
     public function create()
     {
-        //
+        // NOT USED, handled in EntryForm
     }
 
     /**
@@ -295,7 +93,7 @@ class ViewController extends Controller
         $entry = new Entry;
 
         $entry->firm_id = $request->user()->firm_id;                                                    // user's firm_id
-        $entry->file_id = $request->file_id;                                                    // the file id
+        $entry->file_id = $request->file_id;                                                            // the file id
         $entry->folder_id = $request->folder_id;                                                        // the folder id
         $entry->entrytype_id = $request->entrytype_id;                                                  // the entrytype id
 
@@ -349,7 +147,7 @@ class ViewController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // Not Used
     }
 
     /**
@@ -357,15 +155,16 @@ class ViewController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        // Not used
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreViewRequest $request, Entry $entry)
+    public function update(StoreViewRequest $request, Entry $view)
     {
-        if ($entry->firm_id == $request->user()->firm_id) {                                                // if user firm_id matches the entry firm_id
+        $entry = $view;
+        if ($entry->firm_id === $request->user()->firm_id) {                                                // if user firm_id matches the entry firm_id
             // $entry->file_id = $request->file_id;                                                 // the file id (not on update)
             // $entry->folder_id = $request->folder_id;                                                     // the folder id (not on update)
             $entry->entrytype_id = $request->entrytype_id;                                                  // the entrytype id
@@ -514,6 +313,138 @@ class ViewController extends Controller
         }
 
         return $expecting_entries;
+    }
+
+    /**
+     * Build the view-specific portion of the entries query.
+     *
+     * @return array{0: \Illuminate\Database\Eloquent\Builder, 1: int, 2: string}
+     */
+    public function setEntriesQuery(int $firm_id, string $view, string $view_for, string $from_to, string $read, ?string $starting, ?string $ending): array
+    {
+        $entries = Entry::query()->where('firm_id', $firm_id);
+        $orderBy = 'date1';
+        $viewfolder_id = 0;
+
+        if ($view === 'memos') {
+            $viewfolder_id = 5;
+            $entries->where('folder_id', 5);
+
+            if ($view_for !== '****') {
+                $for = $this->getContactFor($view_for, $firm_id);
+                $this->applyFromToFilter($entries, $from_to, $for->id);
+            }
+
+            $this->applyReadFilter($entries, $read);
+
+        } elseif ($view === 'phone') {
+            $viewfolder_id = 8;
+            $entries->where('folder_id', 8);
+
+            if ($view_for !== '****') {
+                $for = $this->getContactFor($view_for, $firm_id);
+                $entries->where('to_contact_id', $for->id);
+            }
+
+            $this->applyReadFilter($entries, $read);
+
+        } elseif ($view === 'todo') {
+            $viewfolder_id = 7;
+            $entries->where('folder_id', 7);
+
+            if ($view_for !== '****') {
+                $for = $this->getContactFor($view_for, $firm_id);
+                $entries->where('from_contact_id', $for->id);
+            }
+
+            $this->applyReadFilter($entries, $read);
+
+        } elseif ($view === 'events') {
+            $viewfolder_id = 6;
+            $entries->where('folder_id', 6);
+
+            if ($view_for !== '****') {
+                $for = $this->getContactFor($view_for, $firm_id);
+                $entries->where('from_contact_id', $for->id);
+            }
+
+            $this->applyDateRangeFilter($entries, $starting, $ending);
+
+        } elseif ($view === 'timeline') {
+            $viewfolder_id = 0;
+
+            if ($view_for !== '****') {
+                $for = $this->getContactFor($view_for, $firm_id);
+                $this->applyFromToFilter($entries, $from_to, $for->id);
+            }
+
+            $this->applyDateRangeFilter($entries, $starting, $ending);
+
+        } elseif ($view === 'due') {
+            $viewfolder_id = 1;
+            $entries->where('expecting_response', true);
+            $orderBy = 'date_response_expected';
+
+            if ($view_for !== '****') {
+                $for = $this->getContactFor($view_for, $firm_id);
+
+                if ($from_to === 'to') {
+                    $entries->where('from_contact_id', $for->id);
+                } elseif ($from_to === 'from') {
+                    $entries->where('to_contact_id', $for->id);
+                } elseif ($from_to === 'both') {
+                    $entries->where(function ($query) use ($for) {
+                        $query->where('to_contact_id', $for->id)
+                            ->orWhere('from_contact_id', $for->id);
+                    });
+                }
+            }
+        }
+
+        return [$entries, $viewfolder_id, $orderBy];
+    }
+
+    /**
+     * Apply from/to/both contact filter to the query.
+     */
+    private function applyFromToFilter(\Illuminate\Database\Eloquent\Builder $entries, string $from_to, int $contact_id): void
+    {
+        if ($from_to === 'to') {
+            $entries->where('to_contact_id', $contact_id);
+        } elseif ($from_to === 'from') {
+            $entries->where('from_contact_id', $contact_id);
+        } elseif ($from_to === 'both') {
+            $entries->where(function ($query) use ($contact_id) {
+                $query->where('to_contact_id', $contact_id)
+                    ->orWhere('from_contact_id', $contact_id);
+            });
+        }
+    }
+
+    /**
+     * Apply read/unread filter to the query.
+     */
+    private function applyReadFilter(\Illuminate\Database\Eloquent\Builder $entries, string $read): void
+    {
+        if ($read === 'unread') {
+            $entries->whereNull('date2');
+        } elseif ($read === 'read') {
+            $entries->whereNotNull('date2');
+        }
+    }
+
+    /**
+     * Apply starting/ending date range filter to the query.
+     */
+    private function applyDateRangeFilter(\Illuminate\Database\Eloquent\Builder $entries, ?string $starting, ?string $ending): void
+    {
+        if ($starting !== null) {
+            $entries->where('date1', '>=', $starting);
+        }
+
+        if ($ending !== null) {
+            $entries->where('date1', '<=', $ending.' 23:59:00');
+        }
     }
 
     public function getContactFor($view_for, $firm_id)

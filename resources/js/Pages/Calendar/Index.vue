@@ -38,7 +38,6 @@ let calApi = null;
 
 const state = reactive({
     weekdaysOnly: false,
-    extractedContent: '',
     eventContent: null,
     includeDueDates: false,
 });
@@ -114,7 +113,7 @@ const cal_errors = reactive({
     from_contact_id: '',
 });
 
-const calendarOptions = reactive({
+const calendarOptions = reactive({                              // HERE is the START of the calendarOptions
     // timezone: 'UTC',
     plugins: [
         dayGridPlugin,
@@ -129,7 +128,7 @@ const calendarOptions = reactive({
 
     initialView: 'timeGridWeek',
 
-    events: '/get_events?user1=' + calendarFor.id + '&include_due=' + state.includeDueDates,  // Here is the events url to get the calendar data
+    events: '/get_events?user1=' + calendarFor.id + '&include_due=' + state.includeDueDates,  // HERE is the events url to get the calendar data
 
     editable: true,
     height: 'auto',
@@ -168,7 +167,7 @@ const calendarOptions = reactive({
         tooltip.text = '';
         tooltip.file_name = '';
     },
-}); // end calendarOptions
+}); // END of calendarOptions
 
 function toolTimeCalc( timeString ) {
     let time_in = new Date( timeString );
@@ -186,12 +185,12 @@ function toolTimeCalc( timeString ) {
 }
 
 
-function submit_test_1() {  // on submit, first test if the event firm member was changed, if so, then confirm the change
+function submit_test_1() {          // on submit, first test if the event firm member was changed, if so, then confirm the change
     if( calendar_form.action != 'add' && calendar_form.from_contact_id != hold_calendar_form.from_contact_id ) {    // if the event_for user changed (and not adding new entry)
-        let current_initials = findFirmMemberInitials( calendar_form.from_contact_id );     // get initials of the currently selected memebr
-        let starting_initials = findFirmMemberInitials( hold_calendar_form.from_contact_id ) // get initials of the firm member at the start (when the form opened)
+        let current_initials = findFirmMemberInitials( calendar_form.from_contact_id );                             // get initials of the currently selected memebr
+        let starting_initials = findFirmMemberInitials( hold_calendar_form.from_contact_id )                        // get initials of the firm member at the start (when the form opened)
 
-        confirm_dialog.heading = 'Confirm: Changed Event User';
+        confirm_dialog.heading = 'Confirm: Changed Event User';                                                     // setup the confirm_dialog, and then display it
         confirm_dialog.statement = 'This event was for user (' + starting_initials +'), but has been changed to user (' + current_initials + ').';
         confirm_dialog.question = 'Do you want this event to be for user (' + current_initials +')?';
 
@@ -203,17 +202,19 @@ function submit_test_1() {  // on submit, first test if the event firm member wa
 }
 
 
-function submit_test_2() {  // on submit, test if the file changed.  If so, then confirm the change
-    display_modal( 'confirm_event_for', false );
+function submit_test_2() {          // on submit, test if the file changed.  If so, then confirm the change
 
-    confirm_dialog.heading = 'Confirm: Changed Event File';
-
+    display_modal( 'confirm_event_for', false );                    // Close confirm_event_for dialog
+                                                                    // If not adding an event && theres a change in either whether it's file specific or now it's a different file
     if( calendar_form.action != 'add' && (calendar_form.fileSpecific != hold_calendar_form.fileSpecific || calendar_form.file_id != hold_calendar_form.file_id) ) {
-        if( calendar_form.fileSpecific != hold_calendar_form.fileSpecific ) {
-            if( hold_calendar_form.fileSpecific == "false" ) { // initially, the event was not file related
+
+        confirm_dialog.heading = 'Confirm: Changed Event File';     // set the heading for this confirmation dialog
+
+        if( calendar_form.fileSpecific != hold_calendar_form.fileSpecific ) {           // if there was a change in whether the entry is file specific
+            if( hold_calendar_form.fileSpecific == "false" ) {                              // if, initially, the event was not file related (so not it is)
                 confirm_dialog.statement = 'Initially, this event was \"Not File Related\", but it will be changed to relate to file \"' + related_file.name +'\".';
                 confirm_dialog.question = 'Do you want this event to be related to file \"' + related_file.name + '\"?';
-            } else { // initially, was related to a file
+            } else {                                                                        // else initially it was related to a file (so now it isn't)
                 confirm_dialog.statement = 'This event was initially for file \"' + related_file.initial_name +'\", but it will be changed to be \"Not File Related\".';
                 confirm_dialog.question = 'Do you want this event to become \"Not File Related\".';
             }
@@ -223,9 +224,9 @@ function submit_test_2() {  // on submit, test if the file changed.  If so, then
             confirm_dialog.question = 'Do you want this event to be for file \"' + related_file.name +'\"?'
         }
 
-        display_modal( 'confirm_file_change', true);
+        display_modal( 'confirm_file_change', true);                    // display confirmation dialog
     }
-    else {  // no change of file, so submit the form
+    else {                                                          // Else, adding or no change of file, so submit the form
         submit_calendarform();
     }
 
@@ -356,17 +357,18 @@ function lookup_related_file() {
     // debouncedLookup();
 }
 
-function clicked_file_list(index) {
-    calendar_form.file_id = lookup.file_list.data[index].id;
+function clicked_file_list(index) {                             // the user clicked on a file in the lookup list
+    calendar_form.file_id = lookup.file_list.data[index].id;    // set the calendar entry file id and save the name and id in the related file reactive
     related_file.id = lookup.file_list.data[index].id;
     related_file.name = lookup.file_list.data[index].name;
 
-    lookup.file = false;
+    lookup.file = false;                                        // end file lookup and save info about the lookup
     lookup.file_isChosen = true;
     lookup.file_chosen_name = related_file.name;
 }
 
 
+    // the user clicked on a date, not an event, so we're adding an event
 function click_date(eventInfo) {
     // console.log(eventInfo.allDay);
     
@@ -378,30 +380,29 @@ function click_date(eventInfo) {
     calendar_form.allDay = eventInfo.allDay;
     calendar_form.date1 = eventInfo.dateStr.slice(0, 19).replace('T', ' ');  // cut off the time offset and replace the 'T' with a ' '
 
-    var enddate = new Date();
+    var enddate = new Date();               // default end date to one our later
     enddate = eventInfo.date;
     enddate.setUTCHours(enddate.getHours() + 1);
 
-    if( eventInfo.allDay != true  /* eventInfo.view.type != 'dayGridMonth' */ ) {    // if not a Month grid or not an allday event, then set the datetime display and the end date
+    if( eventInfo.allDay != true  /* eventInfo.view.type != 'dayGridMonth' */ ) {       // if not allday event, then set the datetime display and the end date
         calendar_form.display_date_string = convertDateTimeToLocal(eventInfo.dateStr);
         calendar_form.date2 = enddate.toISOString().slice(0, 19).replace('T', ' ');
-    }
-    else {                                          // else (allday), just set the date display (without time)
+    } else {                                                                            // else (allday), just set the date display (without time)
         calendar_form.display_date_string = convertDateToLocal(eventInfo.dateStr) + ' (all day)';
     }
 
-    if( calendarFor.id != 1 ) {
+    if( calendarFor.id != 1 ) {                                                         // if the calendar is showing entries for a firm member, use their id on the form
         calendar_form.from_contact_id = calendarFor.id;
     }
-    
 
-    nextTick(() => {
+    nextTick(() => {                            // display the form
         display_calendarform(true);
     });
     
 }
 
 
+    // the user clicked on an existing event, so we're editing the event
 function click_event(eventInfo) {
     clear_calendarform();
     calendarform_title.value = 'Edit an Event'
@@ -503,29 +504,6 @@ const keypress_handler = (e) => {
 //     });
 // }, 300); // Adjust the debounce delay as needed
 
-/*
-const formatDate = (date, shortened=false) => {
-  let sendback = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "numeric",
-    hour12: true,
-  }).format(new Date(date));
-  if( shortened == true ) {
-    return sendback.substring(0, sendback.length - 2);
-  }
-  else return sendback;
-};
-
-function formatTooltip(event) {
-    let textback = "";
-    // textback += formatDate(event.start) + " - " + formatDate(event.end);
-    textback +=  event.title;
-    if(event.extendedProps.file_id != 1) {
-        textback += ' --> File name: ' + event.extendedProps.file_name;
-    }
-    return textback;
-} 
-*/
 
 function findFirmMemberInitials( lookup_id ) {
     let idx = props.firm_members.findIndex( (element) => element.id == lookup_id);  // find the index of firm member matching the id

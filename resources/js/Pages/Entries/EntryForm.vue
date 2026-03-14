@@ -315,6 +315,16 @@ function clicked_entrytypeModal_button(clicked_button) {
             entry_form.entrytype_id = entrytype_form.id;
             display_modal('entrytype', false);
         } else {
+            // Check if an entrytype with this name already exists (case-insensitive) before posting
+            let row2get = props.getFolderRow();
+            const existingMatch = props.p1.folders[row2get].entrytypes.find(
+                e => e.name.toLowerCase() === entrytype_form.name.trim().toLowerCase()
+            );
+            if (existingMatch) {
+                entry_form.entrytype_id = existingMatch.id;
+                display_modal('entrytype', false);
+                return;
+            }
             entrytype_form.folder_id = props.getFolderData('id');
             entrytype_form.post('/add_new_entrytype',
             {   only: ['folders', 'new_entrytype'], 
@@ -506,7 +516,7 @@ function submit_view_edit() {                                                   
         else if( props.state.view === 'phone' ) entry_form.filepart = 'phone';      
         else if( props.state.view === 'todo' ) entry_form.filepart = 'todo';
 
-        entry_form.put( route( 'views.update', { entry: entry_form.entry_id } ),                         // submit the update
+        entry_form.put( route( 'views.update', { view: entry_form.entry_id } ),                         // submit the update
             {   preserveState: (page) => Object.keys(page.props.errors).length,                 // preserveState - true if there are errors
                 onError: (errors) => console.log(errors),
             });

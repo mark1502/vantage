@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             FileSeeder::class,
             FiletypeSeeder::class,
             EntrytypeSeeder::class,
+            Pref_defaultSeeder::class,
             SampleDataSeeder::class,
             PlanSeeder::class,
         ]);

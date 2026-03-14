@@ -58,12 +58,11 @@ class PreferenceController extends Controller
 
 
     public function eventcolor_update(Request $request)
-    {   
+    {   // dd($request);
         $validated = $request->validate([ 'user_id' => 'numeric|integer|required',
                                           'event_bg' => 'string|max:25|required',
                                           'event_text' => 'string|max:25|required',
                                         ]);
-
         if( $request->user()->id == $request->user_id || $request->user()->user_type == 'Admin') { // NOTE: admin needs further test for correct firm
 
                 // get the background color pref and update it
@@ -73,6 +72,8 @@ class PreferenceController extends Controller
             if( $thepref ) {
                 $thepref->setting = $request->event_bg;
                 $thepref->save();
+            } else {
+                
             }
 
                 // get the text color pref and update it

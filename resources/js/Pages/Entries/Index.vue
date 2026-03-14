@@ -34,6 +34,7 @@ const props = defineProps({
     role_options: Object,
     file_contact_roles: Array,
     firm_document_base_path: String,
+    new_entrytype: Object,
 });
 
 const state = reactive({
