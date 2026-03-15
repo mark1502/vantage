@@ -1,4 +1,11 @@
 <script setup>
+/* NOTE: This FileLookup is only used in the Entries/Index as a way for the user to switch files without going back out to the files index
+    It's imported into the Views Index, but not used, so that will be removed later.  I think axios is used so the data is returned without calling 
+    inertia render again.  This could be revisited after inertia 3 is used.
+
+    This is separate from the FileLookup_form component.  That is intended to be used on a form when a file name is to be selected on the form.
+*/
+
 import { ref, reactive, computed, nextTick, onUnmounted, onMounted, watch } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 

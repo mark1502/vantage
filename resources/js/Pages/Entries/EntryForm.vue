@@ -906,7 +906,7 @@ update_disp();
     <div v-if="disp.show_entry_form === true">
         <!-- START of This Entry Form -->
         <form id="entry_form" @submit.prevent="submit_ThisEventForm" class="max-w-5xl mx-auto mt-1 p-2 pb-6">
-                <!-- File Row (for view only, while adding) -->
+                <!-- File Row (for use on a view only, while adding) -->
              <div v-if="props.file_view === 'view' && state.mode === 'entry_add'">
                 <FileLookup_form
                     v-model:file_id="entry_form.file_id"

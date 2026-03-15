@@ -185,7 +185,7 @@ function toolTimeCalc( timeString ) {
 }
 
 
-function submit_test_1() {          // on submit, first test if the event firm member was changed, if so, then confirm the change
+function confirmUserChange() {          // on submit, first test if the event firm member was changed, if so, then confirm the change
     if( calendar_form.action != 'add' && calendar_form.from_contact_id != hold_calendar_form.from_contact_id ) {    // if the event_for user changed (and not adding new entry)
         let current_initials = findFirmMemberInitials( calendar_form.from_contact_id );                             // get initials of the currently selected memebr
         let starting_initials = findFirmMemberInitials( hold_calendar_form.from_contact_id )                        // get initials of the firm member at the start (when the form opened)
@@ -196,13 +196,13 @@ function submit_test_1() {          // on submit, first test if the event firm m
 
         display_modal( 'confirm_event_for', true );
     } else {
-        submit_test_2();    // no user change, so test for file change
+        confirmFileChange();    // no user change, so test for file change
     }
 
 }
 
 
-function submit_test_2() {          // on submit, test if the file changed.  If so, then confirm the change
+function confirmFileChange() {          // on submit, test if the file changed.  If so, then confirm the change
 
     display_modal( 'confirm_event_for', false );                    // Close confirm_event_for dialog
                                                                     // If not adding an event && theres a change in either whether it's file specific or now it's a different file
@@ -494,17 +494,6 @@ const keypress_handler = (e) => {
 }
 
 
-// const debouncedLookup = debounce(() => {
-//   axios.post('/lookup_file4cal', { search: related_file.name })
-//     .then(response => {
-//       lookup.file_list = response.data;
-//     })
-//     .catch(error => {
-//       console.error('Error fetching file list:', error);
-//     });
-// }, 300); // Adjust the debounce delay as needed
-
-
 function findFirmMemberInitials( lookup_id ) {
     let idx = props.firm_members.findIndex( (element) => element.id == lookup_id);  // find the index of firm member matching the id
     return props.firm_members[idx].member_initials;                                 // return that members initials
@@ -536,6 +525,14 @@ function clicked_entrytypeModal_button(clicked_button) {
             display_modal('entrytype', false);
         }
         else {
+            const existingMatch = props.event_types.find(
+                e => e.name.toLowerCase() === entrytype_form.name.trim().toLowerCase()
+            );
+            if (existingMatch) {
+                calendar_form.entrytype_id = existingMatch.id;
+                display_modal('entrytype', false);
+                return;
+            }
             entrytype_form.folder_id = 6;
             entrytype_form.post('/add_new_event_type', { only: ['event_types', 'new_event_type'], preserveState: true,
             onSuccess: () => {
@@ -807,7 +804,7 @@ onUnmounted(() => document.removeEventListener('keydown', keypress_handler));
                 </form>
 
                 <div class="mt-10">
-                    <a class="btn btn-primary w-28 ml-[248px] mr-10" @click="submit_test_1()">Ok</a>
+                    <a class="btn btn-primary w-28 ml-[248px] mr-10" @click="confirmUserChange()">Ok</a>
                     <a class="btn btn-primary mr-36" @click="clear_calendarform(false)">Cancel</a>
                     <a v-if="calendar_form.action !== 'add'" class="btn btn-error btn-outline" @click="display_modal('confirm_delete_event', true)">Delete</a>
                 </div>
@@ -823,7 +820,7 @@ onUnmounted(() => document.removeEventListener('keydown', keypress_handler));
                 <p class="text-lg mt-4">{{ confirm_dialog.question }}</p>
                 <div class="modal-action justify-center mt-12">
                     <form method="dialog">
-                        <a class="btn mr-10 w-28" @click="submit_test_2()">Yes</a>
+                        <a class="btn mr-10 w-28" @click="confirmFileChange()">Yes</a>
                         <a class="btn" @click="display_modal( 'confirm_event_for', false)">No</a>
                     </form>
                 </div>

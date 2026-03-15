@@ -18,6 +18,7 @@ class CalendarController extends Controller
     public function index(Request $request)
     {
         // NOTE: the event data is retrieved in the get_events() function below, which is called from the calendar component.
+        // This function retrieves and renders the other data used by the calendar
 
         $firm_id = $request->user()->firm_id;                       // set the firm_id
 
@@ -42,19 +43,12 @@ class CalendarController extends Controller
             ->where('name', 'event_text')
             ->get();
 
-        return Inertia::render('Calendar/Index', ['firm_members' => $firm_members,      // render the calendar
+        return Inertia::render('Calendar/Index', 
+        [   'firm_members' => $firm_members,      // render the calendar
             'event_types' => $event_types,
             'bg_colors' => $bg_colors,
             'text_colors' => $text_colors,
         ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        // not used
     }
 
     /**
@@ -139,37 +133,6 @@ class CalendarController extends Controller
 
     } // end function
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
 
     public function get_events(Request $request)
     {
@@ -251,43 +214,6 @@ class CalendarController extends Controller
         return response()->json($events_back);
     } // end function
 
-    public function move_event(Request $request)
-    {
-        $verified = $request->validate(
-            ['formtype' => 'string|max:20|nullable',
-                'action' => 'string|max:10|nullable',
-                'entry_id' => 'numeric|integer|required',
-                'allDay' => 'boolean',
-            ]);
-
-        if ($request->allDay == false) {     // if not allDay, validate datetime format
-            $verifiedDates = $request->validate([
-                'date1' => 'date_format:Y-m-d H:i:s|required',
-                'date2' => 'date_format:Y-m-d H:i:s|nullable',
-            ]);
-        } else {                              // else, validate date format
-            $verifiedDates = $request->validate([
-                'date1' => 'date_format:Y-m-d|required',
-                'date2' => 'date_format:Y-m-d|nullable',
-            ]);
-        }
-
-        $event = Entry::where('id', $request->entry_id)->first();
-
-        if ($event && $event->id == $request->entry_id && $event->firm_id == $request->user()->firm_id) {
-            $event->all_day = $request->allDay;
-            $event->date1 = $request->date1;
-            $event->date_response_expected = $request->date1;
-            $event->date2 = $request->date2 != null ? $request->date2 : null;
-
-            if ($request->allDay == false && $event->date2 == null) {    // if not an allday event and there's no end time, set the end to 1 hr later than the start
-                $event->date2 = date('Y-m-d H:i:s', strtotime('+1 hour', strtotime($event->date1)));
-            }
-
-            $event->save();
-        }
-
-    }
 
     public function event_placement(Request $request)
     {
@@ -331,39 +257,6 @@ class CalendarController extends Controller
         }
     } // end function
 
-    public function resize_event(Request $request)
-    {
-        $verified = $request->validate(
-            ['formtype' => 'string|max:20|nullable',
-                'action' => 'string|max:10|nullable',
-                'entry_id' => 'numeric|integer|required',
-                'allDay' => 'boolean',
-            ]);
-
-        if ($request->allDay == false) {     // if not allDay, validate datetime format
-            $verifiedDates = $request->validate([
-                'date1' => 'date_format:Y-m-d H:i:s|required',
-                'date2' => 'date_format:Y-m-d H:i:s|nullable',
-            ]);
-        } else {                              // else, validate date format
-            $verifiedDates = $request->validate([
-                'date1' => 'date_format:Y-m-d|required',
-                'date2' => 'date_format:Y-m-d|nullable',
-            ]);
-        }
-
-        $event = Entry::where('id', $request->entry_id)->first();
-
-        if ($event && $event->id == $request->entry_id && $event->firm_id == $request->user()->firm_id) {  // if retrieved the correct event, and it's for the correct law firm, then make the changes
-            $event->all_day = $request->allDay;
-            $event->date1 = $request->date1;
-            $event->date_response_expected = $request->date1;
-            $event->date2 = $request->date2;
-
-            $event->save();
-        }
-
-    }
 
     public function lookup_file(Request $request)
     {

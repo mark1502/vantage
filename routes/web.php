@@ -91,8 +91,6 @@ Route::middleware('auth', 'welcomed')->group(function () {
 
     Route::post('/get_events', [CalendarController::class, 'get_events'])->name('calendar.get_events');
     Route::get('/get_events', [CalendarController::class, 'get_events']);
-    Route::post('/move_event', [CalendarController::class, 'move_event'])->name('calendar.move_event');
-    Route::post('/resize_event', [CalendarController::class, 'resize_event'])->name('calendar.resize_event');
     Route::post('/event_placement', [CalendarController::class, 'event_placement'])->name('calendar.event_placement');
 
     Route::get('/adminmenu', [AdminController::class, 'menu'])->name('adminmenu');
