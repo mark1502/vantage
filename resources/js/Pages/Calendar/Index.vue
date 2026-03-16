@@ -48,6 +48,7 @@ const props = defineProps({
     'bg_colors': Object,
     'text_colors': Object,
     'new_event_type': Object,
+    'hover_placement': { type: String, default: 'upper_right' },
 });
 
 const matching = reactive({ event_types: Object });
@@ -88,6 +89,7 @@ const calendarFor = reactive({
 
 const tooltip = reactive({
     class: '',
+    date: '',
     timespan: '',
     text: '',
     file_name: '',
@@ -98,6 +100,14 @@ const tooltipStyles = reactive({
     color: '',
     backgroundColor: '',
 });
+
+const mousePos = reactive({ x: 0, y: 0 });
+const calendarRight = ref(0);
+
+function onMouseMove(e) {
+    mousePos.x = e.clientX;
+    mousePos.y = e.clientY;
+}
 
 const confirm_dialog = reactive({
     heading: 'Confirm Changes',
@@ -113,6 +123,10 @@ const cal_errors = reactive({
     from_contact_id: '',
 });
 
+
+//
+// START of calendarOptions
+//
 const calendarOptions = reactive({                              // HERE is the START of the calendarOptions
     // timezone: 'UTC',
     plugins: [
@@ -151,6 +165,7 @@ const calendarOptions = reactive({                              // HERE is the S
             tooltip.timespan = '';
         }
 
+        tooltip.date = new Date(mouseEnterInfo.event.startStr).toLocaleDateString(undefined, { weekday: 'long', month: 'numeric', day: 'numeric', year: 'numeric' });
         tooltip.visibility = true;
         tooltip.text = mouseEnterInfo.event.title;
         tooltip.file_name = 'File: ';
@@ -158,16 +173,28 @@ const calendarOptions = reactive({                              // HERE is the S
 
         tooltipStyles.color = mouseEnterInfo.event.textColor;
         tooltipStyles.backgroundColor = mouseEnterInfo.event.backgroundColor;
-        
+
+        if (props.hover_placement === 'near_cursor') {
+            mousePos.x = mouseEnterInfo.jsEvent.clientX;
+            mousePos.y = mouseEnterInfo.jsEvent.clientY;
+            document.addEventListener('mousemove', onMouseMove);
+        }
     },
-    
+
     eventMouseLeave: function (mouseEnterInfo) {
         tooltip.visibility = false;
+        tooltip.date = '';
         tooltip.timespan = '';
         tooltip.text = '';
         tooltip.file_name = '';
+        document.removeEventListener('mousemove', onMouseMove);
     },
-}); // END of calendarOptions
+
+}); 
+//
+// END of calendarOptions
+//
+
 
 function toolTimeCalc( timeString ) {
     let time_in = new Date( timeString );
@@ -551,12 +578,25 @@ function clicked_entrytypeModal_button(clicked_button) {
     }
 }
 
+function updateCalendarRight() {
+    const el = fullCalendar.value?.$el;
+    if (el) {
+        calendarRight.value = window.innerWidth - el.getBoundingClientRect().right;
+    }
+}
+
 onMounted(() => {
     calApi = fullCalendar.value.getApi();  // assign fullcalendar api
     document.addEventListener('keydown', keypress_handler);
+    updateCalendarRight();
+    window.addEventListener('resize', updateCalendarRight);
 });
 
-onUnmounted(() => document.removeEventListener('keydown', keypress_handler));
+onUnmounted(() => {
+    document.removeEventListener('keydown', keypress_handler);
+    document.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('resize', updateCalendarRight);
+});
 
 </script>
 
@@ -585,113 +625,44 @@ onUnmounted(() => document.removeEventListener('keydown', keypress_handler));
                     </label>
 
                 </div>
-                <div class="w-1/3 text-right pr-12 relative">
-                    <!-- Fade Slide
-                    <Transition
-                        enter-active-class="transition ease-out duration-200"
-                        enter-from-class="opacity-0 -translate-y-2"
-                        enter-to-class="opacity-100 translate-y-0"
-                        leave-active-class="transition ease-in duration-150"
-                        leave-from-class="opacity-100 translate-y-0"
-                        leave-to-class="opacity-0 -translate-y-2"
-                    >
-                    -->
-                    <!-- Scale effect
-                    <Transition
-                        enter-active-class="transition ease-out duration-200 transform"
-                        enter-from-class="opacity-0 scale-95"
-                        enter-to-class="opacity-100 scale-100"
-                        leave-active-class="transition ease-in duration-150 transform"
-                        leave-from-class="opacity-100 scale-100"
-                        leave-to-class="opacity-0 scale-95"
-                    >
-                    -->
-                    <!--
-                    <Transition
-                        enter-active-class="transition-all duration-300 ease-out"
-                        enter-from-class="transform -translate-y-4 opacity-0"
-                        enter-to-class="transform translate-y-0 opacity-100"
-                        leave-active-class="transition-all duration-200 ease-in"
-                        leave-from-class="transform translate-y-0 opacity-100"
-                        leave-to-class="transform -translate-y-4 opacity-0"
-                    >
-                    -->
-                    <Transition
-                        enter-active-class="transition ease-out duration-200"
-                        enter-from-class="opacity-0 -translate-y-2"
-                        enter-to-class="opacity-100 translate-y-0"
-                        leave-active-class="transition ease-in duration-150"
-                        leave-from-class="opacity-100 translate-y-0"
-                        leave-to-class="opacity-0 -translate-y-2"
-                    >
-                        <div 
-                            v-if="tooltip.visibility"
-                            class="absolute top-full right-0 shadow-lg border rounded-lg p-4 z-50 mt-2"
-                            style="min-width: 300px;"
-                            :style="tooltipStyles"
-                        >
-                            <div class="text-left">
-                                <div class="font-bold mb-2">Event Information:</div>
-                                <div class="mt-2 text-xs">
-                                    {{ tooltip.timespan }}
-                                </div>
-                                <div class="mt-2 text-sm">
-                                    {{ tooltip.text }}
-                                </div>
-                                <div class="my-2 text-xs">
-                                    {{ tooltip.file_name }}
-                                </div>
-                            </div>
-                        </div>
-                    </Transition>
-                </div>
+                <div class="w-1/3"></div>
             </div>
 
         </template>
 
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden sm:rounded-lg" id="ContactScreen" name="ContactScreen">
-                    <div class="flex">
-                        <!-- <div v-if="show_filters" id="left_side" class="min-w-48 m-1 border"> -->
-                        <!-- The follwing div is hidden, but would show a filter if set to true, but not used -->
-                        <div v-if="false" id="left_side" class="min-w-48 m-1 border"> 
-                            <!-- <div class="flex mt-8">
-                                <label for="calendarFor" class="ml-3 mr-4 font-bold text-lg">Calendar for:</label>
-                                <select v-model="calendarFor.id" class=" border rounded-md p-1" id="calendarFor"
-                                    @change="refresh_calendar()">
-                                    <option value="1">****</option>
-                                    <option v-for="firm_member, index in props.firm_members" :key="firm_member.id"
-                                        :value="firm_member.id">
-                                        {{ firm_member.member_initials }}
-                                    </option>
-                                </select>
-                            </div> -->
-                            <div class="flex mt-8 ml-6">
-                                <input type="checkbox" v-model="state.weekdaysOnly" id="weekdaysOnly"
-                                    @click="calendarOptions.weekends = state.weekdaysOnly" />
-                                <label for="weekdaysOnly" class="w-48 ml-1">- Weekdays Only</label>
-                            </div>
-                            <p v-show="state.weekdaysOnly == true" class="ml-6 mr-2 mt-1 text-xs text-red-700">Please note: Weekend calendar entries are NOT displayed!</p>
-                            <div class="mt-40 ml-4 text-blue-900 font-bold" :class="tooltip.visibility">Event Information:
-                            </div>
-                            <div class="border" :class="tooltip.visibility" :style="tooltipStyles">
-                                <div class="mt-2 ml-4 w-52 text-xs">
-                                    {{ tooltip.timespan }}
-                                </div>
-                                <div class="mt-2 ml-4 w-52 text-sm">
-                                    {{ tooltip.text }}
-                                </div>
-                                <div class="my-2 ml-4 w-52 text-xs">
-                                    {{ tooltip.file_name }}
+                <div class="bg-white sm:rounded-lg" id="CalendarScreen">
+                    <!-- upper_right tooltip: zero-height sticky wrapper, tooltip is absolute so its background paints fully -->
+                    <div v-if="tooltip.visibility && props.hover_placement === 'upper_right'"
+                        class="sticky top-[80px] z-[9999] pointer-events-none"
+                        style="height: 0; position: sticky;"
+                    >
+                        <Transition
+                            enter-active-class="transition ease-out duration-200"
+                            enter-from-class="opacity-0"
+                            enter-to-class="opacity-100"
+                            leave-active-class="transition ease-in duration-150"
+                            leave-from-class="opacity-100"
+                            leave-to-class="opacity-0"
+                        >
+                            <div
+                                class="absolute right-0 shadow-lg border rounded-lg p-4"
+                                style="min-width: 300px;"
+                                :style="tooltipStyles"
+                            >
+                                <div class="text-left">
+                                    <div class="font-bold mb-2">Event Information:</div>
+                                    <div class="mt-2 text-xs">{{ tooltip.date }}</div>
+                                    <div class="text-xs">{{ tooltip.timespan }}</div>
+                                    <div class="mt-2 text-sm">{{ tooltip.text }}</div>
+                                    <div class="my-2 text-xs">{{ tooltip.file_name }}</div>
                                 </div>
                             </div>
-                        </div>
-                        <div id="right_side" class="">
-                            <div class="p-4 text-gray-900">
-                                <FullCalendar ref='fullCalendar' :options="calendarOptions" />
-                            </div>
-                        </div>
+                        </Transition>
+                    </div>
+                    <div class="p-4 text-gray-900">
+                        <FullCalendar ref='fullCalendar' :options="calendarOptions" />
                     </div>
                 </div>
             </div>
@@ -888,6 +859,37 @@ onUnmounted(() => document.removeEventListener('keydown', keypress_handler));
 
             </div>
         </dialog>        
+
+        <!-- Event Hover Tooltip -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition ease-out duration-200"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition ease-in duration-150"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div
+                    v-if="tooltip.visibility && props.hover_placement === 'near_cursor'"
+                    class="fixed shadow-lg border rounded-lg p-4 z-[9999] pointer-events-none"
+                    style="min-width: 300px;"
+                    :style="{
+                        ...tooltipStyles,
+                        top: (mousePos.y + 16) + 'px',
+                        left: (mousePos.x + 16) + 'px',
+                    }"
+                >
+                    <div class="text-left">
+                        <div class="font-bold mb-2">Event Information:</div>
+                        <div class="mt-2 text-xs">{{ tooltip.date }}</div>
+                        <div class="text-xs">{{ tooltip.timespan }}</div>
+                        <div class="mt-2 text-sm">{{ tooltip.text }}</div>
+                        <div class="my-2 text-xs">{{ tooltip.file_name }}</div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
 
     </AuthenticatedLayout>
 </template>

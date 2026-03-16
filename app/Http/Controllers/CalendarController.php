@@ -43,12 +43,17 @@ class CalendarController extends Controller
             ->where('name', 'event_text')
             ->get();
 
-        return Inertia::render('Calendar/Index', 
-        [   'firm_members' => $firm_members,      // render the calendar
-            'event_types' => $event_types,
-            'bg_colors' => $bg_colors,
-            'text_colors' => $text_colors,
-        ]);
+        $hover_placement = Preference::where('user_id', $request->user()->id)   // get the user's hover placement preference
+            ->where('name', 'event_hover_placement')
+            ->value('setting') ?? 'upper_right';
+
+        return Inertia::render('Calendar/Index',
+            ['firm_members' => $firm_members,      // render the calendar
+                'event_types' => $event_types,
+                'bg_colors' => $bg_colors,
+                'text_colors' => $text_colors,
+                'hover_placement' => $hover_placement,
+            ]);
     }
 
     /**
@@ -133,7 +138,6 @@ class CalendarController extends Controller
 
     } // end function
 
-
     public function get_events(Request $request)
     {
         $firm_id = $request->user()->firm_id;
@@ -177,18 +181,18 @@ class CalendarController extends Controller
         if ($events) {
             foreach ($events as $event) {                                                               // for each event, get the user's event colors from the event_colors collection
                 $color_bg = $event_colors
-                                ->where('user_id', $event->contact_to->user_id)
-                                ->where('name', 'event_bg')
-                                ->first();
+                    ->where('user_id', $event->contact_to->user_id)
+                    ->where('name', 'event_bg')
+                    ->first();
                 $color_text = $event_colors
-                                ->where('user_id', $event->contact_to->user_id)
-                                ->where('name', 'event_text')
-                                ->first();
+                    ->where('user_id', $event->contact_to->user_id)
+                    ->where('name', 'event_text')
+                    ->first();
 
                 if ($event->folder_id == 6) {                                                           // if folder 6, it's an event so set the event title
-                    $e_title = '(' . $event->contact_to->member_initials . ') ' . $event->entrytype->name . ' - ' . $event->note;
+                    $e_title = '('.$event->contact_to->member_initials.') '.$event->entrytype->name.' - '.$event->note;
                 } else {                                                                                // else, it is a response due, so set 'due date' title
-                    $e_title = 'Response Due: '.$event->entrytype->name.' - '.$event->note;                                 
+                    $e_title = 'Response Due: '.$event->entrytype->name.' - '.$event->note;
                 }
 
                 $events_back[] = [                                                                      // add the event to the array
@@ -214,11 +218,10 @@ class CalendarController extends Controller
         return response()->json($events_back);
     } // end function
 
-
     public function event_placement(Request $request)
     {
         $verified = $request->validate(
-            [   'formtype' => 'string|max:20|nullable',
+            ['formtype' => 'string|max:20|nullable',
                 'action' => 'string|max:10|nullable',
                 'entry_id' => 'numeric|integer|required',
                 'allDay' => 'boolean',
@@ -256,7 +259,6 @@ class CalendarController extends Controller
             $event->save();
         }
     } // end function
-
 
     public function lookup_file(Request $request)
     {

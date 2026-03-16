@@ -123,6 +123,7 @@ isAdmin = user.user_type == 'Admin' ? true : false;
                                     <template #content>
                                         <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
                                         <DropdownLink v-if="$page.props.auth.user.user_type === 'Admin'" :href="route('adminmenu')">Admin Menu</DropdownLink>
+                                        <DropdownLink :href="route('preferences.index', $page.props.auth.user.id)"> Preferences </DropdownLink>
                                         <DropdownLink :href="route('logout')" method="post" as="button">
                                             Log Out
                                         </DropdownLink>
@@ -185,6 +186,7 @@ isAdmin = user.user_type == 'Admin' ? true : false;
 
                         <div class="mt-3 space-y-1">
                             <ResponsiveNavLink :href="route('profile.edit')"> Profile </ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('preferences.index', $page.props.auth.user.id)"> Preferences </ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('logout')" method="post" as="button">
                                 Log Out
                             </ResponsiveNavLink>

@@ -65,6 +65,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
 
     Route::get('/users/{user}/preferences', [PreferenceController::class, 'index'])->name('preferences.index');
     Route::post('/preferences/eventcolors', [PreferenceController::class, 'eventcolor_update'])->name('preferences.eventcolors');
+    Route::post('/preferences/hover_placement', [PreferenceController::class, 'hover_placement_update'])->name('preferences.hover_placement');
     Route::get('/preferences/updateEntrytypes', [PreferenceController::class, 'update_entrytypes']);
 
     Route::post('/lookup_file', [FileController::class, 'lookup_file'])->name('files.lookup_file');
