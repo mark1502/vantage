@@ -166,7 +166,6 @@ const calendarOptions = reactive({                              // HERE is the S
         }
 
         tooltip.date = new Date(mouseEnterInfo.event.startStr).toLocaleDateString(undefined, { weekday: 'long', month: 'numeric', day: 'numeric', year: 'numeric' });
-        tooltip.visibility = true;
         tooltip.text = mouseEnterInfo.event.title;
         tooltip.file_name = 'File: ';
         tooltip.file_name += mouseEnterInfo.event.extendedProps.file_id == '1' ? 'Not File Related' : mouseEnterInfo.event.extendedProps.file_name;
@@ -179,6 +178,8 @@ const calendarOptions = reactive({                              // HERE is the S
             mousePos.y = mouseEnterInfo.jsEvent.clientY;
             document.addEventListener('mousemove', onMouseMove);
         }
+
+        tooltip.visibility = true;
     },
 
     eventMouseLeave: function (mouseEnterInfo) {

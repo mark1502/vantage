@@ -123,9 +123,9 @@ onUnmounted(() => document.removeEventListener('keydown', handleTheKeypress));
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-base-100 overflow-hidden sm:rounded-lg" id="ContactScreen" name="ContactScreen">
-                    <div class="p-6 bg-base-100 border-b border-base-300 min-h-[680px] justify-center">
+                    <div class="p-6 bg-base-300 border-b border-base-300 min-h-[680px] justify-center">
                         <p class="text-lg font-semibold mb-3 text-base-content">Preferences for User: "{{ props.user_initials }}"</p>
-                        <div class="border border-gray-200 mt-5 p-4 w-[700px]">
+                        <div class="border border-gray-600 rounded-sm mt-5 p-4 w-[700px]">
                             <p class="text-lg font-bold mb-2 text-base-content">Calendar - Event Colors</p>
                             <div class="flex">
                                 <label for="background-color" class="mx-2 font-semibold text-base-content">Background Color:</label>
@@ -140,26 +140,26 @@ onUnmounted(() => document.removeEventListener('keydown', handleTheKeypress));
                                 <div class="ml-2 mb-3 p-4 border border-base-300 rounded w-[360px]" :style="{ backgroundColor: user_prefs.event_bg, color: user_prefs.event_text }">
                                     This is a preview of calendar event colors.
                                 </div>
-                                <div class=" ml-6 mt-1 mb-3 flex flex-col gap-3">
-                                    <a class="btn btn-outline btn-xs" @click="saveEventColors">Save Colors</a>
-                                    <a class="btn btn-outline btn-xs" @click="revertEventColors">Revert to Last Saved</a>
-                                    <a class="btn btn-outline btn-xs" @click="revertToDefaultColors">Revert to Default</a>
+                                <div class="py-1 ml-6 mt-1 mb-3 flex flex-col gap-3 w-1/4">
+                                    <a class="btn btn-primary btn-sm" @click="saveEventColors">Save Colors</a>
+                                    <a class="btn btn-primary btn-sm" @click="revertEventColors">Revert to Last Saved</a>
+                                    <a class="btn btn-primary btn-sm" @click="revertToDefaultColors">Revert to Default</a>
                                 </div>
                            
 
                             </div>
                         </div>
 
-                        <div class="border border-gray-200 mt-8 p-4 w-[700px]">
+                        <div class="border border-gray-600 mt-8 p-4 w-[700px] rounded-sm">
                             <p class="text-lg font-bold mb-2 text-base-content">Calendar - Event Tooltip Display</p>
-                            <div class="flex items-center">
-                                <label for="hover-placement" class="mx-2 font-semibold text-base-content">Display Event Tooltip:</label>
+                            <div class="flex items-center ">
+                                <label for="hover-placement" class="ml-2 mr-3 font-semibold text-base-content">Display Event Tooltip:</label>
                                 <select v-model="user_prefs.event_hover_placement" id="hover-placement"
-                                    class="border border-base-300 rounded-md p-1 bg-base-100 text-base-content">
+                                    class="border border-gray-300 dark:border-gray-200/50 rounded-md p-1 bg-base-100 text-base-content">
                                     <option value="upper_right">Upper Right Corner</option>
                                     <option value="near_cursor">Near Cursor</option>
                                 </select>
-                                <a class="btn btn-outline btn-xs ml-6" @click="saveHoverPlacement">Save</a>
+                                <a class="btn btn-primary btn-sm ml-12 w-1/4" @click="saveHoverPlacement">Save</a>
                             </div>
                         </div>
                     </div>
