@@ -9,6 +9,7 @@ use App\Models\Entry;
 use App\Models\File;
 use App\Models\Folder;
 use App\Models\Response;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -318,7 +319,7 @@ class ViewController extends Controller
     /**
      * Build the view-specific portion of the entries query.
      *
-     * @return array{0: \Illuminate\Database\Eloquent\Builder, 1: int, 2: string}
+     * @return array{0: Builder, 1: int, 2: string}
      */
     public function setEntriesQuery(int $firm_id, string $view, string $view_for, string $from_to, string $read, ?string $starting, ?string $ending): array
     {
@@ -326,7 +327,8 @@ class ViewController extends Controller
         $orderBy = 'date1';
         $viewfolder_id = 0;
 
-        if ($view === 'memos') {
+            
+        if ($view === 'memos') {                                            // Memos query
             $viewfolder_id = 5;
             $entries->where('folder_id', 5);
 
@@ -336,8 +338,7 @@ class ViewController extends Controller
             }
 
             $this->applyReadFilter($entries, $read);
-
-        } elseif ($view === 'phone') {
+        } elseif ($view === 'phone') {                                      // Phone message query
             $viewfolder_id = 8;
             $entries->where('folder_id', 8);
 
@@ -347,8 +348,7 @@ class ViewController extends Controller
             }
 
             $this->applyReadFilter($entries, $read);
-
-        } elseif ($view === 'todo') {
+        } elseif ($view === 'todo') {                                       // Todo query
             $viewfolder_id = 7;
             $entries->where('folder_id', 7);
 
@@ -358,8 +358,7 @@ class ViewController extends Controller
             }
 
             $this->applyReadFilter($entries, $read);
-
-        } elseif ($view === 'events') {
+        } elseif ($view === 'events') {                                     // Events query
             $viewfolder_id = 6;
             $entries->where('folder_id', 6);
 
@@ -369,8 +368,7 @@ class ViewController extends Controller
             }
 
             $this->applyDateRangeFilter($entries, $starting, $ending);
-
-        } elseif ($view === 'timeline') {
+        } elseif ($view === 'timeline') {                                   // Office Timeline query
             $viewfolder_id = 0;
 
             if ($view_for !== '****') {
@@ -379,8 +377,7 @@ class ViewController extends Controller
             }
 
             $this->applyDateRangeFilter($entries, $starting, $ending);
-
-        } elseif ($view === 'due') {
+        } elseif ($view === 'due') {                                        // Due View query
             $viewfolder_id = 1;
             $entries->where('expecting_response', true);
             $orderBy = 'date_response_expected';
@@ -407,7 +404,7 @@ class ViewController extends Controller
     /**
      * Apply from/to/both contact filter to the query.
      */
-    private function applyFromToFilter(\Illuminate\Database\Eloquent\Builder $entries, string $from_to, int $contact_id): void
+    private function applyFromToFilter(Builder $entries, string $from_to, int $contact_id): void
     {
         if ($from_to === 'to') {
             $entries->where('to_contact_id', $contact_id);
@@ -424,7 +421,7 @@ class ViewController extends Controller
     /**
      * Apply read/unread filter to the query.
      */
-    private function applyReadFilter(\Illuminate\Database\Eloquent\Builder $entries, string $read): void
+    private function applyReadFilter(Builder $entries, string $read): void
     {
         if ($read === 'unread') {
             $entries->whereNull('date2');
@@ -436,7 +433,7 @@ class ViewController extends Controller
     /**
      * Apply starting/ending date range filter to the query.
      */
-    private function applyDateRangeFilter(\Illuminate\Database\Eloquent\Builder $entries, ?string $starting, ?string $ending): void
+    private function applyDateRangeFilter(Builder $entries, ?string $starting, ?string $ending): void
     {
         if ($starting !== null) {
             $entries->where('date1', '>=', $starting);
