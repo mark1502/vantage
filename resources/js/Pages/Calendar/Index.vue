@@ -40,6 +40,8 @@ const state = reactive({
     weekdaysOnly: false,
     eventContent: null,
     includeDueDates: false,
+    dueTo: true,
+    dueFrom: true,
 });
 
 const props = defineProps({
@@ -89,6 +91,7 @@ const calendarFor = reactive({
 
 const tooltip = reactive({
     class: '',
+    heading: '',
     date: '',
     timespan: '',
     text: '',
@@ -142,7 +145,7 @@ const calendarOptions = reactive({                              // HERE is the S
 
     initialView: 'timeGridWeek',
 
-    events: '/get_events?user1=' + calendarFor.id + '&include_due=' + state.includeDueDates,  // HERE is the events url to get the calendar data
+    events: '/get_events?user1=' + calendarFor.id + '&include_due=' + state.includeDueDates + '&due_to=' + state.dueTo + '&due_from=' + state.dueFrom,  // HERE is the events url to get the calendar data
 
     editable: true,
     height: 'auto',
@@ -156,17 +159,26 @@ const calendarOptions = reactive({                              // HERE is the S
     eventResize: function (eventInfo) { event_placement(eventInfo, 'resize'); },
 
     eventMouseEnter: function (mouseEnterInfo) {
-        if( mouseEnterInfo.event.title[0] === '(' ) {                               // title starts with '(', it's an event, set tooltip time 
+        if (!mouseEnterInfo.event.extendedProps.is_due_date) {                      // calendar event: show timespan
+            const startParts = mouseEnterInfo.event.startStr.slice(0, 10).split('-');
+            const weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])).getDay()];
+            tooltip.date = `${weekday}, ${parseInt(startParts[1])}/${parseInt(startParts[2])}/${startParts[0]}`;
+
             let starting_time = toolTimeCalc( mouseEnterInfo.event.startStr );
             let ending_time = toolTimeCalc( mouseEnterInfo.event.endStr );
-
             tooltip.timespan = starting_time + ' - ' + ending_time;
-        } else {                                                                    // else, Response Due, no time on tooltip
+
+            tooltip.heading = 'Event Information:';
+            tooltip.text = mouseEnterInfo.event.title;
+        } else {                                                                    // due date: no timespan
+            const [y, m, d] = mouseEnterInfo.event.startStr.split('-');
+            let dueDate = `${parseInt(m)}/${parseInt(d)}/${y}`;
+            tooltip.date = '';
             tooltip.timespan = '';
+            tooltip.heading = 'Due Date: ' + dueDate;
+            tooltip.text = mouseEnterInfo.event.title;
         }
 
-        tooltip.date = new Date(mouseEnterInfo.event.startStr).toLocaleDateString(undefined, { weekday: 'long', month: 'numeric', day: 'numeric', year: 'numeric' });
-        tooltip.text = mouseEnterInfo.event.title;
         tooltip.file_name = 'File: ';
         tooltip.file_name += mouseEnterInfo.event.extendedProps.file_id == '1' ? 'Not File Related' : mouseEnterInfo.event.extendedProps.file_name;
 
@@ -184,6 +196,7 @@ const calendarOptions = reactive({                              // HERE is the S
 
     eventMouseLeave: function (mouseEnterInfo) {
         tooltip.visibility = false;
+        tooltip.heading = '';
         tooltip.date = '';
         tooltip.timespan = '';
         tooltip.text = '';
@@ -198,15 +211,17 @@ const calendarOptions = reactive({                              // HERE is the S
 
 
 function toolTimeCalc( timeString ) {
-    let time_in = new Date( timeString );
-    let hours = time_in.getHours();
-    let mins = time_in.getMinutes();
-    let a_p = 'am';                 // ap starts at am
-    if( hours > 11 ) a_p = 'pm';    // if 12 or later, then pm
-    if( hours > 12 ) hours -= 12;   // if > 12, subtract for 12 hour clock
+    const str = timeString.replace('T', ' ').slice(0, 19);
+    const timePart = str.split(' ')[1];
+    const [h, min] = timePart.split(':');
+    let hours = parseInt(h);
+    let a_p = 'am';
+    if( hours > 11 ) a_p = 'pm';
+    if( hours > 12 ) hours -= 12;
+    if( hours === 0 ) hours = 12;
 
     let the_time = hours  + ':';
-    the_time += mins < 10 ? '0' + mins : mins;
+    the_time += min;
     the_time += a_p;
 
     return the_time;
@@ -302,7 +317,17 @@ function submit_calendarform() {
     
 
 function refresh_calendar() {
-    calendarOptions.events = '/get_events' + '?user1=' + calendarFor.id + '&include_due=' + state.includeDueDates;
+    calendarOptions.events = '/get_events?user1=' + calendarFor.id + '&include_due=' + state.includeDueDates + '&due_to=' + state.dueTo + '&due_from=' + state.dueFrom;
+}
+
+function clicked_due_to_from(which) {
+    // Ensure at least one of dueTo/dueFrom is always checked
+    if (which === 'dueTo' && !state.dueTo) {
+        state.dueFrom = true;
+    } else if (which === 'dueFrom' && !state.dueFrom) {
+        state.dueTo = true;
+    }
+    refresh_calendar();
 }
 
 
@@ -432,6 +457,7 @@ function click_date(eventInfo) {
 
     // the user clicked on an existing event, so we're editing the event
 function click_event(eventInfo) {
+    if (eventInfo.event.extendedProps.is_due_date) { return; }  // due dates are not editable
     clear_calendarform();
     calendarform_title.value = 'Edit an Event'
     calendar_form.action = 'edit';
@@ -500,10 +526,14 @@ function event_placement(eventInfo, ptype) {
 
 
 function convertDateTimeToLocal(datetimeString) {
-    const localDate = new Date(datetimeString);
-    const localDateString = localDate.toLocaleDateString();
-    const localTimeString = localDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    return `${localDateString} @ ${localTimeString}`;
+    const str = datetimeString.replace('T', ' ').slice(0, 19);
+    const [date, time] = str.split(' ');
+    const [y, m, d] = date.split('-');
+    const [h, min] = time.split(':');
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${parseInt(m)}/${parseInt(d)}/${y} @ ${hour12}:${min} ${ampm}`;
 }
 
 function convertDateToLocal(dt) {
@@ -620,6 +650,16 @@ onUnmounted(() => {
                         <input type="checkbox" v-model="state.includeDueDates" @change="refresh_calendar()" id="includeDueDates">
                         Include Due Dates
                     </label>
+                    <span v-if="state.includeDueDates && calendarFor.id != 1" class="ml-4 inline-flex flex-col text-sm leading-tight">
+                        <label>
+                            <input type="checkbox" v-model="state.dueTo" @change="clicked_due_to_from('dueTo')" />
+                            Due To
+                        </label>
+                        <label>
+                            <input type="checkbox" v-model="state.dueFrom" @change="clicked_due_to_from('dueFrom')" />
+                            Due From
+                        </label>
+                    </span>
                     <label for="weekdaysOnly" class="w-48 ml-10">
                         <input type="checkbox" v-model="state.weekdaysOnly" id="weekdaysOnly" @click="calendarOptions.weekends = state.weekdaysOnly" />
                         - Weekdays Only
@@ -653,7 +693,7 @@ onUnmounted(() => {
                                 :style="tooltipStyles"
                             >
                                 <div class="text-left">
-                                    <div class="font-bold mb-2">Event Information:</div>
+                                    <div class="font-bold mb-2">{{ tooltip.heading }}</div>
                                     <div class="mt-2 text-xs">{{ tooltip.date }}</div>
                                     <div class="text-xs">{{ tooltip.timespan }}</div>
                                     <div class="mt-2 text-sm">{{ tooltip.text }}</div>
@@ -882,7 +922,7 @@ onUnmounted(() => {
                     }"
                 >
                     <div class="text-left">
-                        <div class="font-bold mb-2">Event Information:</div>
+                        <div class="font-bold mb-2">{{ tooltip.heading }}</div>
                         <div class="mt-2 text-xs">{{ tooltip.date }}</div>
                         <div class="text-xs">{{ tooltip.timespan }}</div>
                         <div class="mt-2 text-sm">{{ tooltip.text }}</div>

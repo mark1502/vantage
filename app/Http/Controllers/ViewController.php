@@ -108,6 +108,7 @@ class ViewController extends Controller
 
             $entry->date_response_expected = $entry->date1;                                             // - copy the date into date_response_expected
             $entry->on_calendar = true;                                                                 // - mark it as on_calendar
+            $entry->all_day = $request->boolean('all_day');                                             // - set all_day from request
         } else {                                                                                        // ELSE, this is not an events folder entry
             $entry->to_contact_id = empty($request->to_contact_id) ? null : $request->to_contact_id;    // to_contact_id - if empty, use null
             // NOTE: change later to put FILE for empty to contact (To: FILE) - actually, maybe use a system id
@@ -180,6 +181,7 @@ class ViewController extends Controller
 
                 $entry->date_response_expected = $entry->date1;                                             // - copy the date into date_response_expected
                 $entry->on_calendar = true;                                                                 // - mark it as on_calendar
+                $entry->all_day = $request->boolean('all_day');                                             // - set all_day from request
             } else {                                                                                        // ELSE, this is not an events folder entry
                 $entry->to_contact_id = empty($request->to_contact_id) ? null : $request->to_contact_id;    // to_contact_id - if empty, use null
                 // NOTE: change later to put FILE for empty to contact (To: FILE) - actually, maybe use a system id
@@ -327,7 +329,6 @@ class ViewController extends Controller
         $orderBy = 'date1';
         $viewfolder_id = 0;
 
-            
         if ($view === 'memos') {                                            // Memos query
             $viewfolder_id = 5;
             $entries->where('folder_id', 5);
@@ -505,8 +506,6 @@ class ViewController extends Controller
 
                     if ($related_entry) {
                         $related_entry->expecting_response = true;
-                        $related_entry->on_calendar = true;
-                        $related_entry->all_day = true;
                         $related_entry->save();
                     }
                 } // end if was F, but now P
@@ -518,8 +517,6 @@ class ViewController extends Controller
 
                     if ($prior_entry && $prior_entry->date_response_expected && $prior_entry->expecting_response === false) {   // prior entry has response date, but not expecting a response
                         $prior_entry->expecting_response = true;
-                        $prior_entry->on_calendar = true;
-                        $prior_entry->all_day = true;
                         $prior_entry->save();
                     }
                 } // end if prior response was full
@@ -539,12 +536,6 @@ class ViewController extends Controller
 
             if ($related_entry) {
                 $related_entry->expecting_response = false;
-
-                if ($related_entry->folder_id != 6) {  // the related entry was not an event, so take it off the calendar
-                    $related_entry->on_calendar = false;
-                    $related_entry->all_day = false;
-                }
-
                 $related_entry->save();
             }
         }

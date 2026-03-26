@@ -32,6 +32,7 @@ class StoreEntryRequest extends FormRequest
             'note' => 'string|max:5000|nullable',
             'date1' => 'date_format:Y-m-d H:i:s|required',
             'date2' => 'date_format:Y-m-d H:i:s|nullable',
+            'all_day' => 'boolean|nullable',
             'date_response_expected' => 'date_format:Y-m-d H:i:s|nullable',
             'was_a_response' => 'in:N,P,F|nullable',
             'was_response_to' => 'integer|numeric|nullable',

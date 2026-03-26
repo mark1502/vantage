@@ -148,6 +148,7 @@ class EntryController extends Controller
 
             $entry->date_response_expected = $entry->date1;     // copy the date1 into date_response_expected
             $entry->on_calendar = true;                         // mark it as on_calendar
+            $entry->all_day = $request->boolean('all_day');     // set all_day from request
         } else {                                                // ELSE, this is not an events folder entry
             $entry->to_contact_id = empty($request->to_contact_id) ? null : $request->to_contact_id;    // if empty, use null, otherwise use the id
             // NOTE: change later to put FILE for empty to contact (To: FILE)
@@ -260,6 +261,7 @@ class EntryController extends Controller
 
             $entry->date_response_expected = $entry->date1;                                             // copy the date into date_response_expected
             $entry->on_calendar = true;                                                                 // mark it as on_calendar
+            $entry->all_day = $request->boolean('all_day');                                             // set all_day from request
         } else {                                                                                        // ELSE, this is not an events folder entry
             $entry->to_contact_id = empty($request->to_contact_id) ? null : $request->to_contact_id;    // if empty, use null, otherwise use the id
             // NOTE: change later to put FILE for empty to contact (To: FILE)
@@ -784,8 +786,6 @@ class EntryController extends Controller
 
                     if ($related_entry) {
                         $related_entry->expecting_response = true;
-                        $related_entry->on_calendar = true;  // ?? should this always be true??
-                        $related_entry->all_day = true;      // ?? is this always correct??
                         $related_entry->save();
                     }
                 } // end if was F, but now P
@@ -797,8 +797,6 @@ class EntryController extends Controller
 
                     if ($prior_entry && $prior_entry->date_response_expected && $prior_entry->expecting_response === false) {   // prior entry has response date, but not expecting a response
                         $prior_entry->expecting_response = true;    // so now it is expecting a response again
-                        $prior_entry->on_calendar = true;
-                        $prior_entry->all_day = true;
                         $prior_entry->save();
                     }
                 } // end if prior response was full
@@ -818,12 +816,6 @@ class EntryController extends Controller
 
             if ($related_entry) {
                 $related_entry->expecting_response = false;
-
-                if ($related_entry->folder_id != 6) {  // the related entry was not an event, so take it off the calendar
-                    $related_entry->on_calendar = false;
-                    $related_entry->all_day = false;
-                }
-
                 $related_entry->save();
             }
         }
@@ -977,6 +969,7 @@ class EntryController extends Controller
                 ->get()
                 ->map(fn ($cr) => [
                     'id' => $cr->id,
+                    'contact_id' => $cr->contact_id,
                     'contact_name' => $cr->contact?->display_last_first ?? '',
                     'role_name' => $cr->role_label ?? (ContactRole::ROLE_LABELS[$cr->role] ?? $cr->role),
                     'role' => $cr->role,

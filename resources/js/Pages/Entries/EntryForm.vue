@@ -54,6 +54,7 @@ const entry_form = useForm({                            // the entry_form - pass
     to_contact_id: null,
     date1: null,
     date2: null,
+    all_day: false,
     note: "",
     linked_document_path: null,
     date_response_expected: "",
@@ -212,6 +213,7 @@ watch(() => entry_form.to_contact_id, (newVal, oldVal) => {
 
 
 function isTimePicker() {                                                                               // this function enables or disables the timepicker on a datetimepicker as needed
+    if (entry_form.all_day === true) return false;                                                      // if all_day is checked, no time picker
     let sendback = null;
     if(props.state.mode === 'entry_add') {                                                              // if adding a new entry
         sendback = props.p1.folders[props.getFolderRow()].input_time === 0 ? false : true;              // determine if the entry inputs time
@@ -595,6 +597,7 @@ function update_disp() {
         entry_form.entry_id = theEntry.id;                                                          // entry_id
         entry_form.date1 = theEntry.date1;                                                          // date1
         entry_form.date2 = theEntry.date2;                                                          // date2
+        entry_form.all_day = theEntry.all_day ?? false;                                             // all_day
         entry_form.entrytype_id = theEntry.entrytype_id;                                            // entrytype_id
 
         entry_form.input_time = props.p1.folders[theEntry.folder_id - 1].input_time;                // input_time (T/F)
@@ -691,8 +694,30 @@ function update_disp() {
 } // end update_disp function
 
 
+const fileContactsWithRoles = computed(() => {
+    if (!props.p1.file_contacts || !props.p1.file_contacts.length) return [];
+
+    const roleMap = {};
+    if (props.p1.file_contact_roles && props.p1.file_contact_roles.length) {
+        props.p1.file_contact_roles.forEach(cr => {
+            if (!roleMap[cr.contact_id]) {
+                roleMap[cr.contact_id] = [];
+            }
+            roleMap[cr.contact_id].push(cr.role_name);
+        });
+    }
+
+    return props.p1.file_contacts.map(contact => ({
+        id: contact.id,
+        display_last_first: contact.display_last_first,
+        role_display: roleMap[contact.id] ? roleMap[contact.id].join(', ') : 'Not specified',
+    }));
+});
+
+
 function findFileContact( find_contact_id ) {
-    return props.p1.file_contacts.find( (contact) => contact.id === find_contact_id ).display_last_first;
+    // return props.p1.file_contacts.find( (contact) => contact.id === find_contact_id ).display_last_first;
+    return fileContactsWithRoles.value.find( (contact) => contact.id === find_contact_id )?.display_last_first ?? '';
 }
 
 
@@ -826,6 +851,7 @@ function setup_add() {                                                          
         entry_form.is_a_response = 'N';                                                                 
         entry_form.input_time = props.getFolderData('input_time');                                      // are we inputing time with the date
         entry_form.hide_date2_prompt = props.getFolderData('hide_date2_prompt');                        // are we hiding the 2nd date field
+        entry_form.all_day = false;                                                                     // initialize all_day to false
 
         saved_entry_form = { ...entry_form };                                                           // clone a copy of the entry_form
     });
@@ -934,6 +960,13 @@ update_disp();
                     readonly class="w-64 text-sm bg-sky-50 " />
                 <input type="hidden" id="entry_id" v-model="entry_form.entry_id" />
             </div> -->
+
+            <!-- All Day Event checkbox (for events only) -->
+            <div v-if="entry_form.folder_id === 6" class="flex items-center mb-1 ml-29">
+                <input v-model="entry_form.all_day" type="checkbox" id="all_day_checkbox"
+                    @change="checkEditMode()">
+                <span class="text-sm ml-1">- All Day Event</span>
+            </div>
 
             <!-- Dates 1 & 2 Row -->
             <div class="flex items-baseline">
@@ -1084,7 +1117,7 @@ update_disp();
             <!-- Response Expected Date Row > Hide/Show based on folder -->
             <div v-if="props.getFolderData('hide_responseexpected_prompt') === false" class="mt-4 min-w-full">
                 <div class="flex place-items-baseline">
-                    <label for="dp-input-entry_date_response_expected" class="text-sm font-semibold w-60 mr-1">
+                    <label for="dp-input-entry_date_response_expected" class="text-sm font-semibold w-40 mr-1">
                         Response Expected By:
                     </label>
                     <VueDatePicker v-model="entry_form.date_response_expected"
@@ -1095,10 +1128,17 @@ update_disp();
                 </div>
 
             <!-- Response Status Message -->
-                <div v-if="disp.response_status" class="text-xs font-normal w-48 ml-52 mt-1" :class="disp.response_color">
+                <div v-if="disp.response_status" class="text-xs font-normal w-48 ml-44 mt-1" :class="disp.response_color">
                     {{ disp.response_status }}
                 </div>
             </div>
+
+            <!-- list of any responses recieved to this entry -->
+            <ul v-if="disp.entry_responses_received.length" class="text-xs text-red-700 ml-44 mt-1">
+                <li v-for="response in disp.entry_responses_received">
+                    {{ format_response_li(response) }}
+                </li>
+            </ul>
 
             <!-- Amount Row > Hide/Show based on folder -->
             <div v-if="props.getFolderData('hide_amount_prompt') === false" class="flex items-baseline mt-4">
@@ -1107,13 +1147,6 @@ update_disp();
                 </label>
                 <input v-model="entry_form.amount" type="number" step=".01" id="entry_amount" class="input input-bordered input-sm"/>
             </div>
-
-            <!-- list of any responses recieved to this entry -->
-            <ul v-show="disp.entry_responses_received.length" class="text-xs text-red-700 ml-52 mt-1">
-                <li v-for="response in disp.entry_responses_received">
-                    {{ format_response_li(response) }}
-                </li>
-            </ul>
 
 
             <div v-show="props.getFolderData('hide_isResponsive') == 0"
@@ -1290,12 +1323,13 @@ update_disp();
             <!-- Scrollable list of contacts -->
             <div class="max-h-96 overflow-y-auto border border-base-300 rounded-md">
                 <div
-                    v-for="(contact, index) in props.p1.file_contacts"
+                    v-for="(contact, index) in fileContactsWithRoles"
                     :key="index"
                     @click="disp.show_contact_id = contact.id; selectFileContact()"
-                    class="px-4 py-2 hover:bg-base-200 cursor-pointer border-b border-base-300 last:border-b-0"
+                    class="grid grid-cols-2 gap-4 px-4 py-2 hover:bg-base-200 cursor-pointer border-b border-base-300 last:border-b-0"
                 >
-                    {{ contact.display_last_first }}
+                    <span>{{ contact.display_last_first }}</span>
+                    <span class="text-xs text-base-content/50">{{ contact.role_display }}</span>
                 </div>
             </div>
         </div>
