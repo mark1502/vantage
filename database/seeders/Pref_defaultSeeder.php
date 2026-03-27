@@ -31,6 +31,18 @@ class pref_defaultSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            ['name' => 'file_open_to',
+                'prompt' => 'Open Files at:',
+                'setting' => 'correspondence',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            ['name' => 'file_recent_spot',
+                'prompt' => 'Open recent files where I left off:',
+                'setting' => 'false',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

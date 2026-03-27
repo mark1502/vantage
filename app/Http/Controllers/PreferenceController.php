@@ -6,6 +6,7 @@ use App\Models\Entrytype;
 use App\Models\Pref_default;
 use App\Models\Preference;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -105,6 +106,27 @@ class PreferenceController extends Controller
                 $thepref->save();
             }
         }
+    }
+
+    public function file_open_update(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'user_id' => 'numeric|integer|required',
+            'file_open_to' => 'string|required|in:correspondence,pleadings,discovery,documents,memos,events,todo,phone,medrecs,medbills,costs,all,info',
+            'file_recent_spot' => 'string|required|in:true,false',
+        ]);
+
+        if ($request->user()->id == $request->user_id || $request->user()->user_type == 'Admin') {
+            Preference::where('user_id', $request->user_id)
+                ->where('name', 'file_open_to')
+                ->update(['setting' => $request->file_open_to]);
+
+            Preference::where('user_id', $request->user_id)
+                ->where('name', 'file_recent_spot')
+                ->update(['setting' => $request->file_recent_spot]);
+        }
+
+        return redirect()->back();
     }
 
     // just used this to update entrytypes of the firm to be sure it has all of the defaults

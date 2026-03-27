@@ -19,6 +19,10 @@ const user_prefs = reactive({
     event_text_saved: '',
     event_hover_placement: 'upper_right',
     event_hover_placement_saved: 'upper_right',
+    file_open_to: 'correspondence',
+    file_open_to_saved: 'correspondence',
+    file_recent_spot: false,
+    file_recent_spot_saved: false,
 });
 
 for (var i = 0; i < props.preferences.length; i++) {
@@ -34,6 +38,14 @@ for (var i = 0; i < props.preferences.length; i++) {
         case 'event_hover_placement':
             user_prefs.event_hover_placement = props.preferences[i].setting;
             user_prefs.event_hover_placement_saved = props.preferences[i].setting;
+            break;
+        case 'file_open_to':
+            user_prefs.file_open_to = props.preferences[i].setting;
+            user_prefs.file_open_to_saved = props.preferences[i].setting;
+            break;
+        case 'file_recent_spot':
+            user_prefs.file_recent_spot = props.preferences[i].setting === 'true';
+            user_prefs.file_recent_spot_saved = props.preferences[i].setting === 'true';
             break;
     } // end switch
 }
@@ -104,6 +116,25 @@ function revertToDefaultColors() {
      });
 }
 
+function saveFileOpen() {
+    const form = useForm({
+        user_id: props.user_id,
+        file_open_to: user_prefs.file_open_to,
+        file_recent_spot: user_prefs.file_recent_spot ? 'true' : 'false',
+    });
+    form.post('/preferences/file_open', { preserveState: true,
+        onSuccess: () => {
+            user_prefs.file_open_to_saved = user_prefs.file_open_to;
+            user_prefs.file_recent_spot_saved = user_prefs.file_recent_spot;
+        }
+    });
+}
+
+function revertFileOpen() {
+    user_prefs.file_open_to = user_prefs.file_open_to_saved;
+    user_prefs.file_recent_spot = user_prefs.file_recent_spot_saved;
+}
+
 onMounted(() => document.addEventListener('keydown', handleTheKeypress));
 onUnmounted(() => document.removeEventListener('keydown', handleTheKeypress));
 
@@ -160,6 +191,39 @@ onUnmounted(() => document.removeEventListener('keydown', handleTheKeypress));
                                     <option value="near_cursor">Near Cursor</option>
                                 </select>
                                 <a class="btn btn-primary btn-sm ml-12 w-1/4" @click="saveHoverPlacement">Save</a>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-600 mt-8 p-4 w-[700px] rounded-sm">
+                            <p class="text-lg font-bold mb-2 text-base-content">File - Default Open Location</p>
+                            <div class="flex items-center mb-4">
+                                <label for="file-open-to" class="ml-2 mr-3 font-semibold text-base-content">Open Files at:</label>
+                                <select v-model="user_prefs.file_open_to" id="file-open-to"
+                                    class="border border-gray-300 dark:border-gray-200/50 rounded-md p-1 bg-base-100 text-base-content">
+                                    <option value="correspondence">Correspondence</option>
+                                    <option value="pleadings">Pleadings and Motions</option>
+                                    <option value="discovery">Discovery</option>
+                                    <option value="documents">Documents</option>
+                                    <option value="memos">Memos</option>
+                                    <option value="events">Events</option>
+                                    <option value="todo">To-Do</option>
+                                    <option value="phone">Phone Calls</option>
+                                    <option value="medrecs">Medical Records</option>
+                                    <option value="medbills">Medical Bills</option>
+                                    <option value="costs">Case Costs</option>
+                                    <option value="all">File Timeline</option>
+                                    <option value="info">File Details</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center ml-2">
+                                <input type="checkbox" id="file-recent-spot" v-model="user_prefs.file_recent_spot"
+                                    class="checkbox checkbox-sm mr-2" />
+                                <label for="file-recent-spot" class="font-semibold text-base-content">Open recent files where I left off</label>
+                            </div>
+                            <p class="text-sm ml-8 mt-1 text-base-content opacity-70">(overrides above setting when opening from the recent files menu)</p>
+                            <div class="flex mt-4 gap-3">
+                                <a class="btn btn-primary btn-sm" @click="saveFileOpen">Save</a>
+                                <a class="btn btn-primary btn-sm btn-outline" @click="revertFileOpen">Revert to Last Saved</a>
                             </div>
                         </div>
                     </div>

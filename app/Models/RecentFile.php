@@ -26,11 +26,16 @@ class RecentFile extends Model
         return $this->belongsTo(File::class);
     }
 
-    public static function track(int $userId, int $fileId): void
+    public static function track(int $userId, int $fileId, string $filepart = 'correspondence', int $page = 1, int $show = 15): void
     {
         self::updateOrCreate(
             ['user_id' => $userId, 'file_id' => $fileId],
-            ['last_opened_at' => now()]
+            [
+                'last_opened_at' => now(),
+                'filepart' => $filepart,
+                'page' => $page,
+                'show' => $show,
+            ]
         );
 
         $keep = self::where('user_id', $userId)

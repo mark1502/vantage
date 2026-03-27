@@ -12,7 +12,8 @@ const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
 const props = defineProps({
-    files: Object
+    files: Object,
+    fileOpenTo: { type: String, default: 'correspondence' },
 });
 
 const page = usePage();
@@ -53,12 +54,19 @@ watch( search, (value) => {                                                     
     });
 });
 
+function getValidFilepart(file) {                                                                               // returns the valid filepart for the given file based on user preference
+    const pref = props.fileOpenTo;
+    if (pref === 'all' || pref === 'info') return pref;
+    if (file.filetype[`has_${pref}`] === 1) return pref;
+    return 'correspondence';
+}
+
 function update_disp() {                                                                                            // update_disp function - updates the display about the highlighted file
 
     if (props.files.data.length) {                                                                              // if there are files
         file1.value = props.files.data[state.current_row];                                                      // set a shortcut "the" for readability
         disp.editurl = route( 'entries.index', { file: file1.value, filepart: 'info', page: 1, show: state.show } );      // set the editurl (not used for now)
-        disp.openurl = route( 'entries.index', { file: file1.value, filepart: 'correspondence', page: 1, show: state.show } );  // set the openurl to the route for opening the file
+        disp.openurl = route( 'entries.index', { file: file1.value, filepart: getValidFilepart(file1.value), page: 1, show: state.show } );  // set the openurl to the route for opening the file
     } else {
         disp.editurl = "";
         disp.openurl = "";

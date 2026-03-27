@@ -22,6 +22,7 @@ const props = defineProps({
     file: Object,
     entries: Object,
     view_folder_id: Number,
+    view_folder_name: String,
     expecting_response: Object,
     firm_members: Object,
     attorneys: Object,
@@ -49,7 +50,7 @@ const state = reactive({
     switch_file: false,
 });
 
-state.folder_name = urlParams.get('filepart');
+state.folder_name = props.view_folder_name;
 
 const index_form = reactive({
     formtype: "entry",

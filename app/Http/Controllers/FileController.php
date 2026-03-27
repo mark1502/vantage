@@ -36,7 +36,11 @@ class FileController extends Controller
 
         // dd($file_list);
 
-        return Inertia::render('Files/Index', compact('files'));
+        $fileOpenTo = $request->user()->preferences()
+            ->where('name', 'file_open_to')
+            ->value('setting') ?? 'correspondence';
+
+        return Inertia::render('Files/Index', compact('files', 'fileOpenTo'));
 
     }
 

@@ -29,13 +29,26 @@ class EntryController extends Controller
 
         $refresh = $request->header('X-Custom-Refresh') ?? 'full';                  // if refresh flag is set in the header, otherwise full
 
-        if ($refresh === 'full') {
-            RecentFile::track(auth()->id(), $file->id);
+        $show = $request->query('show');                                            // how many rows to show
+        $filepart = $request->query('filepart', 'correspondence');                  // what file part (folder) to display
+
+        // Validate that the requested folder exists for this file's type
+        if (! in_array($filepart, ['all', 'info', 'file_contacts'])) {
+            $folderFlag = 'has_'.$filepart;
+            if (! $file->filetype->$folderFlag) {
+                $filepart = 'correspondence';
+            }
         }
 
-        $show = $request->query('show');                                            // how many rows to show
-        $filepart = $request->query('filepart');                                    // what file part (folder) to display
-        $viewfolder_id = $this->get_folder_info($filepart);                       // get the folder id from the filepart, or -1 for 'info', -2 for file contacts, or 0 'all'
+        $viewfolder_id = $this->get_folder_info($filepart);                         // get the folder id from the filepart, or -1 for 'info', -2 for file contacts, or 0 'all'
+
+        RecentFile::track(                                                          // track recent-file usage
+            auth()->id(),
+            $file->id,
+            $filepart ?: 'correspondence',
+            (int) ($request->query('page') ?: 1),
+            (int) ($show ?: 15)
+        );
 
         $entries = Entry::query();                                                  // start building the entry query
 
@@ -70,9 +83,10 @@ class EntryController extends Controller
             ->first();
 
         return Inertia::render('Entries/Index',
-            ['file' => $file,                                                                            // return file record
+            [   'file' => $file,                                                                            // return file record
                 'entries' => $entries,                                                                              // entries
                 'view_folder_id' => $viewfolder_id,                                                                 // id of folder being viewed
+                'view_folder_name' => $filepart,                                                                     // resolved folder name (may differ from URL if defaulted)
                 'expecting_response' => $this->getExpectingResponse($file->id),                               // file entries expecting a response
                 'firm_members' => $this->getFirmMembers($file->firm_id, $refresh),                            // firm members
                 'attorneys' => $this->getAttorneys($file->firm_id, $refresh),                                 // attorneys
