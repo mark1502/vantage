@@ -11,6 +11,7 @@ use App\Models\File;
 use App\Models\Filetype;
 use App\Models\Firm;
 use App\Models\Folder;
+use App\Models\RecentFile;
 use App\Models\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +28,11 @@ class EntryController extends Controller
             ->with('Filetype')->first();                                // with the filetype
 
         $refresh = $request->header('X-Custom-Refresh') ?? 'full';                  // if refresh flag is set in the header, otherwise full
+
+        if ($refresh === 'full') {
+            RecentFile::track(auth()->id(), $file->id);
+        }
+
         $show = $request->query('show');                                            // how many rows to show
         $filepart = $request->query('filepart');                                    // what file part (folder) to display
         $viewfolder_id = $this->get_folder_info($filepart);                       // get the folder id from the filepart, or -1 for 'info', -2 for file contacts, or 0 'all'

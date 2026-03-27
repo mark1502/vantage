@@ -12,6 +12,7 @@ use App\Http\Controllers\FirmController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\PreferenceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecentFileController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViewController;
@@ -68,6 +69,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
     Route::post('/preferences/hover_placement', [PreferenceController::class, 'hover_placement_update'])->name('preferences.hover_placement');
     Route::get('/preferences/updateEntrytypes', [PreferenceController::class, 'update_entrytypes']);
 
+    Route::get('/recent-files', [RecentFileController::class, 'index'])->name('recent-files.index');
     Route::post('/lookup_file', [FileController::class, 'lookup_file'])->name('files.lookup_file');
     Route::post('setDefaultFileType', [FiletypeController::class, 'set_default_type']);
     Route::put('/toggle_read/{entry}', [EntryController::class, 'toggle_read']);

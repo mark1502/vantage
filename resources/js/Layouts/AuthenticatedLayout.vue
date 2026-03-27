@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed, onMounted, provide } from 'vue';
+import { ref, computed, onMounted, onUnmounted, provide } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import HoverDropdown from '@/Components/HoverDropdown.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage, router } from '@inertiajs/vue3';
 
 import { useTheme } from '@/Composables/useTheme'
 
@@ -47,12 +48,50 @@ let isAdmin = ref(false);
 
 isAdmin = user.user_type == 'Admin' ? true : false;
 
+const recentFiles = ref([]);
+
+const fetchRecentFiles = async () => {
+    try {
+        const response = await fetch(route('recent-files.index'));
+        if (response.ok) {
+            recentFiles.value = await response.json();
+        }
+    } catch (e) {
+        // silently fail — dropdown just won't show recent files
+    }
+};
+
+onMounted(() => {
+    fetchRecentFiles();
+});
+
+const fileNavActive = computed(() => {
+    return route().current('files.index') || route().current('entries.index');
+});
+
+const fileNavClasses = computed(() =>
+    fileNavActive.value
+        ? 'inline-flex items-center px-1 pt-1 border-b-2 border-indigo-400 dark:border-b-3 dark:border-blue-400 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out'
+        : 'inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out',
+);
+
+// Refresh recent files list after navigating to a file's entries
+const removeNavigateListener = router.on('navigate', (event) => {
+    if (event.detail.page.url.includes('/entries')) {
+        fetchRecentFiles();
+    }
+});
+
+onUnmounted(() => {
+    removeNavigateListener();
+});
+
 </script>
 
 <template>
     <div>
         <div class="bg-neutral-600">
-            <nav class="bg-gray-50 border-b border-gray-100">
+            <nav class="bg-gray-50 border-b border-gray-100 relative z-[100]">
                 <!-- Primary Navigation Menu -->
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between h-16">
@@ -66,10 +105,31 @@ isAdmin = user.user_type == 'Admin' ? true : false;
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink :href="route('files.index')" :active="route().current('files.index') || route().current('entries.index')" class="ml-3">
-                                    <img class="block h-4" src="/images/File_icon_1.png">
-                                    <span class="ml-2">File</span>
-                                </NavLink>
+                                <HoverDropdown align="left" width="56" class="ml-3 flex items-center">
+                                    <template #trigger>
+                                        <span :class="fileNavClasses" class="cursor-pointer">
+                                            <img class="block h-4" src="/images/File_icon_1.png">
+                                            <span class="ml-2">File</span>
+                                        </span>
+                                    </template>
+
+                                    <template #content>
+                                        <Link :href="route('files.index')"
+                                            class="block w-full px-4 py-2 text-start text-sm font-semibold leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-800 dark:focus:bg-gray-800">
+                                            Show File List
+                                        </Link>
+                                        <div v-if="recentFiles.length > 0">
+                                            <div class="border-t border-gray-200 dark:border-gray-600 px-4 py-1 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                                                Recently used files
+                                            </div>
+                                            <Link v-for="file in recentFiles" :key="file.id"
+                                                :href="route('entries.index', { file: file.id, filepart: 'correspondence', page: 1 })"
+                                                class="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-800 dark:focus:bg-gray-800">
+                                                {{ file.name }}
+                                            </Link>
+                                        </div>
+                                    </template>
+                                </HoverDropdown>
 
                                 <NavLink :href="route('views.index', { view: 'memos' })" :active="route().current('views.index')" class="ml-3">
                                     <img class="block h-4" src="/images/Office_3.png">
