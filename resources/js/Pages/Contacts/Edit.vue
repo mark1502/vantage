@@ -203,7 +203,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         </div>
                         <!-- Form 3 - Phones Line starts-->
                         <span class="text-sm font-semibold ml-2">PHONES:</span>
-                        <div class="flex space-x-4 border border-base-content rounded p-4">
+                        <div class="flex space-x-4 border border-base-content/40 rounded p-4">
                             <div class="flex-col w-1/5 max-w-sm">
                                 <InputLabel for="form.work_phone" value="Work" class="ml-2"/>
                                 <TextInput v-model="form.work_phone" id="form.work_phone" class="w-full" />
