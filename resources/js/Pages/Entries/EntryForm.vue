@@ -108,6 +108,70 @@ const related_entry = reactive({                        // used for displaying i
     expecting_response: false,
 });
 
+const responseModalRef = ref(null);
+
+function openResponseModal() {
+    if (responseModalRef.value) responseModalRef.value.showModal();
+}
+
+function closeResponseModal() {
+    if (responseModalRef.value) responseModalRef.value.close();
+}
+
+const responseCandidates = computed(() => {
+    if (!props.p1.expecting_response || !props.p1.entries.data.length) return [];
+    return props.p1.expecting_response
+        .filter((e) => e.file_id === entry_form.file_id)
+        .map((e) => ({
+            id: e.id,
+            date: e.date1,
+            from: e.contact_from.display_last_first,
+            type: findEntryType(e.folder_id, e.entrytype_id),
+        }));
+});
+
+const fallbackResponseEntry = computed(() => {
+    if (entry_form.was_response_to && !related_entry.expecting_response) {
+        return {
+            id: entry_form.was_response_to,
+            date: related_entry.date,
+            from: related_entry.from,
+            type: related_entry.type,
+        };
+    }
+    return null;
+});
+
+const responseRows = computed(() => {
+    const rows = [];
+    if (fallbackResponseEntry.value) rows.push(fallbackResponseEntry.value);
+    responseCandidates.value.forEach((c) => {
+        if (!rows.some((r) => r.id === c.id)) rows.push(c);
+    });
+    return rows;
+});
+
+const currentResponseDisplay = computed(() => {
+    if (!entry_form.is_response_to) return null;
+    const match = responseRows.value.find((r) => r.id === entry_form.is_response_to);
+    if (!match) return null;
+    return reformat_date(match.date) + ' ( '  + match.type + ' ) From: ' + match.from;
+});
+
+function pickResponseEntry(id) {
+    entry_form.is_response_to = id;
+    checkEditMode();
+    closeResponseModal();
+}
+
+function onIsAResponseChange() {
+    checkEditMode();
+    if ((entry_form.is_a_response === 'P' || entry_form.is_a_response === 'F')
+        && !entry_form.is_response_to) {
+        openResponseModal();
+    }
+}
+
 const folder_singular = [                               // this array is used to display the singular name of a folder
     'Correspondence',
     'Pleading',
@@ -1117,7 +1181,7 @@ update_disp();
             <!-- Response Expected Date Row > Hide/Show based on folder -->
             <div v-if="props.getFolderData('hide_responseexpected_prompt') === false" class="mt-4 min-w-full">
                 <div class="flex place-items-baseline">
-                    <label for="dp-input-entry_date_response_expected" class="text-sm font-semibold w-40 mr-1">
+                    <label for="dp-input-entry_date_response_expected" class="text-sm font-semibold w-56 mr-1">
                         Response Expected By:
                     </label>
                     <VueDatePicker v-model="entry_form.date_response_expected"
@@ -1160,43 +1224,31 @@ update_disp();
                     Is responsive?
                 </label>
                 <select v-model="entry_form.is_a_response" id="entry_is_a_response" @blur="checkEditMode()"
-                    @change="checkEditMode()" class="w-40 ml-3 select select-bordered select-sm rounded-md font-normal text-sm text-base-content bg-base-100">
+                    @change="onIsAResponseChange()" class="w-40 ml-3 select select-bordered select-sm rounded-md font-normal text-sm text-base-content bg-base-100">
                     <option value="N">No</option>
                     <option value="P">Partial Response</option>
                     <option value="F">Full Response</option>
                 </select>
             </div>
 
-            <!-- Is Response To Droplist Row -->
-            <!-- Lists all entries in the file which are expecting a response -->
-            <!-- Show the droplist if the highlighted entry is either a full or partial response && the folder does not hide isResponsive-->
-            <div v-show="entry_form.is_a_response != 'N' && props.getFolderData('hide_isResponsive') === false" class="flex mt-3">
-                <label for="form.is_response_to" class="text-sm font-semibold w-24">
+            <!-- Is Response To Row - displays the currently selected responsive entry and a button to open the picker modal -->
+            <div v-show="entry_form.is_a_response != 'N' && props.getFolderData('hide_isResponsive') === false" class="flex mt-3 items-center">
+                <label class="text-sm font-semibold w-24">
                     Response to:
                 </label>
-                <select v-model="entry_form.is_response_to" id="form.is_response_to" @blur="checkEditMode()"
-                    @change="checkEditMode()" class="w-125 ml-2 select select-xs rounded-md font-normal text-sm text-base-content bg-base-100">
-                    <!-- This first option is added *if* the entry which this was responsive to no longer expects a response -->
-                    <!-- It's needed because that entry would no longer be in the props.p1.expecting_response list -->
-                    <option v-if="entry_form.was_response_to && related_entry.expecting_response == false"
-                        :value="entry_form.was_response_to">
-                        {{  reformat_date(related_entry.date) + ' | ' +
-                            related_entry.from + ' | ' +
-                            related_entry.type
-                        }}
-                    </option>
-                    <!-- Use template to iterate through expecting_response -->
-                    <template v-for="( expecting_entry, index ) in props.p1.expecting_response" >
-                        <!-- If the expecting entry is from the same case as the highlighted entry, add an option for it -->
-                        <option v-if="props.p1.entries.data.length && expecting_entry.file_id === entry_form.file_id" :key="expecting_entry.id"
-                            :value="expecting_entry.id">
-                            {{  reformat_date(expecting_entry.date1) + ' | ' +
-                                expecting_entry.contact_from.display_last_first + ' | ' +
-                                findEntryType( expecting_entry.folder_id, expecting_entry.entrytype_id )
-                            }}
-                        </option>
-                    </template>
-                </select>
+                <template v-if="currentResponseDisplay">
+                    <span class="ml-2 pl-2 pr-4 py-1 border border-gray-300 rounded-md text-xs bg-base-100 text-base-content">
+                        {{ currentResponseDisplay }}
+                    </span>
+                    <button type="button" class="btn btn-xs btn-primary ml-3" @click="openResponseModal()">
+                        Edit
+                    </button>
+                </template>
+                <template v-else>
+                    <button type="button" class="btn btn-xs btn-primary ml-2" @click="openResponseModal()">
+                        Select responsive entry…
+                    </button>
+                </template>
             </div>
 
             <!-- Entry Form Button Row -->
@@ -1214,6 +1266,45 @@ update_disp();
     </div>
     <div v-else>
     </div>
+
+    <!-- Response Entry Picker Modal -->
+    <dialog ref="responseModalRef" class="modal">
+        <div class="modal-box max-w-3xl">
+            <h3 class="font-semibold text-lg mb-3">Select the entry this is a response to</h3>
+            <div v-if="responseRows.length" class="max-h-96 overflow-y-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>From</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="row in responseRows" :key="row.id"
+                            class="cursor-pointer hover:bg-base-200"
+                            :class="{ 'bg-base-200': row.id === entry_form.is_response_to }"
+                            @click="pickResponseEntry(row.id)">
+                            <td>{{ reformat_date(row.date) }}</td>
+                            <td>{{ row.from }}</td>
+                            <td>{{ row.type }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div v-else class="text-sm italic text-base-content/70 py-4">
+                No entries in this file are expecting a response.
+            </div>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-sm">Cancel</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 
 
 <!-- Note: Here is the AddContactForm Component which is used by the ContactLookup component -->
