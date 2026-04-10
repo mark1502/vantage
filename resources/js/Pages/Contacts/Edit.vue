@@ -6,13 +6,15 @@ import InputLabel from "@/Components/InputLabel.vue";
 import TextInput from "@/Components/TextInput.vue";
 
 import { Head, Link, useForm, router } from "@inertiajs/vue3";
-import { reactive, computed, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 // import { EMPTY_ARR } from "@vue/shared";
 
 
 const props = defineProps({
     contact: Object,
 });
+
+const isFauxDeleted = computed(() => props.contact.faux_deleted ?? false);
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
@@ -116,6 +118,10 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-base-300 overflow-hidden shadow-sm sm:rounded-lg min-h-dvh">
                     <form autocomplete="off" class="max-w-5xl mx-auto mt-4">
+
+                        <div v-if="isFauxDeleted" class="alert alert-warning mb-4">
+                            <span>This contact has been deleted. You can restore it from the contacts list.</span>
+                        </div>
 
                         <!-- Form 3 - Name Line starts-->
                         <div class="flex mt-8">

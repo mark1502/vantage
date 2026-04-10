@@ -83,7 +83,7 @@ class EntryController extends Controller
             ->first();
 
         return Inertia::render('Entries/Index',
-            [   'file' => $file,                                                                            // return file record
+            ['file' => $file,                                                                            // return file record
                 'entries' => $entries,                                                                              // entries
                 'view_folder_id' => $viewfolder_id,                                                                 // id of folder being viewed
                 'view_folder_name' => $filepart,                                                                     // resolved folder name (may differ from URL if defaulted)
@@ -379,12 +379,10 @@ class EntryController extends Controller
         $contacts_found = Contact::query()
             ->select('id', 'display_last_first')
             ->where('firm_id', $request->user()->firm_id)
-                                // next, when only looking for firm members, add the needed where clause
+            ->where('faux_deleted', false)
             ->when($request->firm_only == true, function ($query) {
                 $query->where('is_firm_member', '=', true);
             })
-
-                            // ->where('display_last_first', 'like', '%' . $search . '%')   - less efficient name search
             ->where('display_last_first', 'like', $request->search.'%')
             ->orderBy('display_last_first')
             ->paginate(8)
@@ -849,9 +847,12 @@ class EntryController extends Controller
             $from_contacts = DB::table('entries')->select('from_contact_id')->where('file_id', $file_id)->distinct();       // get all "from" contact ids for this file
             $to_contacts = DB::table('entries')->select('to_contact_id')->where('file_id', $file_id)->distinct();           // get all "to" contact ids for this file
 
-            $file_contacts = DB::table('contacts')->select('id', 'display_last_first')                                               // get all contacts for this file
-                ->whereIn('id', $from_contacts)
-                ->orWhereIn('id', $to_contacts)
+            $file_contacts = DB::table('contacts')->select('id', 'display_last_first')
+                ->where('faux_deleted', false)
+                ->where(function ($query) use ($from_contacts, $to_contacts) {
+                    $query->whereIn('id', $from_contacts)
+                        ->orWhereIn('id', $to_contacts);
+                })
                 ->get();
         } else {
             $file_contacts = [];

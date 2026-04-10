@@ -51,6 +51,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
 
     Route::resource('users', UserController::class)->names('users');
     Route::resource('contacts', ContactController::class)->names('contacts');
+    Route::patch('/contacts/{contact}/restore', [ContactController::class, 'restore'])->name('contacts.restore');
     Route::resource('files', FileController::class)->names('files');
     Route::resource('files.entries', EntryController::class)->names('entries');
     Route::resource('filetypes', FiletypeController::class)->names('filetypes');

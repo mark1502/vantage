@@ -11,10 +11,13 @@ const { theme, setTheme } = useTheme();
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
-const props = defineProps({ contacts: Object});
+const props = defineProps({ contacts: Object, filter: String });
 
 const search = ref('');             // search field, set to the search parameter, or empty if not present
 const contact1 = ref(null);         // contact1 is the currently selected contact, set to null initially
+const activeFilter = ref(props.filter || 'current');
+
+const isDeleted = computed(() => contact1.value?.faux_deleted ?? false);
 
 const state = reactive({            // state object to hold reactive data
     current_row: 0,
@@ -31,28 +34,40 @@ watch(search, value => {            // watch function on the search field
         state.editurl = '';
     }
 
-    router.get('/contacts', { search: value }, 
-    {   preserveState: true, 
+    router.get('/contacts', { search: value, filter: activeFilter.value },
+    {   preserveState: true,
         replace: true,
         onSuccess: () => {
             state.current_row = 0;
         },
-        onFinish: visit => {
+        onFinish: () => {
             update_disp();
         },
     });
 });
 
+function filterChanged(newFilter) {
+    activeFilter.value = newFilter;
+    router.get('/contacts', { filter: newFilter, show: state.show }, {
+        preserveState: true,
+        replace: true,
+        onSuccess: () => {
+            document.activeElement.blur();
+            state.current_row = 0;
+            update_disp();
+        },
+    });
+}
+
 function update_disp() {
     if (props.contacts.data.length) {
         contact1.value = props.contacts.data[state.current_row];
-        state.editurl = route('contacts.edit', { contact: contact1.value.id, page: props.contacts.current_page, show: state.show });
-    }
-    else {
+        state.editurl = route('contacts.edit', { contact: contact1.value.id, page: props.contacts.current_page, show: state.show, filter: activeFilter.value });
+    } else {
         state.editurl = '';
-    } // end if
+    }
 
-    state.createurl = route('contacts.create', { page: props.contacts.current_page, show: state.show });
+    state.createurl = route('contacts.create', { page: props.contacts.current_page, show: state.show, filter: activeFilter.value });
 }
 
 function contact_clicked(index) {
@@ -63,11 +78,15 @@ function contact_clicked(index) {
 function contact_dblclick(index) {
     state.current_row = index;
     update_disp();
+    if (contact1.value?.faux_deleted) {
+        document.getElementById('deleted_edit_modal').showModal();
+        return;
+    }
     router.get( state.editurl ) ;
 }
 
 function showChanged() {
-    router.get( route('contacts.index', { page: 1, show: state.show }) );
+    router.get(route('contacts.index', { page: 1, show: state.show, filter: activeFilter.value }));
 }
 
 function deleteClicked() {
@@ -77,7 +96,16 @@ function deleteClicked() {
 }
 
 function deleteContact() {
-    router.delete( route('contacts.destroy', { contact: contact1.value.id, page: props.contacts.current_page, show: state.show }) );
+    router.delete(route('contacts.destroy', { contact: contact1.value.id, page: props.contacts.current_page, show: state.show, filter: activeFilter.value }));
+}
+
+function restoreContact() {
+    router.patch(route('contacts.restore', {
+        contact: contact1.value.id,
+        page: props.contacts.current_page,
+        show: state.show,
+        filter: activeFilter.value,
+    }));
 }
 
 function deleteCancelled() {
@@ -87,14 +115,13 @@ function deleteCancelled() {
 
 const handleTheKepress = (e) => {
     let changeit = false;
-    if(e.altKey && e.key==='a') { 
+    if(e.altKey && e.key==='a') {
         e.preventDefault();
-        router.get(state.createurl);
-     }
-     else if(e.altKey && e.key==='c') { 
+        if (!isDeleted.value) router.get(state.createurl);
+    } else if(e.altKey && e.key==='c') {
         e.preventDefault();
-        router.get(state.editurl);
-     }
+        if (!isDeleted.value) router.get(state.editurl);
+    }
     else if (e.code >= 'KeyA' && e.code <= 'KeyZ' && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
         search.value = search.value + e.key;
@@ -113,7 +140,7 @@ const handleTheKepress = (e) => {
             state.current_row--;
             changeit = true;
         } else if( e.key === 'Enter' ) {
-            router.get(state.editurl);
+            if (!isDeleted.value) router.get(state.editurl);
         } else if( e.key === 'PageUp' && props.contacts.prev_page_url ) {
             router.get(props.contacts.prev_page_url);
         } else if( e.key === 'PageDown' && props.contacts.next_page_url ) {
@@ -166,9 +193,11 @@ update_disp();
                         <div class="w-1/2 mx-4">
                             <!-- Table container - takes full width of parent -->
                             <div class="">
-                                <div class="flex justify-end mt-2 pb-2">
-                                    <label v-if="search" for="searchInput" class="text-base-content text-lg font-semibold mr-2">Searching:</label>
-                                    <input v-model="search" id="searchInput" name="searchInput" placeholder="Search ..." class="input input-bordered input-sm w-56 px-2" autocomplete="off" />
+                                <div class="flex justify-end items-center mt-2 pb-2">
+                                    <div class="flex items-center">
+                                        <label v-if="search" for="searchInput" class="text-base-content text-lg font-semibold mr-2">Searching:</label>
+                                        <input v-model="search" id="searchInput" name="searchInput" placeholder="Search ..." class="input input-bordered input-sm w-56 px-2" autocomplete="off" />
+                                    </div>
                                 </div>
                                 <div v-if="contacts.data.length">
                                     <table class="border-collapse border border-gray-500 w-full" id="contactlist">
@@ -182,10 +211,11 @@ update_disp();
                                                 :class="setEntryClass(index)"
                                                 @click="contact_clicked(index)" @dblclick="contact_dblclick(index)">
                                                 <td class="px-2 py-2 whitespace-nowrap">
-                                                    <div class="flex items-center">
-                                                        <div class="text-base font-sans font-normal">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="text-base font-sans font-normal" :class="contact.faux_deleted ? 'line-through text-base-content/50' : ''">
                                                             {{ contact.display_last_first }}
                                                         </div>
+                                                        <span v-if="activeFilter === 'all' && contact.faux_deleted" class="badge badge-sm badge-warning">deleted</span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -195,20 +225,29 @@ update_disp();
                                         </tbody>
                                     </table>
                                     <div class="min-w-full btn-group flex justify-between mt-2 items-center">
-                                        <div class="flex items-baseline ml-2">
-                                            <label class="font-bold mr-2">
-                                                Show:
-                                            </label>
-                                            <select v-model="state.show" class="select select-bordered select-sm" id="showSelect"
-                                                @change="showChanged">
-                                                <option>6</option>
-                                                <option>8</option>
-                                                <option selected>10</option>
-                                                <option>12</option>
-                                                <option>15</option>
-                                                <option>20</option>
-                                                <option>25</option>
-                                            </select>
+                                        <div class="flex items-baseline ml-2 gap-4">
+                                            <div class="flex items-baseline">
+                                                <label class="font-bold mr-2">Show:</label>
+                                                <select v-model="state.show" class="select select-bordered select-sm" id="showSelect"
+                                                    @change="showChanged">
+                                                    <option>6</option>
+                                                    <option>8</option>
+                                                    <option selected>10</option>
+                                                    <option>12</option>
+                                                    <option>15</option>
+                                                    <option>20</option>
+                                                    <option>25</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex items-baseline">
+                                                <label class="font-bold mr-2">Filter:</label>
+                                                <select v-model="activeFilter" class="select select-bordered select-sm" id="filterSelect"
+                                                    @change="filterChanged(activeFilter)">
+                                                    <option value="current">Current</option>
+                                                    <option value="deleted">Deleted</option>
+                                                    <option value="all">All</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <Pagination :links="contacts.links" :only="['contacts','files']" />
                                     </div>
@@ -216,14 +255,20 @@ update_disp();
                                 <div v-else class="border p-4 text-xl text-center">No Contacts Found!
                                 </div>
                                 <div name="control_buttons" class="flex mt-8 justify-around">
-                                    <Link id="addbutton" :href='state.createurl' class="btn btn-primary gap-0">
+                                    <Link id="addbutton" :href='isDeleted ? undefined : state.createurl'
+                                        class="btn btn-primary gap-0" :class="isDeleted ? 'btn-disabled' : ''">
                                         + &nbsp;<u>A</u>dd
                                     </Link>
-                                    <Link v-if="props.contacts.total !== 0" id="editbutton" :href='state.editurl' class="btn btn-primary gap-0">
+                                    <Link v-if="props.contacts.total !== 0" id="editbutton"
+                                        :href='isDeleted ? undefined : state.editurl'
+                                        class="btn btn-primary gap-0" :class="isDeleted ? 'btn-disabled' : ''">
                                         △ &nbsp;<u>C</u>hange
                                     </Link>
-                                    <button v-if="props.contacts.total !== 0" type="button" id="deletebutton" class="btn btn-outline btn-error" @click="deleteClicked()" >
+                                    <button v-if="props.contacts.total !== 0 && !isDeleted" type="button" id="deletebutton" class="btn btn-outline btn-error" @click="deleteClicked()">
                                         - &nbsp;Delete
+                                    </button>
+                                    <button v-if="props.contacts.total !== 0 && isDeleted" type="button" id="restorebutton" class="btn btn-outline btn-success" @click="restoreContact()">
+                                        ↩ &nbsp;Restore
                                     </button>
                                 </div>
 
@@ -280,11 +325,26 @@ update_disp();
             </div>
         </div>
 
+        <!-- Deleted Contact Edit Blocked Modal -->
+        <dialog id="deleted_edit_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="text-xl font-bold text-center">Cannot Edit Deleted Contact</h3>
+                <p class="py-4 text-lg text-center">Deleted contacts cannot be edited.</p>
+                <p class="text-base text-center">You must first <strong>Restore</strong> this contact before it can be edited.</p>
+                <form method="dialog">
+                    <div class="mt-8 flex justify-center">
+                        <button class="btn btn-primary">OK</button>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
+
         <!-- Delete Modal -->
         <dialog id="delete_modal" class="modal">
         <div class="modal-box">
             <h3 class="text-xl font-bold text-center">Confirm Delete</h3>
-            <p v-if="contacts.data.length" class="py-4 text-lg">Delete contact: "{{ contact1.display_name }}"?</p>
+            <p v-if="contacts.data.length" class="py-4 text-lg">Remove contact from active list: "{{ contact1.display_name }}"?</p>
             <p class="">Are you sure?</p>
             <form method="dialog">
                 <div class="mt-8 flex justify-center gap-10">

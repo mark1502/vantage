@@ -80,6 +80,14 @@ class Contact extends Model
         return $query->where('is_firm_member', false);
     }
 
+    /**
+     * Scope query to exclude faux-deleted contacts.
+     */
+    public function scopeNotFauxDeleted($query)
+    {
+        return $query->where('faux_deleted', false);
+    }
+
     public function files()
     {
         return $this->belongsToMany(File::class, 'contact_roles');

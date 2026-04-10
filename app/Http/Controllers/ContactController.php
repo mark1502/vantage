@@ -2,15 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
 use App\Models\Contact;
-use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-
-
+use Inertia\Inertia;
 
 class ContactController extends Controller
 {
@@ -22,23 +17,26 @@ class ContactController extends Controller
     public function index(Request $request)
     {
         $show = $request->show ?? 10;
+        $filter = $request->query('filter', 'current');
 
-        $contacts = Contact::query()                // main query for contacts
-        ->select( 'id', 'title', 'last_name', 'first_name', 'middle_name', 'srjr', 'esqphd', 'company', 'business_title', 'display_name', 'display_last_first', 'address', 
-                  'email', 'email_alt', 'home_phone', 'work_phone', 'cell_phone', 'fax_phone', 'other_phone', 'note', 'display_name', 'display_last_first' )
-        ->with( 'files:id,name' )                                                     // with associated files
-        ->where( 'firm_id', $request->user()->firm_id )                               // only contacts for this firm
-        ->where( 'is_firm_member', '=', false )                                       // exclude firm members
-        ->when( $request->query('search'), function($query, $search) {               // if there is a search query, filter by display_last_first
-            $query->where('display_last_first', 'like', $search . '%');
-        })
-        ->orderBy( 'display_last_first' )
-        ->paginate( $show )->onEachSide( 2 )
-        ->withQueryString();
+        $contacts = Contact::query()
+            ->select('id', 'title', 'last_name', 'first_name', 'middle_name', 'srjr', 'esqphd',
+                'company', 'business_title', 'display_name', 'display_last_first', 'address',
+                'email', 'email_alt', 'home_phone', 'work_phone', 'cell_phone', 'fax_phone',
+                'other_phone', 'note', 'faux_deleted')
+            ->with('files:id,name')
+            ->where('firm_id', $request->user()->firm_id)
+            ->where('is_firm_member', '=', false)
+            ->when($filter === 'current', fn ($query) => $query->where('faux_deleted', false))
+            ->when($filter === 'deleted', fn ($query) => $query->where('faux_deleted', true))
+            ->when($request->query('search'), fn ($query, $search) => $query->where('display_last_first', 'like', $search.'%')
+            )
+            ->orderBy('display_last_first')
+            ->paginate($show)->onEachSide(2)
+            ->withQueryString();
 
-        return Inertia::render('Contacts/Index', compact(['contacts']) );
+        return Inertia::render('Contacts/Index', compact('contacts', 'filter'));
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -50,17 +48,16 @@ class ContactController extends Controller
         return inertia::render('Contacts/Create');
     }
 
-
     public function store(Request $request)
-    {   $checkvals = [];
+    {
+        $checkvals = [];
         $checkvals['title'] = ['required', Rule::in(['Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Hon.', 'Co.'])];
 
-        if( $request->title === 'Co.' ) {
+        if ($request->title === 'Co.') {
             $checkvals['company'] = 'required|max:255';
             $checkvals['first_name'] = 'nullable|max:255';
             $checkvals['last_name'] = 'nullable|max:255';
-        }
-        else {
+        } else {
             $checkvals['company'] = 'nullable|max:255';
             $checkvals['first_name'] = 'required|max:255';
             $checkvals['last_name'] = 'required|max:255';
@@ -79,10 +76,10 @@ class ContactController extends Controller
         $checkvals['fax_phone'] = 'nullable|max:255';
         $checkvals['other_phone'] = 'nullable|max:255';
         $checkvals['note'] = 'nullable|max:1000';
-        $checkvals['display_name'] = ['max:255', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id) ];
+        $checkvals['display_name'] = ['max:255', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id)];
         $checkvals['display_last_first'] = 'max:255';
 
-        $validatedVals = $request->validate( $checkvals, [
+        $validatedVals = $request->validate($checkvals, [
             'display_name' => 'Each name in your contact list must be unique, and this name is already in your list.  To distinguish this contact, try using a middle initial or appending a number in parentheses to the last name.',
         ]);
 
@@ -90,18 +87,17 @@ class ContactController extends Controller
 
         $contact = Contact::create($validatedVals);                 // create the contact with the validated values
 
-        return redirect( route( 'contacts.index', [ 'page' => $request->current_page, 'show' => $request->show ] ) );
+        return redirect(route('contacts.index', ['page' => $request->current_page, 'show' => $request->show]));
     }
-
 
     public function show(Contact $contact)
     {
         //
     }
 
-
     public function edit(Contact $contact)
-    {   return Inertia::render('Contacts/Edit', [               //only pass these values to the front end
+    {
+        return Inertia::render('Contacts/Edit', [
             'contact' => [
                 'id' => $contact->id,
                 'title' => $contact->title,
@@ -125,23 +121,22 @@ class ContactController extends Controller
                 'note' => $contact->note,
                 'display_name' => $contact->display_name,
                 'display_last_first' => $contact->display_last_first,
+                'faux_deleted' => $contact->faux_deleted,
             ],
         ]);
     }
 
-
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Contact  $contact
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Contact $contact)
-    {   $checkvals = [];
+    {
+        $checkvals = [];
         $checkvals['title'] = ['required', Rule::in(['Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Hon.', 'Co.'])];
 
-        if( $request->title === 'Co.' ) {
+        if ($request->title === 'Co.') {
             $checkvals['company'] = 'required|max:255';
             $checkvals['first_name'] = 'nullable|max:255';
             $checkvals['last_name'] = 'nullable|max:255';
@@ -164,36 +159,43 @@ class ContactController extends Controller
         $checkvals['fax_phone'] = 'nullable|max:255';
         $checkvals['other_phone'] = 'nullable|max:255';
         $checkvals['note'] = 'nullable|max:1000';
-        if( $request->display_name !== $contact->display_name ) {    // if the name has changed, confirm it is still unique in the table for this firm
-            $checkvals['display_name'] = ['max:255', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id) ];
+        if ($request->display_name !== $contact->display_name) {    // if the name has changed, confirm it is still unique in the table for this firm
+            $checkvals['display_name'] = ['max:255', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id)];
         } else {
             $checkvals['display_name'] = 'max:255';
-        }        
+        }
         $checkvals['display_last_first'] = 'max:255';
 
-        $validatedVals = $request->validate( $checkvals, [
+        $validatedVals = $request->validate($checkvals, [
             'display_name' => 'Each name in your contact list must be unique, and this name is already in your list.  To distinguish this contact, try using a middle initial or appending a number in parentheses to the last name.',
         ]);
 
         $contact->update($validatedVals);  // update the contact with the validated values
 
-        return redirect( route( 'contacts.index', ['page' => $request->current_page, 'show' => $request->show]) );
+        return redirect(route('contacts.index', ['page' => $request->current_page, 'show' => $request->show]));
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Contact  $contact
      * @return \Illuminate\Http\Response
      */
     public function destroy(Request $request, Contact $contact)
     {
-        // BIG NOTE: I need to implement a hide on delete, similar to softDeletes, but safer
-        // dd($contact);
-        $contact->delete();
-        return redirect( route( 'contacts.index', ['page' => $request->page, 'show' => $request->show]))
-            ->with('success', 'Contact deleted successfully.');
+        $contact->update(['faux_deleted' => true]);
 
+        return redirect(route('contacts.index', ['page' => $request->page, 'show' => $request->show, 'filter' => $request->filter]))
+            ->with('success', 'Contact deleted successfully.');
     }
 
+    public function restore(Request $request, Contact $contact)
+    {
+        $contact->update(['faux_deleted' => false]);
+
+        return redirect(route('contacts.index', [
+            'page' => $request->page,
+            'show' => $request->show,
+            'filter' => $request->filter,
+        ]))->with('success', 'Contact restored successfully.');
+    }
 } // end class
