@@ -32,7 +32,7 @@ const props = defineProps({
     getFolderData: Function,
 });
 
-const display_name = reactive({                         // used to display the from, to and file names
+const display_name = reactive({                         // used to display the from, to and file names on the form
     from: '',
     to: '',
     file: '',
@@ -94,10 +94,10 @@ const disp = reactive({
     response_status: "",                                // displays the status of a response (i.e., late, ontime)
     response_color: 'text-red-500',
     entry_responses_received: Object,                   // display object of responses received to this entry
-    show_entry_form: false,
+    show_entry_form: false,                             // shows or hides the entry form
     show_file_contacts: "off",                          // show file contacts modal - 'from', 'to' or 'off'
-    show_contact_id: null,
-    show_contact_name: '',
+    show_contact_id: null,                              // used for file contacts modal
+    show_contact_name: '',                              // used for file contacts modal
 });
 
 const related_entry = reactive({                        // used for displaying info about the related entry
@@ -118,6 +118,7 @@ function closeResponseModal() {
     if (responseModalRef.value) responseModalRef.value.close();
 }
 
+// Entries in the current file that are expecting a response, formatted for the response picker
 const responseCandidates = computed(() => {
     if (!props.p1.expecting_response || !props.p1.entries.data.length) return [];
     return props.p1.expecting_response
@@ -130,6 +131,7 @@ const responseCandidates = computed(() => {
         }));
 });
 
+// Preserves the previously-saved response link when it's no longer in the expecting_response list
 const fallbackResponseEntry = computed(() => {
     if (entry_form.was_response_to && !related_entry.expecting_response) {
         return {
@@ -142,6 +144,7 @@ const fallbackResponseEntry = computed(() => {
     return null;
 });
 
+// Merges the fallback entry with candidates into a deduplicated list for the response picker
 const responseRows = computed(() => {
     const rows = [];
     if (fallbackResponseEntry.value) rows.push(fallbackResponseEntry.value);
@@ -151,11 +154,12 @@ const responseRows = computed(() => {
     return rows;
 });
 
+// Formats the currently selected response entry as a display string (type - date - from)
 const currentResponseDisplay = computed(() => {
     if (!entry_form.is_response_to) return null;
     const match = responseRows.value.find((r) => r.id === entry_form.is_response_to);
     if (!match) return null;
-    return reformat_date(match.date) + ' ( '  + match.type + ' ) From: ' + match.from;
+    return match.type + ' - ' + reformat_date(match.date) + ' - ' + match.from;
 });
 
 function pickResponseEntry(id) {
@@ -1237,16 +1241,11 @@ update_disp();
                     Response to:
                 </label>
                 <template v-if="currentResponseDisplay">
-                    <span class="ml-2 pl-2 pr-4 py-1 border border-gray-300 rounded-md text-xs bg-base-100 text-base-content">
+                    <span class="ml-2 pl-2 pr-4 py-1 border-x border-base-content/30 text-xs text-base-content">
                         {{ currentResponseDisplay }}
                     </span>
-                    <button type="button" class="btn btn-xs btn-primary ml-3" @click="openResponseModal()">
-                        Edit
-                    </button>
-                </template>
-                <template v-else>
-                    <button type="button" class="btn btn-xs btn-primary ml-2" @click="openResponseModal()">
-                        Select responsive entry…
+                    <button type="button" class="btn btn-xs btn-primary btn-outline ml-3" @click="openResponseModal()">
+                        Change
                     </button>
                 </template>
             </div>
