@@ -107,10 +107,10 @@ onUnmounted(() => {
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <HoverDropdown align="left" width="56" class="ml-3 flex items-center">
                                     <template #trigger>
-                                        <span :class="fileNavClasses" class="cursor-pointer">
+                                        <Link :href="route('files.index')" :class="fileNavClasses" class="cursor-pointer">
                                             <img class="block h-4" src="/images/File_icon_1.png">
                                             <span class="ml-2">File</span>
-                                        </span>
+                                        </Link>
                                     </template>
 
                                     <template #content>

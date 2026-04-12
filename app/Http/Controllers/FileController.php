@@ -21,6 +21,7 @@ class FileController extends Controller
     {
         // dd($request->user()->firm_id);
         $show = $request->query('show');
+        $status = $request->query('status', 'open');
 
         $files = File::with([
             'filetype',
@@ -29,6 +30,13 @@ class FileController extends Controller
             ->where('firm_id', $request->user()->firm_id)
             ->when($request->query('search'), function ($query, $search) {
                 $query->where('name', 'like', '%'.$search.'%');
+            })
+            ->when($status !== 'all', function ($query) use ($status) {
+                if ($status === 'open') {
+                    $query->whereNull('date_closed');
+                } else {
+                    $query->whereNotNull('date_closed');
+                }
             })
             ->orderBy('name')
             ->paginate($show ? $show : 10)
@@ -40,7 +48,7 @@ class FileController extends Controller
             ->where('name', 'file_open_to')
             ->value('setting') ?? 'correspondence';
 
-        return Inertia::render('Files/Index', compact('files', 'fileOpenTo'));
+        return Inertia::render('Files/Index', compact('files', 'fileOpenTo', 'status'));
 
     }
 

@@ -14,20 +14,24 @@ const urlParams = new URLSearchParams(queryString);
 const props = defineProps({
     files: Object,
     fileOpenTo: { type: String, default: 'correspondence' },
+    status: { type: String, default: 'open' },
 });
 
 const page = usePage();
 const subscription = computed(() => page.props.subscription);
 const isAdmin = computed(() => page.props.auth.user.user_type === 'Admin');
 const atFileLimit = computed(() => !subscription.value?.can_create_files);
+const addDisabled = computed(() => atFileLimit.value || state.status === 'closed');
 
 const search = ref(urlParams.get('search') || '');      // search field, set to the search parameter in the URL, or empty if not present
+let searchTimeout = null;
 const file1 = ref(null);                                // ref used for code shortcut to the file
 
 const state = reactive({
     hover: false,
     current_row: 0,
     show: props.files.per_page ?? 10,               // set in the controller - if not show, then 15
+    status: props.status,
     display: 'name',
     sort_on: 'name',
     sort_order: 'asc'
@@ -44,14 +48,17 @@ watch( search, (value) => {                                                     
         disp.editurl = '';
     }
 
-    router.get('/files', { search: value, page: 1, show: state.show }, { preserveState: true, replace: true,
-        onSuccess: () => {
-            state.current_row = 0;
-        },
-        onFinish: visit => {
-            update_disp();
-        },
-    });
+    clearTimeout(searchTimeout);                                                                        // debounce: clear any pending search request
+    searchTimeout = setTimeout(() => {
+        router.get('/files', { search: value, page: 1, show: state.show, status: state.status }, { preserveState: true, replace: true,
+            onSuccess: () => {
+                state.current_row = 0;
+            },
+            onFinish: visit => {
+                update_disp();
+            },
+        });
+    }, 300);                                                                                            // 300ms debounce delay
 });
 
 function getValidFilepart(file) {                                                                               // returns the valid filepart for the given file based on user preference
@@ -72,7 +79,7 @@ function update_disp() {                                                        
         disp.openurl = "";
     } // end if
 
-    disp.createurl = route( 'files.create', { page: props.files.current_page, show: state.show } );               // set the createurl to the route for creating a file
+    disp.createurl = route( 'files.create', { page: props.files.current_page, show: state.show, status: state.status } );               // set the createurl to the route for creating a file
 }
 
 const disable_button = computed(() => {                                                                             // computed function to disable button if not files
@@ -98,7 +105,11 @@ function file_dblclick(index) {                                                 
 }
 
 function showChanged() {
-    router.get( route('files.index'), { page: 1, show: state.show } );
+    router.get( route('files.index'), { page: 1, show: state.show, status: state.status } );
+}
+
+function statusChanged() {
+    router.get( route('files.index'), { page: 1, show: state.show, status: state.status } );
 }
 
 
@@ -115,7 +126,7 @@ function handleTheKeypress( e ) {
     let changeit = false;
     if(e.altKey && e.key==='a') {                           // alt-a (Add)
         e.preventDefault();
-        if (!atFileLimit.value) router.get(disp.createurl);
+        if (!addDisabled.value) router.get(disp.createurl);
     } else if(e.altKey && e.key==='c') {                    // alt-c (Change)
         e.preventDefault();
         router.get(disp.editurl);
@@ -198,7 +209,7 @@ update_disp();                                                                  
                         <!-- Search input here -->
                             <div v-if="files.data.length" class="flex justify-end pb-2">
                                 <div v-show="search" class="mr-2">Searching: </div>  
-                                <input v-model="search" id="searchInput" placeholder="Search ..." class="border px-2 mr-2 rounded" autocomplete="off"/>
+                                <input v-model="search" id="searchInput" placeholder="Search ..." class="border border-base-content/30 px-2 mr-2 rounded" autocomplete="off"/>
                             </div>
 
                         <!-- Table Starts Here -->
@@ -217,6 +228,7 @@ update_disp();                                                                  
                                             :class="setEntryClass(index)" @click="file_clicked(index)" @dblclick="file_dblclick(index)">
                                             <td class="px-2 py-2 w-[480px]">
                                                 {{ file.name }}
+                                                <span v-if="file.date_closed" class="badge badge-sm badge-outline badge-error ml-2">closed</span>
                                             </td>
                                         </tr>
                                         <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-base-content bg-base-100">
@@ -227,12 +239,12 @@ update_disp();                                                                  
 
                             <!-- Paginator Line Here-->
                                 <div class="btn-group flex justify-between mt-2 items-center">
-                                    <div class="flex items-center ">
+                                    <div class="flex items-center gap-2">
                                         <label for="state_show" class="font-bold ml-2 mr-1">
                                             Show:
                                         </label>
                                         <select v-model="state.show" id="state_show"  @change="showChanged"
-                                            class="select select-bordered select-sm">
+                                            class="select select-bordered select-sm w-auto">
                                             <option>6</option>
                                             <option>8</option>
                                             <option selected>10</option>
@@ -241,54 +253,60 @@ update_disp();                                                                  
                                             <option>20</option>
                                             <option>25</option>
                                         </select>
+                                        <select v-model="state.status" id="state_status" @change="statusChanged"
+                                            class="select select-bordered select-sm w-auto">
+                                            <option value="open">Open Files</option>
+                                            <option value="closed">Closed Files</option>
+                                            <option value="all">All Files</option>
+                                        </select>
                                     </div>
-                            <!-- File limit indicator (free plan only) -->
-                            <div v-if="subscription?.file_limit" class="flex-1 px-2">
-                                <div class="flex items-center justify-center text-xs mb-1">
-                                    <span>{{ subscription.file_count }} of {{ subscription.file_limit }} files used</span>
-                                    <span v-if="! atFileLimit" class="text-success-content font-semibold ml-2">(free plan)</span>
-                                    <span v-if="atFileLimit" class="text-error font-semibold ml-4">Limit Reached</span>
-                                </div>
-                                <!-- <progress
-                                    class="progress w-full"
-                                    :class="atFileLimit ? 'progress-error' : 'progress-primary'"
-                                    :value="subscription.file_count"
-                                    :max="subscription.file_limit"
-                                ></progress> -->
-                            </div>
 
-                                    <div class="pr-2">
+                                    <div class="flex-1 flex justify-end pr-2">
                                         <Pagination :links="files.links" :only="['files']"/>
                                     </div>
-                                </div>    
+                                </div>
                             </div>
 
                         <!-- If no files, then display this -->
-                            <div v-else class="border p-4 mt-8 text-xl font-bold text-center">No Matching Files Found!
+                            <div v-else class="border p-4 mt-8 text-xl font-bold text-center">
+                                No Matching Files Found!
+                                <div v-if="state.status === 'closed'" class="mt-6">
+                                    <button @click="state.status = 'open'; statusChanged()" class="btn btn-primary">
+                                        View Open Files
+                                    </button>
+                                </div>
                             </div>
 
-                        <!-- Here are the Buttons -->
-                            <div v-if="atFileLimit" class="text-sm mt-3 mb-2 ml-2">
-                                <Link v-if="isAdmin" :href="route('subscription.index')" class="link link-primary font-semibold">
-                                    Upgrade to create unlimited files
-                                </Link>
-                                <span v-else class="text-primary">Contact your firm admin to subscribe for unlimited files.</span>
-                            </div>
-                            <div name="control_buttons" class="flex justify-around" :class="atFileLimit ? 'mt-2' : 'mt-8'">
-                                <Link v-if="!atFileLimit" id="addbutton" :href='disp.createurl' class="btn btn-primary gap-0 w-24">
-                                    + &nbsp;<u>A</u>dd
-                                </Link>
-                                <button v-else disabled class="btn btn-primary gap-0 w-24 btn-disabled">
-                                    + &nbsp;Add
-                                </button>
-                                <!-- <Link v-if="files.total !== 0" id="editbutton" :href='disp.editurl' class="btn btn-outline btn-primary gap-0"> △ &nbsp;<u>C</u>hange</Link> -->
-                                <Link v-if="files.total !== 0" id="openbutton" :href='disp.openurl' class="btn btn-primary gap-0 w-32" :disable="disable_button">
-                                    🗁 &nbsp;<u>O</u>pen
-                                </Link>
-                                <Link v-if="files.total !== 0" id="deletebutton" href='' @click="deleteClicked" class="btn btn-outline btn-error" >
-                                    - &nbsp;Delete
-                                </Link>
-                            </div>
+                        <!-- Here are the Buttons (hidden when viewing closed files with no results) -->
+                            <template v-if="!(state.status === 'closed' && !files.data.length)">
+                                <div name="control_buttons" class="flex justify-around mt-5">
+                                    <Link v-if="!addDisabled" id="addbutton" :href='disp.createurl' class="btn btn-primary gap-0 w-24">
+                                        + &nbsp;<u>A</u>dd
+                                    </Link>
+                                    <button v-else disabled class="btn btn-primary gap-0 w-24 btn-disabled">
+                                        + &nbsp;Add
+                                    </button>
+                                    <!-- <Link v-if="files.total !== 0" id="editbutton" :href='disp.editurl' class="btn btn-outline btn-primary gap-0"> △ &nbsp;<u>C</u>hange</Link> -->
+                                    <Link v-if="files.total !== 0" id="openbutton" :href='disp.openurl' class="btn btn-primary gap-0 w-32" :disable="disable_button">
+                                        🗁 &nbsp;<u>O</u>pen
+                                    </Link>
+                                    <Link v-if="files.total !== 0" id="deletebutton" href='' @click="deleteClicked" class="btn btn-outline btn-error" >
+                                        - &nbsp;Delete
+                                    </Link>
+                                </div>
+                                <div v-if="atFileLimit" class="text-sm mt-3 mb-2 ml-2">
+                                    <Link v-if="isAdmin" :href="route('subscription.index')" class="link link-primary font-semibold">
+                                        Upgrade to create unlimited files
+                                    </Link>
+                                    <span v-else class="text-primary">Contact your firm admin to subscribe for unlimited files.</span>
+                                </div>
+                                <!-- File limit indicator (free plan only) -->
+                                <div v-if="subscription?.file_limit" class="text-center mt-4 text-xs">
+                                    <span>{{ subscription.file_count }} of {{ subscription.file_limit }} files used</span>
+                                    <span v-if="!atFileLimit" class="text-success-content font-semibold ml-2">(free plan)</span>
+                                    <span v-if="atFileLimit" class="text-error font-semibold ml-2">Limit Reached</span>
+                                </div>
+                            </template>
                         </div>
 
                     <!-- Left Side Ends Here -->

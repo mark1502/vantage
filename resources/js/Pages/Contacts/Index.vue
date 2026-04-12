@@ -193,7 +193,7 @@ update_disp();
                         <div class="w-1/2 mx-4">
                             <!-- Table container - takes full width of parent -->
                             <div class="">
-                                <div class="flex justify-end items-center mt-2 pb-2">
+                                <div v-if="contacts.data.length" class="flex justify-end items-center mt-2 pb-2">
                                     <div class="flex items-center">
                                         <label v-if="search" for="searchInput" class="text-base-content text-lg font-semibold mr-2">Searching:</label>
                                         <input v-model="search" id="searchInput" name="searchInput" placeholder="Search ..." class="input input-bordered input-sm w-56 px-2" autocomplete="off" />
@@ -252,11 +252,15 @@ update_disp();
                                         <Pagination :links="contacts.links" :only="['contacts','files']" />
                                     </div>
                                 </div>
-                                <div v-else class="border p-4 text-xl text-center">No Contacts Found!
+                                <div v-else class="border p-4 text-xl text-center flex flex-col items-center">
+                                    <span>{{ activeFilter === 'deleted' ? 'No Deleted Contacts Found!' : 'No Contacts Found!' }}</span>
+                                    <button v-if="activeFilter === 'deleted'" class="btn btn-primary btn-sm mt-6" @click="filterChanged('current')">
+                                        View Current Contacts
+                                    </button>
                                 </div>
                                 <div name="control_buttons" class="flex mt-8 justify-around">
-                                    <Link id="addbutton" :href='isDeleted ? undefined : state.createurl'
-                                        class="btn btn-primary gap-0" :class="isDeleted ? 'btn-disabled' : ''">
+                                    <Link v-if="activeFilter !== 'deleted'" id="addbutton" :href='state.createurl'
+                                        class="btn btn-primary gap-0">
                                         + &nbsp;<u>A</u>dd
                                     </Link>
                                     <Link v-if="props.contacts.total !== 0" id="editbutton"
@@ -277,7 +281,7 @@ update_disp();
                         
                         <!-- Right half - for text areas -->
                         <div class="w-1/2 mx-4">
-                            <div class="text-xl font-bold text-base-content mt-2 ml-2">
+                            <div v-if="contacts.data.length" class="text-xl font-bold text-base-content mt-2 ml-2">
                                 Contact Info:
                             </div>
                                 
