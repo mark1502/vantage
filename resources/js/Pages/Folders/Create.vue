@@ -4,15 +4,15 @@
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-normal text-sm text-gray-800 leading-tight ml-2">
+            <h2 class="font-normal text-sm text-base-content leading-tight ml-2">
                 <Link :href="('/folders?page=' + form.current_page + '&show=' + form.show)">Folders</Link> > Create
             </h2>
         </template>
 
         <div class="py-3 min-h-screen">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 min-h-screen">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <p class="mt-3 text-3xl font-bold text-center text-blue-800">
+                <div class="bg-base-100 overflow-hidden shadow-sm sm:rounded-lg">
+                    <p class="mt-3 text-3xl font-bold text-center text-primary">
                         Add New Folder
                     </p>
 

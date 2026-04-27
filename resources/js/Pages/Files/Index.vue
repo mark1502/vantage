@@ -37,10 +37,10 @@ const state = reactive({
     sort_order: 'asc'
 });
 
-const disp = reactive({ 
-    editurl: '', 
-    createurl: '', 
-    openurl: '', 
+const disp = reactive({
+    editurl: '',
+    createurl: '',
+    openurl: '',
  });
 
 watch( search, (value) => {                                                                                // watch function on the search field
@@ -90,7 +90,7 @@ const disable_button = computed(() => {                                         
 function reformat_date(dt) {
     if (dt === null || dt === undefined) return '';                                                                // if date is null or undefined, return empty string
     dt = dt.toString();                                                                                           // convert date to string
-    return  dt.slice(5,7) + '-' + dt.slice(8,10) + '-' + dt.slice(0,4);    
+    return  dt.slice(5,7) + '-' + dt.slice(8,10) + '-' + dt.slice(0,4);
 }
 
 function file_clicked(index) {                                                                                  // clicked on a file
@@ -141,7 +141,7 @@ function handleTheKeypress( e ) {
 
     let theseKeys = ['Escape', 'ArrowDown', 'ArrowUp', 'Enter', 'PageUp', 'PageDown'];                  // preventDefault on these keypresses
     if( theseKeys.includes(e.key) ) e.preventDefault();
-    
+
     if( e.key === 'Enter' ) {                                                                           // if Enter pressed, open the file
         router.get( disp.openurl );
     } else if( e.key === 'ArrowUp' && state.current_row > 0 ) {                                         // else if ArrowUp && not currently on the top row
@@ -169,7 +169,7 @@ const emptyRows = computed(() => {                                              
 
 function setEntryClass( index ) {                                                       // sets the color of the listbox entries
     if ( index === state.current_row ) {                                                        // if this is the highlighted row
-        return 'text-gray-900 dark:text-gray-900 bg-blue-200 dark:bg-blue-200 border-l-4 border-l-blue-600';
+        return 'text-base-content bg-primary/20 border-l-4 border-l-blue-600';
     }
 
     return 'text-base-content bg-base-100';
@@ -208,19 +208,19 @@ update_disp();                                                                  
 
                         <!-- Search input here -->
                             <div v-if="files.data.length" class="flex justify-end pb-2">
-                                <div v-show="search" class="mr-2">Searching: </div>  
+                                <div v-show="search" class="mr-2">Searching: </div>
                                 <input v-model="search" id="searchInput" placeholder="Search ..." class="border border-base-content/30 px-2 mr-2 rounded" autocomplete="off"/>
                             </div>
 
                         <!-- Table Starts Here -->
                             <div v-if="files.data.length">
                                 <table class="w-full border border-base-content text-base font-sans font-normal" id="filelist">
-                                    <thead class="text-left text-md bg-gray-200">
+                                    <thead class="text-left text-md bg-base-300">
                                         <tr>
-                                            <th class="border-b border-r border-gray-700 text-gray-900 pl-4 ">
+                                            <th class="border-b border-r border-base-content text-base-content pl-4 ">
                                                 File Name
                                             </th>
-                                            <!-- <th class="border-b border-r border-gray-700">Attorney:</th> -->
+                                            <!-- <th class="border-b border-r border-base-content">Attorney:</th> -->
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -314,7 +314,7 @@ update_disp();                                                                  
                         <div v-if="files.data.length" name="right.side" class="w-1/2 ml-12">
                             <p v-if="files.data.length" class="text-xl font-bold text-base-content ml-2">File Details:</p>
 
-                            <div class="rounded-lg w-[430px] mt-2 bg-base-200 border border-gray-400" id="disp_card">
+                            <div class="rounded-lg w-[430px] mt-2 bg-base-200 border border-base-300" id="disp_card">
                                 <div v-if="files.data.length" class="p-4 text-base-content">
                                     <h2 class="card-title text-base-content">{{ file1.name }}</h2>
                                     <p class="mt-2">File Type: &nbsp;{{ file1.filetype.name }}</p>
@@ -328,7 +328,7 @@ update_disp();                                                                  
                                         <p v-else class="w-1/2">S.O.L.: {{ file1.date_sol ? reformat_date(file1.date_sol) : "Not set" }}</p>
                                         <p class="">Filed: &nbsp;{{ file1.date_filed ? reformat_date(file1.date_filed) : "No" }}</p>
                                     </div>
-                                        
+
                                     <p v-if="file1.date_filed" class="mt-2">Court: &nbsp;{{ file1.court_filed }}</p>
                                     <p v-if="file1.date_filed" class="">Docket #: &nbsp;{{ file1.docket_number }}</p>
                                     <p class="mt-2">Our File #: &nbsp;{{ file1.file_number ? file1.file_number : "Not Specified"}}</p>
@@ -338,7 +338,7 @@ update_disp();                                                                  
                             </div>
                             <div v-if="files.data.length" class="pt-4">
                                 <p>Summary:</p>
-                                <textarea rows="3" readonly style="resize: none;" class="bg-base-200 text-base font-sans font-medium w-[430px] rounded-lg border border-gray-400 p-2" >{{ file1.summary }}</textarea>
+                                <textarea rows="3" readonly style="resize: none;" class="bg-base-200 text-base font-sans font-medium w-[430px] rounded-lg border border-base-300 p-2" >{{ file1.summary }}</textarea>
                             </div>
                             <div class="flex">
                                 <Link v-if="files.total !== 0" id="openbutton" :href='disp.editurl' class="btn btn-primary btn-sm btn-outline gap-0 w-44 ml-auto mr-36 mt-3" :disable="disable_button">

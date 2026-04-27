@@ -50,14 +50,14 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 ml-6">
+            <h2 class="font-semibold text-xl text-base-content ml-6">
                 <Link :href="('/files?page=' + file_form.current_page + '&show=' + file_form.show)">Files</Link> > Edit
             </h2>
         </template>
 
         <div class="py-3 min-h-screen">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 min-h-screen">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="bg-base-100 overflow-hidden shadow-sm sm:rounded-lg">
                     <p class="mt-3 text-3xl font-bold text-center text-blue-800">
                         File Information
                     </p>

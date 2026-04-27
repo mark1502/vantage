@@ -73,14 +73,14 @@ function handleKeyDown( event ) {
                 class="input input-bordered input-sm rounded-sm w-64" @keydown="handleKeyDown"/>
 
             <table v-if="display_file.name.length && lookup.file == true"
-                class="mt-8 border border-gray-400 suggestion-table bg-white w-64">
+                class="mt-8 border border-base-300 suggestion-table bg-base-100 w-64">
                 <tr v-for="afile, index in lookup.matching_files.data" :key="afile.id" @click="clicked_file_list(index)" >
                     <td class="pl-4 py-1 text-sm text-base-content bg-base-300 hover:bg-base-100 hover:cursor-default">
                         {{ afile.name }}
                     </td>
                 </tr>
                 <tr v-if="display_file.name.length > 0 && lookup.matching_files.from == null && lookup.file == true">
-                    <td class="text-sm bg-white text-gray-900 text-center border-4 border-amber-500">
+                    <td class="text-sm bg-base-100 text-base-content text-center border-4 border-amber-500">
                         <p class="my-2">No Matching Files Found</p>
                     </td>
                 </tr>

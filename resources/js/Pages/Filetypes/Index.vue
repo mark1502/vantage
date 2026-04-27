@@ -219,7 +219,7 @@ function checker( var_in ) {
 
 
 function setClass( var_in ) {
-    let theClass = var_in ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400';
+    let theClass = var_in ? 'text-success' : 'text-error';
     theClass += var_in ? ' font-semibold' : ' font-light';
     return theClass;
 }
@@ -230,7 +230,7 @@ const emptyRows = computed(() => {
 
 function setEntryClass( index ) {
     if ( index === state.current_row ) {
-        return 'text-gray-900 dark:text-gray-900 bg-blue-200 dark:bg-blue-200 border-l-4 border-l-blue-600';
+        return 'text-base-content bg-primary/20 border-l-4 border-l-blue-600';
     }
     return 'text-base-content bg-base-100';
 }
@@ -291,9 +291,9 @@ update_disp();
                                 </div>
                                 <div v-if="filetypes.data.length">
                                     <table class="w-full border border-base-content text-base font-sans font-normal" id="contactlist">
-                                        <thead class="text-left bg-gray-200">
+                                        <thead class="text-left bg-base-300">
                                             <tr>
-                                            <th class="text-base font-semibold pl-2 text-gray-900 border-b-2 border-gray-800">File Type:</th>
+                                            <th class="text-base font-semibold pl-2 text-base-content border-b-2 border-base-content">File Type:</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -350,7 +350,7 @@ update_disp();
                             </div>
                             <div name="right.side" class="ml-16">
 
-                                <div class="rounded-lg w-[530px] h-[360px] bg-base-200 border border-gray-400" id="disp_card">
+                                <div class="rounded-lg w-[530px] h-[360px] bg-base-200 border border-base-300" id="disp_card">
                                     <div v-if="filetypes.data.length" class="card-body p-4 text-base-content">
                                             <h2 class="card-title font-bold text-xl">
                                                 <!-- {{ props.filetypes.data[state.current_row].set_as_default === true ? disp.name + 'default' : disp.name }} -->

@@ -9,6 +9,8 @@ import Pagination from '@/Components/Pagination.vue'
 
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { reactive, ref, computed, onMounted, onUnmounted, onUpdated, nextTick } from "vue";
+import { PencilSquareIcon, PhoneIcon, ExclamationTriangleIcon, ClipboardDocumentCheckIcon, CalendarIcon, QueueListIcon } from '@heroicons/vue/24/outline';
+
 // import { preventDefault } from '@fullcalendar/core/internal';
 
 import { VueDatePicker } from '@vuepic/vue-datepicker';
@@ -44,7 +46,6 @@ const state = reactive({
     read: props.read ?? 'unread',
     date_from: '',
     date_to: '',
-    view_icon: 'images/memo_bw_1.png',
     add_folder_id: 0,
 });
 
@@ -100,12 +101,12 @@ const emptyRows = computed(() => {
 });
 
 function refreshView() {
-    router.reload( { 
-        only: ['entries','view_folder_id','view','initials','from_to','read'], 
+    router.reload( {
+        only: ['entries','view_folder_id','view','initials','from_to','read'],
         replace: true,
-        data: { 
+        data: {
             view: state.view,
-            view_for: state.initials, 
+            view_for: state.initials,
             page: 1,                                                            // refresh, so start at page 1
             show: state.show,
             read: state.read,
@@ -114,19 +115,11 @@ function refreshView() {
             ending:  state.date_to,
         },
         headers: { 'X-Custom-Refresh': 'Entries' },                             // use custom header to set the refresh on the server
-        onSuccess: () => {                                                      // after refresh, set mode as browse and call update_disp 
-            if( state.view === 'memos' ) state.view_icon = 'images/memo_bw_1.png';
-            // if( state.view === 'memos' && theme.value === 'light') state.view_icon = 'images/memo_bw_1.png';
-            // else if( state.view === 'memos' && theme.value === 'dark') state.view_icon = 'images/memo_bw_1_dark.png';
-            else if( state.view === 'phone' ) state.view_icon = 'images/phone_bw_1.png';
-            else if( state.view === 'due' ) state.view_icon = 'images/due_bw_3.png';
-            else if( state.view === 'todo' ) state.view_icon = 'images/todo_bw_1.png';
-            else if( state.view === 'events' ) state.view_icon = 'images/events_bw_1.png';
-            else if( state.view === 'timeline' ) state.view_icon = 'images/timeline_bw_1.png';
+        onSuccess: () => {                                                      // after refresh, set mode as browse and call update_disp
             state.mode = 'browse';
-            document.activeElement.blur();            
+            document.activeElement.blur();
             EntryForm_ref.value.update_disp();
-        }                 
+        }
     });
 }
 
@@ -142,15 +135,15 @@ function setViewClass(index) {
         bgcolor = 'bg-base-100';
     } else if (entry.expecting_response == true) {                            // else if entry expects a response, set the color
         let thestat = determine_response_expectation(entry.date_response_expected);
-        textcolor = thestat === 'Awaiting response' ? 'text-green-600' : 'text-red-500';
+        textcolor = thestat === 'Awaiting response' ? 'text-success' : 'text-error';
     }
 
     if (index === state.row) {                                                // if it is the highlighted row
-        textcolor = 'text-gray-900 dark:text-gray-900';
+        textcolor = 'text-base-content';
         if (entry.expecting_response) {
-            textcolor = determine_response_expectation(entry.date_response_expected) === 'Awaiting response' ? 'text-green-600' : 'text-red-500';
+            textcolor = determine_response_expectation(entry.date_response_expected) === 'Awaiting response' ? 'text-success' : 'text-error';
         }
-        bgcolor = 'bg-blue-200 dark:bg-blue-200';
+        bgcolor = 'bg-primary/20';
         border = 'border-l-4 border-l-blue-600';
     }
 
@@ -197,7 +190,7 @@ function list_actions( action ) {
         else if( state.view === 'phone' ) state.add_folder_id = 8;
         else if( state.view === 'todo' ) state.add_folder_id = 7;
         else if( state.view === 'events' ) state.add_folder_id = 6;
-        
+
         state.mode = 'entry_add';
     }
     else if( action === 'edit' ) state.mode = 'entry_edit';
@@ -232,9 +225,9 @@ function keypress_handler(e) {
         } else if( e.key === 'ArrowUp' && state.row > 0 ) {                                     // if ArrowUp and not at list top
             state.row--;
             state.folder_row = getFolderRow();
-        } 
+        }
         else if( e.key === 'PageUp' && props.entries.current_page > 1 ) router.get( props.entries.links[props.entries.current_page - 1].url );
-        else if( e.key === 'PageDown' && props.entries.current_page < props.entries.last_page ) router.get( props.entries.links[props.entries.current_page + 1].url );        
+        else if( e.key === 'PageDown' && props.entries.current_page < props.entries.last_page ) router.get( props.entries.links[props.entries.current_page + 1].url );
     }
     else if( state.mode === 'entry_add' || state.mode === 'entry_edit' ) {                      // Else, if we're adding or editing
         if( e.key === 'Escape' ) {
@@ -263,7 +256,7 @@ function clicked_from_to( clicked ) {
     if( disp.check_from && disp.check_to ) state.from_to = 'both';                                              // if both are true, set state.from_to to 'both'
     else if( disp.check_from ) state.from_to = 'from';
     else if( disp.check_to ) state.from_to = 'to';
-    
+
     refreshView();
 }
 
@@ -274,7 +267,7 @@ function clicked_read_unread( clicked ) {
     if( disp.check_read && disp.check_unread ) state.read = 'all';                                                  // if both are true, set state.read to 'all'
     else if( disp.check_unread ) state.read = 'unread';
     else if( disp.check_read ) state.read = 'read';
-    
+
     refreshView();
 }
 
@@ -288,7 +281,7 @@ function set_events_filter() {
     if( state.date_to === '' ) state.date_to = null;
 
     if( state.date_from === null && state.date_to === null ) disp.events_filter = 'all_events';
-    
+
     document.getElementById('events_filters_modal').close();
 
     if( state.date_from !== null && state.date_to !== null ) {
@@ -300,7 +293,7 @@ function set_events_filter() {
     } else if( (state.date_from === null && state.date_to === null) || disp.events_filter === 'all_events' ) {
         disp.date_range = 'All';
     }
-    
+
     refreshView();
 }
 
@@ -344,7 +337,7 @@ function getFolderRow() {                                                       
     } else {                                                                            // else - view is for a folder (memos, phone, events)
         folder_id = props.view_folder_id;                                               // use the props.view.folder_id
     }
-    
+
     if( folder_id < 1 ) folder_row = 0;                                                 // if the folder_id < 1, just make the folder_row 0
     else folder_row = folder_id - 1;                                                    // else, folder row is 1 less than the id (0 based array)
 
@@ -354,11 +347,11 @@ function getFolderRow() {                                                       
     return folder_row;
 }
 
-function getFolderData( whichData, singular = null ) {                                  // returns data about a folder, and if name is requested and singular is true, it returns the singular name 
+function getFolderData( whichData, singular = null ) {                                  // returns data about a folder, and if name is requested and singular is true, it returns the singular name
     let dataBack = null;
     let row = getFolderRow();                                                           // get the row number to access in the props.p1.folders object
     let folder = props.folders[row];                                                    // set a shortcut for cleaner code
-    
+
     if( singular != null && whichData === 'name' ) {
         dataBack = folder_singular[row];                                                // singular of name
     } else if( whichData === 'input_time' || whichData.substring(0, 4) === 'hide' ) {
@@ -492,7 +485,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
 
                 <div class="font-normal text-base text-base-content bg-base-100 w-4/5 justify-items-start text-left">
                     <label for="viewlist" class="font-semibold text-base text-base-content mx-2">Viewing: </label>
-                    <select v-model="state.view" id="viewlist" @change="refreshView()" class="border border-gray-400 rounded bg-base-100 text-base-content p-1 w-44" >
+                    <select v-model="state.view" id="viewlist" @change="refreshView()" class="border border-base-300 rounded bg-base-100 text-base-content p-1 w-44" >
                         <option value="memos">Memos</option>
                         <option value="phone">Phone Messages</option>
                         <option value="due">Response Due</option>
@@ -500,10 +493,39 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                         <option value="events">Events & Deadlines</option>
                         <option value="timeline">Office Timeline</option>
                     </select>
-                    <img :src="state.view_icon" width="24" class="inline-block align-middle bg-white ml-5 mr-1">
+                    <!-- Memos: pencil-square -->
+                    <!-- <svg v-if="state.view === 'memos'" class="inline-block align-middle w-6 h-6 ml-5 mr-1 text-base-content" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg> -->
+                    <PencilSquareIcon v-if="state.view === 'memos'" class="inline-block align-middle w-6 h-6 ml-5 mr-2 text-primary/90" />
+                    <!-- Phone -->
+                    <!-- <svg v-else-if="state.view === 'phone'" class="inline-block align-middle w-6 h-6 ml-5 mr-1 text-base-content" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                    </svg> -->
+                    <PhoneIcon v-else-if="state.view === 'phone'" class="inline-block align-middle w-6 h-6 ml-5 mr-2 text-primary/90" />
+                    <!-- Due: exclamation-triangle -->
+                    <!-- <svg v-else-if="state.view === 'due'" class="inline-block align-middle w-6 h-6 ml-5 mr-1 text-base-content" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg> -->
+                    <ExclamationTriangleIcon v-else-if="state.view === 'due'" class="inline-block align-middle w-6 h-6 ml-5 mr-2 text-primary/90" />
+                    <!-- Todo: clipboard-document-check -->
+                    <!-- <svg v-else-if="state.view === 'todo'" class="inline-block align-middle w-6 h-6 ml-5 mr-1 text-base-content" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75" />
+                    </svg> -->
+                    <ClipboardDocumentCheckIcon v-else-if="state.view === 'todo'" class="inline-block align-middle w-6 h-6 ml-5 mr-2 text-primary/90" />
+                    <!-- Events: calendar -->
+                    <!-- <svg v-else-if="state.view === 'events'" class="inline-block align-middle w-6 h-6 ml-5 mr-1 text-base-content" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg> -->
+                    <CalendarIcon v-else-if="state.view === 'events'" class="inline-block align-middle w-6 h-6 ml-5 mr-2 text-primary/90" />
+                    <!-- Timeline: queue-list -->
+                    <!-- <svg v-else-if="state.view === 'timeline'" class="inline-block align-middle w-6 h-6 ml-5 mr-1 text-base-content" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+                    </svg> -->
+                    <QueueListIcon v-else-if="state.view === 'timeline'" class="inline-block align-middle w-6 h-6 ml-5 mr-2 text-primary/90" />
                     <!--
                     <select v-if="showFromTo() === true" v-model="state.from_to" id="from_to" @change="refreshView()" :disabled="isFromToDisabled()"
-                        class="border border-gray-400 rounded bg-base-100 text-base-content p-1 ml-8 mr-1 w-28 disabled:bg-gray-200 disabled:text-gray-500" >
+                        class="border border-base-300 rounded bg-base-100 text-base-content p-1 ml-8 mr-1 w-28 disabled:bg-base-200 disabled:text-base-content/60" >
                         <option value="to">To</option>
                         <option value="from">From</option>
                         <option value="both">To / From</option>
@@ -512,7 +534,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     <span v-if="showFromTo() === false" class="font-medium text-base text-base-content ml-2">
                         For:
                     </span>
-                    <select v-model="state.initials" id="initials" @change="refreshView()" class="border border-gray-400 rounded bg-base-100 text-base-content p-1 ml-3 w-20" >
+                    <select v-model="state.initials" id="initials" @change="refreshView()" class="border border-base-300 rounded bg-base-100 text-base-content p-1 ml-3 w-20" >
                         <option value="****">****</option>
                         <option v-for="member, index in firm_members" :key="member.id">
                             {{ member.member_initials }}
@@ -520,29 +542,29 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     </select>
                     <div v-if="showFromTo() === true" class="inline-flex flex-col gap-1 ml-6 align-bottom">
                         <label class="flex items-center gap-1 cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                v-model="disp.check_to" 
+                            <input
+                                type="checkbox"
+                                v-model="disp.check_to"
                                 @change="clicked_from_to('to')"
-                                :disabled="isFromToDisabled()" 
+                                :disabled="isFromToDisabled()"
                                 class=""
                             >
-                            <span class="text-xs" :class="{ 'text-gray-400': isFromToDisabled() }">To</span>
+                            <span class="text-xs" :class="{ 'text-base-content/50': isFromToDisabled() }">To</span>
                         </label>
                         <label class="flex items-center gap-1 cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                v-model="disp.check_from" 
+                            <input
+                                type="checkbox"
+                                v-model="disp.check_from"
                                 @change="clicked_from_to('from')"
-                                :disabled="isFromToDisabled()" 
+                                :disabled="isFromToDisabled()"
                                 class=""
                             >
-                            <span class="text-xs" :class="{ 'text-gray-400': isFromToDisabled() }">From</span>
+                            <span class="text-xs" :class="{ 'text-base-content/50': isFromToDisabled() }">From</span>
                         </label>
                     </div>
-                    <span v-if="showStatusPrompt()" class="font-medium text-base text-base-content ml-4">Status:</span> 
+                    <span v-if="showStatusPrompt()" class="font-medium text-base text-base-content ml-4">Status:</span>
                     <!--
-                    <select v-if="showReadUnread()" v-model="state.read" id="read_unread" @change="refreshView()" class="border border-gray-400 rounded bg-base-100 text-base-content p-1 ml-3 w-28" >
+                    <select v-if="showReadUnread()" v-model="state.read" id="read_unread" @change="refreshView()" class="border border-base-300 rounded bg-base-100 text-base-content p-1 ml-3 w-28" >
                         <option value="unread">Unread</option>
                         <option value="read">Read</option>
                         <option value="all">All</option>
@@ -550,42 +572,42 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     -->
                     <div v-if="showReadUnread()" class="inline-flex flex-col gap-1 ml-6 align-bottom">
                         <label class="flex items-center gap-1 cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                v-model="disp.check_unread" 
+                            <input
+                                type="checkbox"
+                                v-model="disp.check_unread"
                                 @change="clicked_read_unread('unread')"
                                 class=""
                             >
                             <span class="text-xs">Unread</span>
                         </label>
                         <label class="flex items-center gap-1 cursor-pointer">
-                            <input 
-                                type="checkbox" 
-                                v-model="disp.check_read" 
+                            <input
+                                type="checkbox"
+                                v-model="disp.check_read"
                                 @change="clicked_read_unread('read')"
                                 class=""
                             >
                             <span class="text-xs">Read</span>
                         </label>
                     </div>
-                    <select v-if="showCompletedPending()" v-model="state.read" id="read_unread" @change="refreshView()" class="border border-gray-400 rounded bg-white p-1 ml-3 w-32" >
+                    <select v-if="showCompletedPending()" v-model="state.read" id="read_unread" @change="refreshView()" class="border border-base-300 rounded bg-base-100 p-1 ml-3 w-32" >
                         <option value="unread">Pending</option>
                         <option value="read">Completed</option>
                         <option value="both">All</option>
                     </select>
-                    
+
                     <span v-if="state.view === 'events'" class="font-medium text-base text-base-content ml-7 w-24">Date Range: </span>
                     <span v-if="state.view === 'events'" class="font-normal text-xs ml-1"> {{ disp.date_range }}</span>
                     <button v-if="state.view === 'events'" type="button" id="date_range_button" class="btn btn-outline btn-primary btn-xs ml-3" @click="clicked_set_date_range()">Change</button>
-                        
-                    
+
+
                 </div>
 
                 <div class="w-1/5 flex items-baseline justify-end pr-8">
-                    <div v-if="state.mode === 'entry_edit' || state.mode === 'file_edit'" class="text-blue-800 dark:text-blue-400 text-lg font-semibold text-right pr-8">
+                    <div v-if="state.mode === 'entry_edit' || state.mode === 'file_edit'" class="text-info text-lg font-semibold text-right pr-8">
                         Edit Mode
                     </div>
-                    <div v-if="state.mode == 'entry_add'" class="text-blue-800 dark:text-blue-400 text-lg font-semibold text-right pr-8">
+                    <div v-if="state.mode == 'entry_add'" class="text-info text-lg font-semibold text-right pr-8">
                         Add Mode
                     </div>
                 </div>
@@ -597,206 +619,206 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-base-300 p-4 min-h-dvh sm:rounded-lg" id="ViewsScreen" name="ViewsScreen">
-                    <!-- <div class="p-2 bg-white border-b border-gray-200 min-h-[680px]"> -->
                         <div class="flex">
                             <div name="left-side" class="w-1/2 ml-1 mt-1">
 
                                 <!-- If editing or adding an entry, show this div to indicate the action -->
-                                <div v-show="state.mode == 'entry_edit'" class="w-full font-bold text-xl text-blue-800 ml-2 mb-2">
+                                <div v-show="state.mode == 'entry_edit'" class="w-full font-bold text-xl text-info ml-2 mb-2">
                                     Edit Entry <span class="font-normal text-base ">(in {{ getFolderData('name') }})</span>
                                 </div>
-                                <div v-show="state.mode == 'entry_add'" class="w-full font-bold text-xl text-blue-800 ml-2 mb-2">
+                                <div v-show="state.mode == 'entry_add'" class="w-full font-bold text-xl text-info ml-2 mb-2">
                                     Add New {{ getFolderData('name', true) }} Entry
                                 </div>
 
                                 <div v-if="entries.data.length && state.mode != 'entry_add'">
                                     <div>
-                                        <table v-if="state.view === 'memos' || state.view === 'phone'" id="view_table_1" tabindex="0" class="w-full border border-gray-500 text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-gray-100 text-gray-900">
+                                        <table v-if="state.view === 'memos' || state.view === 'phone'" id="view_table_1" tabindex="0" 
+                                        class="w-full border border-base-content text-sm font-sans font-normal" >
+                                            <thead class="text-left bg-base-200 text-base-content">
                                                 <tr>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         {{ table_heading.date1 }}
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         {{ table_heading.from }}
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         {{ table_heading.to }}
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-gray-400"
+                                                    class="border-b border-base-300"
                                                     :class="setViewClass(index)"
                                                     @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-28">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-28">
                                                         {{ reformat_date(entry.date1, getFolderData('input_time')) }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-40 pl-1 text-left">
+                                                    <td class="border-x border-base-content w-40 pl-1 text-left">
                                                         {{ display_entry_contact( entry, 'from' ) }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-40 pl-1">
+                                                    <td class="border-x border-base-content w-40 pl-1">
                                                         {{ display_entry_contact( entry, 'to' ) }}
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
                                                     <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td class="border-x border-base-content">&nbsp;</td>
                                                     <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <table v-else-if="state.view === 'todo'" id="view_table_2" tabindex="0" class="w-full border border-gray-500 text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-gray-100 text-gray-900">
+                                        <table v-else-if="state.view === 'todo'" id="view_table_2" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal" >
+                                            <thead class="text-left bg-base-200 text-base-content">
                                                 <tr>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Date:
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         For:
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         To-Do:
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-gray-400"
+                                                    class="border-b border-base-300"
                                                     :class="setViewClass(index)"
                                                     @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-16">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-16">
                                                         {{ reformat_date(entry.date1, getFolderData('input_time')) }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-12 pl-1 text-left">
+                                                    <td class="border-x border-base-content w-12 pl-1 text-left">
                                                         {{ entry.contact_from.member_initials }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-80 pl-1">
+                                                    <td class="border-x border-base-content w-80 pl-1">
                                                         {{ entry.note }}
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
                                                     <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td class="border-x border-base-content">&nbsp;</td>
                                                     <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <table v-else-if="state.view === 'events'" id="view_table_3" tabindex="0" class="w-full border border-gray-500 text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-gray-100 text-gray-900">
+                                        <table v-else-if="state.view === 'events'" id="view_table_3" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal" >
+                                            <thead class="text-left bg-base-200 text-base-content">
                                                 <tr>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Date:
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         For:
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Event Type:
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-gray-400"
+                                                    class="border-b border-base-300"
                                                     :class="setViewClass(index)"
                                                     @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-32">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-32">
                                                         {{ reformat_date(entry.date1, getFolderData('input_time')) }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-12 pl-1 text-left">
+                                                    <td class="border-x border-base-content w-12 pl-1 text-left">
                                                         {{ entry.contact_from.member_initials }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-80 pl-1">
+                                                    <td class="border-x border-base-content w-80 pl-1">
                                                         {{ props.folders[entry.folder_id - 1].entrytypes.find( (entrytype) => entrytype.id === entry.entrytype_id).name }}
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
                                                     <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td class="border-x border-base-content">&nbsp;</td>
                                                     <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <table v-else-if="state.view === 'timeline'" id="view_table_4" tabindex="0" class="w-full border border-gray-500 text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-gray-100 text-gray-900">
+                                        <table v-else-if="state.view === 'timeline'" id="view_table_4" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal" >
+                                            <thead class="text-left bg-base-200 text-base-content">
                                                 <tr>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Date:
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Folder:
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Type:
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-gray-400"
+                                                    class="border-b border-base-300"
                                                     :class="setViewClass(index)"
                                                     @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-36">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-36">
                                                         {{ reformat_date(entry.date1, props.folders[entry.folder_id-1].input_time, entry.all_day) }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-12 pl-1 text-left">
+                                                    <td class="border-x border-base-content w-12 pl-1 text-left">
                                                         {{ props.folders[entry.folder_id - 1].name }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-80 pl-1">
+                                                    <td class="border-x border-base-content w-80 pl-1">
                                                         {{ props.folders[entry.folder_id - 1].entrytypes.find( (entrytype) => entrytype.id === entry.entrytype_id).name }}
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
                                                     <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td class="border-x border-base-content">&nbsp;</td>
                                                     <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <table v-else-if="state.view === 'due'" id="view_table_5" tabindex="0" class="w-full border border-gray-500 text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-gray-100 text-gray-900">
+                                        <table v-else-if="state.view === 'due'" id="view_table_5" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal" >
+                                            <thead class="text-left bg-base-200 text-base-content">
                                                 <tr>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Response From
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Expected By
                                                     </th>
-                                                    <th class="border-b border-r border-gray-700 pl-1">
+                                                    <th class="border-b border-r border-base-content pl-1">
                                                         Date Due
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-gray-400"
+                                                    class="border-b border-base-300"
                                                     :class="setViewClass(index)"
                                                     @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="border-x border-gray-900 w-40 pl-1 text-left">
+                                                    <td class="border-x border-base-content w-40 pl-1 text-left">
                                                         {{ display_entry_contact( entry, 'to' ) }}
                                                     </td>
-                                                    <td class="border-x border-gray-900 w-40 pl-1">
+                                                    <td class="border-x border-base-content w-40 pl-1">
                                                         {{ display_entry_contact( entry, 'from' ) }}
                                                     </td>
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-gray-900 w-28">
+                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-28">
                                                         {{ reformat_date( entry.date_response_expected ) }}
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
                                                     <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-gray-900">&nbsp;</td>
+                                                    <td class="border-x border-base-content">&nbsp;</td>
                                                     <td>&nbsp;</td>
                                                 </tr>
                                             </tbody>
@@ -804,12 +826,12 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                     </div>
                                     <!-- if we're browsing the data (not edit or add), then display show droplist and link buttons -->
                                     <div v-if="state.mode == 'browse'" class="flex justify-between mt-2 items-center">
-                                        <div class="flex items-center w-28"> 
+                                        <div class="flex items-center w-28">
                                             <label for="state_show" class="font-semibold text-sm text-blue-700 ml-1 mr-1">
                                                 Rows:
                                             </label>
                                             <select v-model="state.show" id="state_show" @change="refreshView()"
-                                                class="bg-base-100 font-normal text-sm p-1 border border-gray-400 rounded mr-8" >
+                                                class="bg-base-100 font-normal text-sm p-1 border border-base-300 rounded mr-8" >
                                                 <option>6</option>
                                                 <option>8</option>
                                                 <option selected>10</option>
@@ -819,10 +841,10 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                 <option>25</option>
                                             </select>
                                         </div>
-                                        
+
                                         <div class="pr-2">
                                             <!-- <Link v-for="link in entries.links" :href="link.url ?? ''" :only="['entries','view_folder_id']" method="get" v-html="link.label"
-                                                class="btn btn-sm" :class="{ 'text-gray-400': !link.url, 'btn-active': link.active }" /> -->
+                                                class="btn btn-sm" :class="{ 'text-base-content/50': !link.url, 'btn-active': link.active }" /> -->
                                                   <!-- Pagination -->
                                             <Pagination :links="entries.links" :only="['entries','view_folder_id']"/>
                                         </div>
@@ -837,7 +859,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                             </div>
                             <div name="right-side" class="w-1/2 ml-4 mt-1">
                                 <div id="disp_card" class="rounded-lg w-[580px] h-[480px] bg-base-200" :class="{ 'border border-base-content': state.mode === 'browse',
-                                        'border-solid border-4 border-blue-800 h-[560px]': state.mode === 'entry_edit' || state.mode === 'entry_add' }">                                     
+                                        'border-solid border-4 border-blue-800 h-[560px]': state.mode === 'entry_edit' || state.mode === 'entry_add' }">
                                 <!-- HERE is the EntryForm -->
                                     <EntryForm
                                         ref = "EntryForm_ref"
@@ -871,51 +893,20 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                             class="btn btn-outline btn-error btn-sm h-10 "  :disabled="entries.total === 0" >- &nbsp;Delete
                                         </button>
                                     </div>
-                                
+
 
                             </div>
                         </div>
-                    <!-- </div> -->
                 </div>
             </div>
         </div>
-
-
-        <!-- Put this part before </body> tag - SOL Modal -->
-        <!-- <input hidden type="checkbox" id="sol_modal" name="sol_modal" class="modal-toggle" />
-        <div class="modal">
-            <div class="modal-box w-11/12 max-w-3xl">
-                <h3 class="font-bold text-2xl text-center">Confirm: SOL Date</h3>
-                <p class="text-xl mt-4">You have not entered a Statute of Limitations date for this file.</p>
-                <p class="text-xl mt-4">Do you want to enter an SOL date for this file?</p>
-                <div class="modal-action justify-center mt-12">
-                    <button type="button" class="btn mr-10 w-28 gap-0" @click="SOL_setFocus"><u>Y</u>es</button>
-                    <button type="button" class="btn gap-0" @click="fileform_actions('submit')"><u>N</u>o</button>
-                </div>
-            </div>
-        </div> -->
-
-
-        <!-- Put this part before </body> tag - Confirm File Changemodal
-        <input hidden type="checkbox" id="filechanged_modal" name="filechanged_modal" class="modal-toggle" />
-        <div class="modal">
-            <div class="modal-box w-11/12 max-w-3xl">
-                <h3 class="font-bold text-2xl text-center">Confirm: File Changes</h3>
-                <p class="text-xl mt-4">Some file information has been changed.</p>
-                <p class="text-xl mt-4">Save these changes?</p>
-                <div class="modal-action justify-center mt-12">
-                    <button type="button" class="btn mr-10 w-28 gap-0" @click="fileform_actions('submit')"><u>Y</u>es</button>
-                    <button type="button" class="btn gap-0" @click="fileform_actions('revert')"><u>N</u>o</button>
-                </div>
-            </div>
-        </div> -->
 
 
         <!-- Put this part before </body> tag - timeline add modal-->
         <dialog id="timeline_add_modal" class="modal">
             <div class="modal-box w-11/12 max-w-xl">
                 <h3 class="font-bold text-xl text-center">Please Select a Folder For New Entry</h3>
-                <div class="border border-gray-800 mt-4 w-64 mx-auto p-4">
+                <div class="border border-base-content mt-4 w-64 mx-auto p-4">
                     <label>
                         <input type="radio" v-model="state.add_folder_id" id="corr" :value="1" autocomplete="off"> Correspondence
                     </label><br>
@@ -1062,4 +1053,3 @@ textarea:disabled {
 }
 
 </style>
-

@@ -120,7 +120,7 @@ function initials_3_Focus() {
                         <div class="grid grid-cols-[160px_224px_144px_224px_144px] gap-4 mt-8">
                             <div class="form-control">
                                 <label class="label_sm-700">
-                                    <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                    <span class="text-sm text-error align-baseline mr-1">*</span>
                                     Title:
                                 </label>
                                 <select v-model="form3.title" class="select select-sm select-bordered" name="form3.title"
@@ -138,7 +138,7 @@ function initials_3_Focus() {
 
                             <div class="form-control">
                                 <label class="label_sm-700">
-                                    <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                    <span class="text-sm text-error align-baseline mr-1">*</span>
                                     First Name:
                                 </label>
                                 <input v-model="form3.first_name" type="text"
@@ -159,7 +159,7 @@ function initials_3_Focus() {
 
                             <div class="form-control">
                                 <label class="label_sm-700">
-                                    <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                    <span class="text-sm text-error align-baseline mr-1">*</span>
                                     Last Name:
                                 </label>
                                 <input v-model="form3.last_name" type="text"
@@ -188,7 +188,7 @@ function initials_3_Focus() {
 
                             <div class="form-control">
                                 <label class="label_sm-700">
-                                    <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                    <span class="text-sm text-error align-baseline mr-1">*</span>
                                     Member Initials:
                                 </label>
                                 <input v-model="form3.member_initials" 
@@ -199,7 +199,7 @@ function initials_3_Focus() {
 
                             <div class="form-control">
                                 <label class="label_sm-700">
-                                    <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                    <span class="text-sm text-error align-baseline mr-1">*</span>
                                     Role In Firm:
                                 </label>
                                 <select v-model="form3.firm_role" class="select select-sm select-bordered w-full"
@@ -222,7 +222,7 @@ function initials_3_Focus() {
 
                             <div class="form-control">
                                 <label class="label_sm-700">
-                                    <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                    <span class="text-sm text-error align-baseline mr-1">*</span>
                                     User type:
                                 </label>
                                 <select v-model="form3.user_type" class="select select-sm select-bordered"
@@ -248,7 +248,7 @@ function initials_3_Focus() {
                             <div class="grid gap-4">
                                 <div class="form-control">
                                     <label class="label_sm-700">
-                                        <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                        <span class="text-sm text-error align-baseline mr-1">*</span>
                                         Email:
                                     </label>
                                     <input v-model="form3.email" class="input input-sm input-bordered w-full"
@@ -262,7 +262,7 @@ function initials_3_Focus() {
                             <div class="grid gap-4">
                                 <div class="form-control">
                                     <label class="label_sm-700">
-                                        <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                        <span class="text-sm text-error align-baseline mr-1">*</span>
                                         New Password:
                                     </label>
                                     <input v-model="form3.password" type="text"
@@ -272,7 +272,7 @@ function initials_3_Focus() {
                                 </div>
                                 <div class="form-control">
                                     <label class="label_sm-700">
-                                        <span class="text-sm text-red-600 align-baseline mr-1">*</span>
+                                        <span class="text-sm text-error align-baseline mr-1">*</span>
                                         Confirmation:
                                     </label>
                                     <input v-model="form3.password_confirmation" type="text"

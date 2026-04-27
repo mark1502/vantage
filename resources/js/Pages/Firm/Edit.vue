@@ -55,7 +55,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         <div class="flex-col mb-5">
                             <div class="flex ml-2">
                                 <InputLabel for="name" value="Firm Name" />
-                                <span class="text-sm text-red-600 ml-2">*</span>
+                                <span class="text-sm text-error ml-2">*</span>
                             </div>
                             <TextInput v-model="form.name" id="name" class="w-full mt-1" />
                             <InputError class="mt-1" :message="form.errors.name" />
@@ -81,7 +81,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                             <div class="flex-col w-1/2">
                                 <div class="flex ml-2">
                                     <InputLabel for="email" value="Email" />
-                                    <span class="text-sm text-red-600 ml-2">*</span>
+                                    <span class="text-sm text-error ml-2">*</span>
                                 </div>
                                 <TextInput v-model="form.email" id="email" type="email" class="w-full mt-1" />
                                 <InputError class="mt-1" :message="form.errors.email" />

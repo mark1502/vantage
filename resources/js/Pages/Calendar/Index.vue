@@ -673,7 +673,7 @@ onUnmounted(() => {
 
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white sm:rounded-lg" id="CalendarScreen">
+                <div class="bg-base-100 sm:rounded-lg" id="CalendarScreen">
                     <!-- upper_right tooltip: zero-height sticky wrapper, tooltip is absolute so its background paints fully -->
                     <div v-if="tooltip.visibility && props.hover_placement === 'upper_right'"
                         class="sticky top-[80px] z-[9999] pointer-events-none"
@@ -702,7 +702,7 @@ onUnmounted(() => {
                             </div>
                         </Transition>
                     </div>
-                    <div class="p-4 text-gray-900">
+                    <div class="p-4 text-base-content">
                         <FullCalendar ref='fullCalendar' :options="calendarOptions" />
                     </div>
                 </div>
@@ -731,7 +731,7 @@ onUnmounted(() => {
                     <!-- Event for droplist -->
                     <div class="flex place-items-baseline mt-4">
                         <label for="select_eventFor" class="mr-12 font-semibold text-sm">Event for:</label>
-                        <select v-model="calendar_form.from_contact_id" id="select_eventFor" class="border rounded-md p-1 bg-white" :disabled="calendarFor.id != 1">
+                        <select v-model="calendar_form.from_contact_id" id="select_eventFor" class="border rounded-md p-1 bg-base-100" :disabled="calendarFor.id != 1">
                             <!-- <option value="">Select User</option> -->
                             <option v-for="firm_member, index in props.firm_members" :key="firm_member.id" :value="firm_member.id">
                                 {{ firm_member.member_initials }}
@@ -746,7 +746,7 @@ onUnmounted(() => {
                             Event Type:
                         </label>
                         <select v-model="calendar_form.entrytype_id" id="entry_entrytype_select"
-                            class="w-72 p-2 border font-normal text-sm text-gray-900 bg-white disabled:text-gray-900 disabled:font-normal">
+                            class="w-72 p-2 border font-normal text-sm text-base-content bg-base-100 disabled:text-base-content disabled:font-normal">
                             <option v-for="event_type, index in props.event_types" :key="event_type.id"
                                 :value="event_type.id">
                                 {{ event_type.name }}
@@ -780,15 +780,15 @@ onUnmounted(() => {
                         <div v-show="calendar_form.fileSpecific == 'true'" id="related_file_div" class="flex items-baseline ml-12 mt-1">
                             <label for="entry_from" class="text-sm font-semibold">File:</label>
                             <input v-model="related_file.name" id="display_related_file" @input="lookup_related_file()"
-                                autocomplete="off" class="ml-3 input input-bordered input-sm rounded-sm w-96 disabled:bg-gray-50" />
+                                autocomplete="off" class="ml-3 input input-bordered input-sm rounded-sm w-96 disabled:bg-base-200" />
                         </div>
                         <InputError class="mt-2 ml-24" :message="cal_errors.file_id" />
 
                         <table v-show="lookup.file == true && related_file.name && lookup.file_list.data"
-                            class="mt-0 ml-10 border border-gray-400 suggestion-table bg-white w-80">
+                            class="mt-0 ml-10 border border-base-300 suggestion-table bg-base-100 w-80">
                             <tbody>
                                 <tr v-for="file, index in lookup.file_list.data" :key="file.id" @click="clicked_file_list(index)">
-                                    <td class="pl-4 py-1 text-sm hover:bg-gray-200 hover:cursor-default">
+                                    <td class="pl-4 py-1 text-sm hover:bg-base-200 hover:cursor-default">
                                         {{ file.name }}
                                     </td>
                                 </tr>
@@ -796,7 +796,7 @@ onUnmounted(() => {
                         </table>
 
                         <table v-show="lookup.file == true && related_file.name && lookup.file_list.data.length == 0"
-                            class="mt-0 ml-10 border border-red-400 suggestion-table bg-white w-80">
+                            class="mt-0 ml-10 border border-error suggestion-table bg-base-100 w-80">
                             <tbody>
                                 <tr>
                                     <td class="pl-4 py-1 text-sm">
@@ -886,7 +886,7 @@ onUnmounted(() => {
                     </div>
                     <table v-if="matching.event_types.length > 0 && entrytype_form.name.length > 0 && entrytype_form.isChosen == false" class="mt-2 ml-32 border w-80">
                         <tr v-for="entrytype, index in matching.event_types" :key="entrytype.id" @click="clicked_matchingEntrytype(index)">
-                            <td class="pl-4 py-1 text-sm hover:bg-gray-200 hover:cursor-default">
+                            <td class="pl-4 py-1 text-sm hover:bg-base-200 hover:cursor-default">
                                 {{ entrytype.name }}
                             </td>
                         </tr>

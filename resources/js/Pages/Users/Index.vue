@@ -87,7 +87,7 @@ const emptyRows = computed(() => {
 
 function setEntryClass( index ) {
     if ( index === state.current_row ) {
-        return 'text-gray-900 dark:text-gray-900 bg-blue-200 dark:bg-blue-200 border-l-4 border-l-blue-600';
+        return 'text-base-content bg-primary/20 border-l-4 border-l-blue-600';
     }
 
     return 'text-base-content bg-base-100';
@@ -193,12 +193,12 @@ update_disp();
 
         <template #header>
             <!--
-            <h2 class="font-semibold text-sm text-gray-800">
+            <h2 class="font-semibold text-sm text-base-content">
                 Admin > Users
             </h2>
          -->
             <div class="flex">
-                <div class="w-1/3 text-sm text-gray-800">
+                <div class="w-1/3 text-sm text-base-content">
                     <Link href="/adminmenu" class="hover:underline hover:text-blue-600">Admin</Link> > Users
                 </div>
                 <div class="w-1/3 font-bold text-3xl text-center text-base-content">Law Firm Users</div>
@@ -212,14 +212,14 @@ update_disp();
                     <div class="mt-6 w-3/4 mx-auto">
                         <div v-if="users.data.length" class="">
                             <table class="w-full border border-base-content text-base font-sans font-normal" id="userlist">
-                                <thead class="text-left text-md bg-gray-200">
+                                <thead class="text-left text-md bg-base-300">
                                     <tr>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Name</th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Initials</th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Email</th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Firm Role</th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">User Type</th>
-                                        <th class="border-b border-r border-gray-700 text-gray-900 pl-4">Status</th>
+                                        <th class="border-b border-r border-base-content text-base-content pl-4">Name</th>
+                                        <th class="border-b border-r border-base-content text-base-content pl-4">Initials</th>
+                                        <th class="border-b border-r border-base-content text-base-content pl-4">Email</th>
+                                        <th class="border-b border-r border-base-content text-base-content pl-4">Firm Role</th>
+                                        <th class="border-b border-r border-base-content text-base-content pl-4">User Type</th>
+                                        <th class="border-b border-r border-base-content text-base-content pl-4">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>

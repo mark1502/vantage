@@ -144,14 +144,14 @@
        @input="lookup_contact()" @blur="handleBlur()" @keydown="handleKeyDown" autocomplete="off"
     />
 
-    <table v-if="showLookupList" class="absolute left-0 top-full mt-1 z-50 border border-gray-500 suggestion-table bg-white w-64" >
+    <table v-if="showLookupList" class="absolute left-0 top-full mt-1 z-50 border border-base-300 suggestion-table bg-base-100 w-64" >
         <tr v-for="contact, index in lookup.contact_list.data" :key="contact.id" @mousedown="clicked_contact_list(index)">
             <td class="pl-4 py-1 text-sm text-base-content bg-base-300 hover:bg-base-100 hover:cursor-default">
                 {{ contact.display_last_first }}
             </td>
         </tr>
         <tr v-if="lookup.contact_list.total == 0 && !isFirmOnlyFolder">
-            <td class="text-sm bg-white text-gray-900 text-center border-4 border-cyan-500">
+            <td class="text-sm bg-base-100 text-base-content text-center border-4 border-cyan-500">
                 <p class="mt-2">Contact Not Found</p>
                 <button type="button" class="btn btn-outline btn-sm normal-case m-4" @mousedown="clicked_AddNewContact">
                     Click Here To Add New Contact
@@ -159,7 +159,7 @@
             </td>
         </tr>
         <tr v-if="lookup.contact_list.total == 0 && isFirmOnlyFolder">
-            <td class="text-sm bg-white text-gray-900 text-center">
+            <td class="text-sm bg-base-100 text-base-content text-center">
                 <p class="p-2">Firm Member Not Found</p>
             </td>
         </tr>

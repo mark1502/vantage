@@ -190,16 +190,15 @@ update_disp();
     <AuthenticatedLayout>
 
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800">
+            <h2 class="font-semibold text-xl text-base-content">
                 Folders
             </h2>
         </template>
 
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden sm:rounded-lg" id="ContactScreen" name="ContactScreen">
-                    <!-- <p class="text-center text-3xl font-bold text-blue-800 mt-5">Contacts</p> -->
-                    <div class="p-4 bg-white border-b border-gray-200 flex min-h-[680px] justify-center">
+                <div class="bg-base-100 overflow-hidden sm:rounded-lg" id="ContactScreen" name="ContactScreen">
+                    <div class="p-4 bg-base-100 border-b border-base-300 flex min-h-[680px] justify-center">
                         <div class="p-2 flex items-center">
                             <div name="left-side" class="">
                                 <div class="flex justify-between pb-2">
@@ -224,10 +223,10 @@ update_disp();
                                         placeholder="Search ..." class="border px-2 rounded" />
                                 </div>
                                 <div v-if="folders.data.length">
-                                    <table class="table table-compact w-full border border-gray-500" id="folderlist">
+                                    <table class="table table-compact w-full border border-base-300" id="folderlist">
                                         <tr v-for="folder, index in folders.data" :key="folder.id"
-                                            :class="(index == state.current_row ? 'text-white bg-blue-800' : 'text-gray-900 bg-white')"
-                                            class="border-b border-blue-900"
+                                            :class="(index == state.current_row ? 'text-primary-content bg-primary' : 'text-base-content bg-base-100')"
+                                            class="border-b border-base-content"
                                             @click="folder_clicked(index)" @dblclick="folder_dblclick(index)">
                                             <td class="px-6 py-2 whitespace-nowrap">
                                                 <div class="flex items-center">
@@ -240,7 +239,7 @@ update_disp();
                                     </table>
                                     <div class="btn-group flex justify-center mt-2">
                                         <button v-for="link in folders.links" :href="link.url" class="btn btn-sm"
-                                            :class="{ 'text-gray-500': !link.url, 'btn-active': link.active }">
+                                            :class="{ 'text-base-content/50': !link.url, 'btn-active': link.active }">
                                             <Link :href=link.url method="get"
                                                 v-html=link.label />
                                         </button>
@@ -264,7 +263,7 @@ update_disp();
                             <div name="right.side" class="ml-16">
 
                                 <div class="rounded-lg w-[430px] h-[360px] bg-base-300" id="disp_card">
-                                    <div v-if="folders.data.length" class="card-body p-4 text-gray-900">
+                                    <div v-if="folders.data.length" class="card-body p-4 text-base-content">
                                         <h2 class="card-title">{{ disp.folder_name }}</h2>
                                         <textarea class="bg-base-300 text-base font-mono font-medium" rows="12"
                                             style="resize: none; border: none; padding: 0px 0px;">{{ disp.prompts }}</textarea>

@@ -92,7 +92,7 @@ const entrytype_form = useForm({                        // form for entrytype lo
 const disp = reactive({
     listFormat: 1,                                      // the format of the main listbox
     response_status: "",                                // displays the status of a response (i.e., late, ontime)
-    response_color: 'text-red-500',
+    response_color: 'text-error',
     entry_responses_received: Object,                   // display object of responses received to this entry
     show_entry_form: false,                             // shows or hides the entry form
     show_file_contacts: "off",                          // show file contacts modal - 'from', 'to' or 'off'
@@ -718,10 +718,10 @@ function update_disp() {
                 case '(Full response was received on time)':
                 case 'Awaiting response':
                 case '':
-                    disp.response_color = 'text-green-600';                                         // display green for on time or awaiting or empty status
+                    disp.response_color = 'text-success';                                         // display green for on time or awaiting or empty status
                     break;
                 default:
-                    disp.response_color = 'text-red-700';                                           // otherwise display as red
+                    disp.response_color = 'text-error';                                           // otherwise display as red
                     break;
             }
 
@@ -1016,7 +1016,7 @@ update_disp();
                     </label>
                     <input v-model="display_name.file" id="display_casename"
                         autocomplete="off" :disabled="props.state.mode !== 'entry_add'"
-                        class="input input-bordered input-sm text-sm rounded-sm w-64 disabled:input-bordered disabled:border-gray-300 disabled:text-base-content"/>
+                        class="input input-bordered input-sm text-sm rounded-sm w-64 disabled:input-bordered disabled:border-base-300 disabled:text-base-content"/>
                 </div>
              </div>
             <!-- Folder row - HIDDEN - Should probably remove-->
@@ -1202,7 +1202,7 @@ update_disp();
             </div>
 
             <!-- list of any responses recieved to this entry -->
-            <ul v-if="disp.entry_responses_received.length" class="text-xs text-red-700 ml-44 mt-1">
+            <ul v-if="disp.entry_responses_received.length" class="text-xs text-error ml-44 mt-1">
                 <li v-for="response in disp.entry_responses_received">
                     {{ format_response_li(response) }}
                 </li>
@@ -1218,7 +1218,7 @@ update_disp();
 
 
             <div v-show="props.getFolderData('hide_isResponsive') == 0"
-                class="divider before:bg-slate-400 after:bg-slate-400 my-2"></div>
+                class="divider before:bg-base-300 after:bg-base-300 my-2"></div>
 
             <!-- Is This a Response Row -->
 
@@ -1329,7 +1329,7 @@ update_disp();
                     class="mt-2 ml-32 border w-80">
                     <tr v-for="entrytype, index in matching.entrytypes" :key="entrytype.id"
                         @click="clicked_matchingEntrytype(index)">
-                        <td class="pl-4 py-1 text-sm hover:bg-gray-200 hover:cursor-default">
+                        <td class="pl-4 py-1 text-sm hover:bg-base-200 hover:cursor-default">
                             {{ entrytype.name }}
                         </td>
                     </tr>

@@ -128,7 +128,7 @@ watch(() => user_prefs.file_recent_spot, saveFileOpen);
                 <div class="bg-base-100 overflow-hidden sm:rounded-lg" id="ContactScreen" name="ContactScreen">
                     <div class="p-6 bg-base-300 border-b border-base-300 min-h-[680px] justify-center">
                         <p class="text-lg font-semibold mb-3 text-base-content">Preferences for User: "{{ props.user_initials }}"</p>
-                        <div class="border border-gray-600 rounded-sm mt-5 p-4 w-[700px]">
+                        <div class="border border-base-300 rounded-sm mt-5 p-4 w-[700px]">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-lg font-bold text-base-content">Calendar - Event Colors</p>
                                 <span v-if="savedIndicator.colors" class="text-sm text-success transition-opacity">Saved</span>
@@ -148,7 +148,7 @@ watch(() => user_prefs.file_recent_spot, saveFileOpen);
                             </div>
                         </div>
 
-                        <div class="border border-gray-600 mt-8 p-4 w-[700px] rounded-sm">
+                        <div class="border border-base-300 mt-8 p-4 w-[700px] rounded-sm">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-lg font-bold text-base-content">Calendar - Event Tooltip Display</p>
                                 <span v-if="savedIndicator.hover" class="text-sm text-success transition-opacity">Saved</span>
@@ -156,14 +156,14 @@ watch(() => user_prefs.file_recent_spot, saveFileOpen);
                             <div class="flex items-center">
                                 <label for="hover-placement" class="ml-2 mr-3 font-semibold text-base-content">Display Event Tooltip:</label>
                                 <select v-model="user_prefs.event_hover_placement" id="hover-placement"
-                                    class="border border-gray-300 dark:border-gray-200/50 rounded-md p-1 bg-base-100 text-base-content">
+                                    class="border border-base-300 rounded-md p-1 bg-base-100 text-base-content">
                                     <option value="upper_right">Upper Right Corner</option>
                                     <option value="near_cursor">Near Cursor</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="border border-gray-600 mt-8 p-4 w-[700px] rounded-sm">
+                        <div class="border border-base-300 mt-8 p-4 w-[700px] rounded-sm">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-lg font-bold text-base-content">File - Default Open Location</p>
                                 <span v-if="savedIndicator.fileOpen" class="text-sm text-success transition-opacity">Saved</span>
@@ -171,7 +171,7 @@ watch(() => user_prefs.file_recent_spot, saveFileOpen);
                             <div class="flex items-center mb-4">
                                 <label for="file-open-to" class="ml-2 mr-3 font-semibold text-base-content">Open Files at:</label>
                                 <select v-model="user_prefs.file_open_to" id="file-open-to"
-                                    class="border border-gray-300 dark:border-gray-200/50 rounded-md p-1 bg-base-100 text-base-content">
+                                    class="border border-base-300 rounded-md p-1 bg-base-100 text-base-content">
                                     <option value="correspondence">Correspondence</option>
                                     <option value="pleadings">Pleadings and Motions</option>
                                     <option value="discovery">Discovery</option>

@@ -98,7 +98,7 @@ function testProtocol() {
                             <button @click="testProtocol" class="btn btn-outline btn-sm">
                                 Test Protocol Handler
                             </button>
-                            <p v-if="testResult === 'sent'" class="text-sm text-green-600 mt-2">
+                            <p v-if="testResult === 'sent'" class="text-sm text-success mt-2">
                                 Protocol request sent. If Notepad opened, the setup is working correctly.
                                 If your browser showed a prompt asking permission, allow it.
                                 If nothing happened, double-check steps 2 and 3 above.

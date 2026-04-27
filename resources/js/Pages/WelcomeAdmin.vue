@@ -242,10 +242,10 @@ function addingAttorney_Cancel() {     // closes the attorney form
 
     <Head title="Dashboard" />
 
-    <div class="bg-neutral-600 min-h-screen">
+    <div class="bg-neutral min-h-screen">
         <header class="bg-base-100 shadow">
             <div class="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8 bg-base-100">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                <h2 class="font-semibold text-xl text-base-content leading-tight">
                     Welcome - Initial Setup Information
                 </h2>
             </div>
@@ -253,7 +253,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
 
         <div class="py-3 min-h-screen">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 min-h-screen">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="bg-base-100 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="pt-4 pb-6">
                         <ul class="w-full steps">
                             <li v-for="({ id, label, active }, index) in steps" :key="id" class="step"
@@ -262,14 +262,14 @@ function addingAttorney_Cancel() {     // closes the attorney form
                             </li>
                         </ul>
                     </div>
-                    <div class="border-t-2 border-indigo-300 text-lg h-[500px]">
+                    <div class="border-t-2 border-primary text-lg h-[500px]">
                         <div v-if="state.count == 0">
                             <p class="mt-4 text-3xl font-bold text-center text-blue-800">
                                 Welcome!
                             </p>
                             <div class="pt-8 px-[80px] text-2xl">
                                 <p class="py-1">
-                                    This is the <b><span class="text-green-600">first time</span></b> you have logged
+                                    This is the <b><span class="text-success">first time</span></b> you have logged
                                     in, so let's start by entering your law
                                     firm information.
                                 </p>
@@ -289,7 +289,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                 Law Firm Information
                             </p>
                             <form @submit.prevent="submitFirm" autocomplete="off" class="max-w-md mx-auto mt-8">
-                                <p class="text-red-800 text-sm text-right">( * ) - required fields</p>
+                                <p class="text-error text-sm text-right">( * ) - required fields</p>
 
                                 <label for="name" class="label_sm-700 block ml-2">
                                     <span class="red_star-700-2">*</span>Law Firm Name:
@@ -320,7 +320,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                             <!-- <p class="mt-2 ml-24 font-semibold">Enter your information:</p> -->
                         <!-- Form 2 starts here-->
                             <form @submit.prevent="submitUserInfo" autocomplete="off" class="max-w-5xl mx-auto mt-0">
-                                <p class="text-red-800 text-sm text-right">( * ) - required fields</p>
+                                <p class="text-error text-sm text-right">( * ) - required fields</p>
                                 <!-- Form2 - Name Line -->
                                 <div class="flex mt-8">
 
@@ -482,7 +482,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                 <form v-if="state.addingAttorney == 1" @submit.prevent="submitaddingAttorney"
                                     class="max-w-5xl mx-auto mt-4">
 
-                                <p v-if="state.count == 3 && state.addingAttorney == 1" class="text-red-800 text-sm text-right">( * ) - required fields</p>
+                                <p v-if="state.count == 3 && state.addingAttorney == 1" class="text-error text-sm text-right">( * ) - required fields</p>
                                     <!-- Form 3 - Name Line starts-->
                                     <div class="flex mt-8">
                                         <div class="form-control w-40 max-w-xs mr-4">

@@ -225,7 +225,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-gray-800 ml-6">
+            <h2 class="font-semibold text-base-content ml-6">
                 <!-- <Link :href="('/files?page=' + file_form.current_page + '&show=' + file_form.show)">Files</Link> > Add -->
                 <Link :href="route('files.index', { page: form.current_page, show: form.show })"
                     class="hover:underline text-blue-600">File List</Link> > Add
@@ -315,12 +315,12 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                                 </div>
                             </div>
                             <div class="flex items-baseline w-1/2">
-                                <InputLabel value="SOL Date:" class="w-24" :class="{ 'text-gray-400': !solEnabled }"/>
+                                <InputLabel value="SOL Date:" class="w-24" :class="{ 'text-base-content/50': !solEnabled }"/>
                                 <div>
                                     <input v-if="solEnabled && form.filetype_id" type="date" id="date_sol" v-model="form.date_sol" class="input input-sm input-bordered w-44"
-                                    :class="{ 'input-disabled text-gray-400 bg-gray-100': !solEnabled }" :disabled="!solEnabled" />
+                                    :class="{ 'input-disabled text-base-content/50 bg-base-200': !solEnabled }" :disabled="!solEnabled" />
                                     <InputError v-if="solEnabled && form.filetype_id" class="mt-2" :message="form.errors.date_sol" />
-                                    <div v-if="!solEnabled && form.filetype_id" class="text-xs text-gray-500 mt-1">
+                                    <div v-if="!solEnabled && form.filetype_id" class="text-xs text-base-content/60 mt-1">
                                         This file type does not use a Statute of Limitations date.
                                     </div>
                                 </div>

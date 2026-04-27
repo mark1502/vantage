@@ -20,7 +20,7 @@ defineProps({
       :only="only"
       method="get"
       class="btn btn-sm join-item" 
-      :class="{ 'text-gray-400': !link.url, 'btn-active': link.active }"
+      :class="{ 'text-base-content/50': !link.url, 'btn-active': link.active }"
     >&laquo;
     </Link>
     
@@ -29,7 +29,7 @@ defineProps({
       :only="only"
       method="get"
       class="btn btn-sm join-item" 
-      :class="{ 'text-gray-400': !link.url, 'btn-active': link.active }"
+      :class="{ 'text-base-content/50': !link.url, 'btn-active': link.active }"
     >&raquo;
     </Link>
     
@@ -39,7 +39,7 @@ defineProps({
       :only="only"
       method="get"
       class="btn btn-sm join-item" 
-      :class="{ 'text-gray-400': !link.url, 'btn-active btn-outline': link.active}"
+      :class="{ 'text-base-content/50': !link.url, 'btn-active btn-outline': link.active}"
       v-html="link.label"
     />
   </template>

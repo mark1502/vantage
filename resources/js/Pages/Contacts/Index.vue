@@ -158,7 +158,7 @@ const emptyRows = computed(() => {
 
 function setEntryClass( index ) {
     if ( index === state.current_row ) {
-        return 'text-gray-900 dark:text-gray-900 bg-blue-200 dark:bg-blue-200 border-l-4 border-l-blue-600';
+        return 'text-base-content bg-primary/20 border-l-4 border-l-blue-600';
     }
     return 'text-base-content bg-base-100';
 }
@@ -200,14 +200,14 @@ update_disp();
                                     </div>
                                 </div>
                                 <div v-if="contacts.data.length">
-                                    <table class="border-collapse border border-gray-500 w-full" id="contactlist">
+                                    <table class="border border-base-content w-full" id="contactlist">
                                         <thead>
                                             <tr>
-                                                <th class="normal-case text-base font-bold border-b-2 border-gray-800 bg-gray-200 text-gray-800 text-left pl-5">NAME: <span class="ml-2 font-normal">(Last, First)</span></th>
+                                                <th class="normal-case text-base font-bold border-b-2 border-base-content bg-base-300 text-base-content text-left pl-5">NAME: <span class="ml-2 font-normal">(Last, First)</span></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-for="contact, index in contacts.data" :key="contact.id" class="border-b border-base-content"
+                                            <tr v-for="contact, index in contacts.data" :key="contact.id" class="border-b border-base-300"
                                                 :class="setEntryClass(index)"
                                                 @click="contact_clicked(index)" @dblclick="contact_dblclick(index)">
                                                 <td class="px-2 py-2 whitespace-nowrap">
@@ -219,7 +219,7 @@ update_disp();
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-base-content bg-base-100">
+                                            <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100" :class="n === emptyRows ? 'border-base-content' : 'border-base-300'">
                                                 <td class="px-2 py-2">&nbsp;</td>
                                             </tr>
                                         </tbody>
@@ -285,7 +285,7 @@ update_disp();
                                 Contact Info:
                             </div>
                                 
-                            <div v-if="contacts.data.length" class="bg-base-200 text-base-content text-base font-sans rounded border border-gray-400 mt-3 px-4 py-2">
+                            <div v-if="contacts.data.length" class="bg-base-200 text-base-content text-base font-sans rounded border border-base-300 mt-3 px-4 py-2">
                                 <h2 class="">{{ contact1.display_name }}</h2>
                                 <p v-if="contact1.business_title" class="">{{ contact1.business_title }}</p>
                                 <p v-if="contact1.company && contact1.title !== 'Co.'" class="">

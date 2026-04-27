@@ -167,7 +167,7 @@
 </script>
 <template>
     <form @submit.prevent="" class="max-w-5xl mx-auto mt-2 px-8 py-4 bg-base-200 rounded" 
-                            :class="{ 'border border-gray-400' : !fileform_isDirty, 'border-2 border-blue-800 rounded-lg' : fileform_isDirty }"
+                            :class="{ 'border border-base-300' : !fileform_isDirty, 'border-2 border-blue-800 rounded-lg' : fileform_isDirty }"
     >
 
         <!-- File name & Edit button line -->
@@ -190,7 +190,7 @@
             <InputLabel for="filetype_id" value="File Type:" disabled /><span class="red_star-700-2 ml-2">*</span>
         </div>
         <!-- <input type="text" :value="props.file.filetype?.name ?? ''" class="input input-bordered input-sm w-64" readonly /> -->
-         <span class="text-sm mr-6 text-base-content border rounded-sm p-2 w-64 dark:border-base-content/20 cursor-not-allowed">{{ props.file.filetype?.name }}</span>
+         <span class="text-sm mr-6 text-base-content border rounded-sm p-2 w-64 cursor-not-allowed">{{ props.file.filetype?.name }}</span>
         <!-- <button @click="click_AddType" class="ml-6 btn btn-xs btn-outline btn-primary">Add New Type</button> -->
     </div>
 
@@ -240,7 +240,7 @@
                         @closed="file_datepicker_closed('date_sol', 'f')" @blur="file_form_changed()"/> -->
                     <input v-if="solEnabled" type="date" id="date_sol" v-model="file_form.date_sol" class="input input-sm input-bordered w-44"
                         @change="form_change()" @blur="form_change()"/>
-                    <div v-if="!solEnabled" class="text-xs text-gray-500 mt-1">
+                    <div v-if="!solEnabled" class="text-xs text-base-content/60 mt-1">
                         N/A - '{{ props.file.filetype.name }}' file
                     </div>
                     <InputError class="mt-2" :message="file_form.errors.date_sol" />

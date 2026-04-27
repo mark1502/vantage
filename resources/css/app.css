@@ -1,7 +1,20 @@
 @import 'tailwindcss';
 @import '@vuepic/vue-datepicker/dist/main.css';
 
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark, cupcake, corporate, retro,
+          forest, aqua, dracula, business, night, coffee, caramellatte, nord, silk, sunset, dim, winter, smyk, fantasy, abyss bumblebee;
+}
+
+/* Lock border-radius to light-theme defaults so theme switches only change colors.
+   Remove or comment out this block to let each theme control its own rounding. */
+/*
+:root {
+  --rounded-box: 0.5rem;
+  --rounded-btn: 0.5rem;
+  --rounded-badge: 1.9rem;
+}
+*/
 
 /*
 @plugin '@tailwindcss/forms';
@@ -14,7 +27,6 @@
 @source '../../resources/views/**/*.blade.php';
 @source '../../resources/js/**/*.vue';
 
-@variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans:
@@ -75,7 +87,7 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentcolor);
+    border-color: var(--color-base-300, currentcolor);
   }
 
   /* Match Tailwind v3 default sizing */

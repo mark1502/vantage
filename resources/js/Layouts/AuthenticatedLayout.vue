@@ -7,41 +7,20 @@ import HoverDropdown from '@/Components/HoverDropdown.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
+import { FolderOpenIcon, BuildingOffice2Icon, CalendarDaysIcon, IdentificationIcon } from '@heroicons/vue/24/outline';
 
 import { useTheme } from '@/Composables/useTheme'
 
-const { theme, setTheme, initTheme } = useTheme()
+const { theme, themes, setTheme, initTheme } = useTheme()
 
-// Initialize theme when the layout component mounts
 onMounted(() => {
     initTheme()
 })
 
-// Provide the theme and setTheme function to all child components
-// Use a Symbol for the key to prevent name collisions
-// You can also just provide 'theme' if you don't need to change it from children
 provide('currentTheme', theme);
 provide('setThemeFunction', setTheme);
 
-const toggleTheme = () => {
-    setTheme(theme.value === 'light' ? 'dark' : 'light')
-}
-
 const showingNavigationDropdown = ref(false);
-
-// Compute the current icon based on theme
-const currentIcon = computed(() => {
-    return theme.value === 'light' ? '/images/dark_mode3_16.png' : '/images/light_mode_16.png'
-})
-
-// Compute alt text for accessibility
-const iconAlt = computed(() => {
-    return `Switch to ${theme.value === 'light' ? 'dark' : 'light'} mode`
-})
-
-const tooltipText = computed(() => {
-    return `Switch to ${theme.value === 'light' ? 'dark' : 'light'} mode`
-})
 
 const user = usePage().props.auth.user;
 let isAdmin = ref(false);
@@ -71,8 +50,8 @@ const fileNavActive = computed(() => {
 
 const fileNavClasses = computed(() =>
     fileNavActive.value
-        ? 'inline-flex items-center px-1 pt-1 border-b-2 border-indigo-400 dark:border-b-3 dark:border-blue-400 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out'
-        : 'inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out',
+        ? 'inline-flex items-center px-1 pt-1 border-b-2 border-primary text-sm font-medium leading-5 text-base-content focus:outline-none focus:border-primary transition duration-150 ease-in-out'
+        : 'inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-base-content/60 hover:text-base-content hover:border-base-300 focus:outline-none focus:text-base-content focus:border-base-300 transition duration-150 ease-in-out',
 );
 
 // Refresh recent files list after navigating to a file's entries
@@ -90,8 +69,8 @@ onUnmounted(() => {
 
 <template>
     <div>
-        <div class="bg-neutral-600">
-            <nav class="bg-gray-50 border-b border-gray-100 relative z-[100]">
+        <div class="bg-neutral">
+            <nav class="bg-base-200 border-b border-base-300 relative z-[100]">
                 <!-- Primary Navigation Menu -->
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between h-16">
@@ -108,23 +87,26 @@ onUnmounted(() => {
                                 <HoverDropdown align="left" width="56" class="ml-3 flex items-center">
                                     <template #trigger>
                                         <Link :href="route('files.index')" :class="fileNavClasses" class="cursor-pointer">
-                                            <img class="block h-4" src="/images/File_icon_1.png">
+                                            <!-- <svg class="block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
+                                            </svg> -->
+                                            <FolderOpenIcon class="w-4 h-4" />
                                             <span class="ml-2">File</span>
                                         </Link>
                                     </template>
 
                                     <template #content>
                                         <Link :href="route('files.index')"
-                                            class="block w-full px-4 py-2 text-start text-sm font-semibold leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-800 dark:focus:bg-gray-800">
+                                            class="block w-full px-4 py-2 text-start text-sm font-semibold leading-5 text-base-content/80 transition duration-150 ease-in-out hover:bg-base-200 focus:bg-base-200 focus:outline-none">
                                             Show File List
                                         </Link>
                                         <div v-if="recentFiles.length > 0">
-                                            <div class="border-t border-gray-200 dark:border-gray-600 px-4 py-1 text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                                            <div class="border-t border-base-300 px-4 py-1 text-xs text-base-content/50 uppercase tracking-wider">
                                                 Recently used files
                                             </div>
                                             <Link v-for="file in recentFiles" :key="file.id"
                                                 :href="route('entries.index', { file: file.id, filepart: file.filepart, page: file.page, show: file.show })"
-                                                class="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-100 focus:bg-gray-100 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-800 dark:focus:bg-gray-800">
+                                                class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 transition duration-150 ease-in-out hover:bg-base-200 focus:bg-base-200 focus:outline-none">
                                                 {{ file.name }}
                                             </Link>
                                         </div>
@@ -132,17 +114,26 @@ onUnmounted(() => {
                                 </HoverDropdown>
 
                                 <NavLink :href="route('views.index', { view: 'memos' })" :active="route().current('views.index')" class="ml-3">
-                                    <img class="block h-4" src="/images/Office_3.png">
+                                    <!-- <svg class="block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                                    </svg> -->
+                                    <BuildingOffice2Icon class="w-4 h-4" />
                                     <span class="ml-2">Office</span>
                                 </NavLink>
 
                                 <NavLink :href="route('calendar.index')" :active="route().current('calendar.index')" class="ml-3">
-                                    <img class="block h-4" src="/images/Calendar_2.png">
+                                    <!-- <svg class="block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+                                    </svg> -->
+                                    <CalendarDaysIcon class="w-4 h-4" />
                                     <span class="ml-2">Calendar</span>
                                 </NavLink>
 
                                 <NavLink :href="route('contacts.index', {show: 10})" :active="route().current('contacts.index')" class="ml-3">
-                                    <img class="block h-4" src="/images/Contacts_1.png">
+                                    <!-- <svg class="block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Zm6-10.125a1.875 1.875 0 1 1-3.75 0 1.875 1.875 0 0 1 3.75 0Zm-3.375 6.166a4.21 4.21 0 0 1 3.375-1.916 4.21 4.21 0 0 1 3.375 1.916" />
+                                    </svg> -->
+                                    <IdentificationIcon class="w-4 h-4" />
                                     <span class="ml-2">Contact</span>
                                 </NavLink>
                             </div>
@@ -152,15 +143,36 @@ onUnmounted(() => {
                         <div class="hidden sm:flex sm:items-center sm:ml-6">
                             <!-- Settings Dropdown -->
                             <div class="ml-3 relative flex">
-                                <div class="tooltip-wrapper tooltip tooltip-left tooltip-info" :data-tip="tooltipText">
-                                    <button type="button" class="mr-3 mt-2" @click="toggleTheme()"><img class="" :src=currentIcon :alt=iconAlt></button>
-                                </div>
+                                <Dropdown align="right" width="48">
+                                    <template #trigger>
+                                        <button type="button"
+                                            class="inline-flex items-center px-2 py-2 mr-2 border border-transparent text-sm leading-4 font-medium rounded-md text-base-content/60 bg-base-200 hover:text-base-content focus:outline-none transition ease-in-out duration-150"
+                                        >
+                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h1.5c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" />
+                                            </svg>
+                                            <span class="ml-1 text-xs capitalize">{{ theme }}</span>
+                                        </button>
+                                    </template>
+
+                                    <template #content>
+                                        <button
+                                            v-for="t in themes"
+                                            :key="t"
+                                            @click="setTheme(t)"
+                                            class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 transition duration-150 ease-in-out hover:bg-base-200 focus:bg-base-200 focus:outline-none capitalize"
+                                            :class="{ 'font-bold bg-base-200': theme === t }"
+                                        >
+                                            {{ t }}
+                                        </button>
+                                    </template>
+                                </Dropdown>
 
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
                                         <span class="inline-flex rounded-md">
                                             <button type="button"
-                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-gray-50 hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-base-content/60 bg-base-200 hover:text-base-content focus:outline-none transition ease-in-out duration-150"
                                             >
                                                 {{ $page.props.auth.user.name }}
 
@@ -196,7 +208,7 @@ onUnmounted(() => {
                         <div class="-mr-2 flex items-center sm:hidden">
                             <button
                                 @click="showingNavigationDropdown = !showingNavigationDropdown"
-                                class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out"
+                                class="inline-flex items-center justify-center p-2 rounded-md text-base-content/50 hover:text-base-content/60 hover:bg-base-200 focus:outline-none focus:bg-base-200 focus:text-base-content/60 transition duration-150 ease-in-out"
                             >
                                 <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                     <path
@@ -236,12 +248,12 @@ onUnmounted(() => {
                     </div>
 
                     <!-- Responsive Settings Options -->
-                    <div class="pt-4 pb-1 border-t border-gray-200">
+                    <div class="pt-4 pb-1 border-t border-base-300">
                         <div class="px-4">
-                            <div class="font-medium text-base text-gray-800">
+                            <div class="font-medium text-base text-base-content">
                                 {{ $page.props.auth.user.name }}
                             </div>
-                            <div class="font-medium text-sm text-gray-500">{{ $page.props.auth.user.email }}</div>
+                            <div class="font-medium text-sm text-base-content/60">{{ $page.props.auth.user.email }}</div>
                         </div>
 
                         <div class="mt-3 space-y-1">
@@ -270,14 +282,3 @@ onUnmounted(() => {
     </div>
 </template>
 
-<style scoped>
-.tooltip-wrapper[data-tip]:before {
-    transition-delay: 500ms;
-    transition-duration: 200ms;
-}
-
-.tooltip-wrapper[data-tip]:after {
-    transition-delay: 300ms;
-    transition-duration: 200ms;
-}
-</style>

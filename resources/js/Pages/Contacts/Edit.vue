@@ -126,7 +126,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         <!-- Form 3 - Name Line starts-->
                         <div class="flex mt-8">
                             <div class="flex-col w-36 max-w-xs mr-4">
-                                <div class="flex ml-2"><InputLabel for="form.title" value="Title" /><span class="text-sm text-red-600 ml-2">*</span></div>
+                                <div class="flex ml-2"><InputLabel for="form.title" value="Title" /><span class="text-sm text-error ml-2">*</span></div>
                                 <select v-model="form.title" class="select select-bordered select-sm text-base" id="form.title">
                                     <option value="" disabled selected>Pick one</option>
                                     <option>Mr.</option>
@@ -141,7 +141,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                             </div>
                             <div v-if="form.title != 'Co.'" class="flex">
                                 <div class="flex-col w-56 max-w-xs mr-4">
-                                    <div class="flex ml-2"><InputLabel for="form.first_name" value="First Name" /><span class="text-sm text-red-600 ml-2">*</span></div>
+                                    <div class="flex ml-2"><InputLabel for="form.first_name" value="First Name" /><span class="text-sm text-error ml-2">*</span></div>
                                     <TextInput v-model="form.first_name" id="form.first_name" class="w-full max-w-xs" required />
                                     <InputError class="mt-2" :message="form.errors.first_name" />
                                 </div>
@@ -153,7 +153,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                 </div>
 
                                 <div class="flex-col w-56 max-w-xs mr-4">
-                                    <div class="flex ml-2"><InputLabel for="form.last_name" value="Last Name" /><span class="text-sm text-red-600 ml-2">*</span></div>
+                                    <div class="flex ml-2"><InputLabel for="form.last_name" value="Last Name" /><span class="text-sm text-error ml-2">*</span></div>
                                     <TextInput v-model="form.last_name" id="form.last_name" class="w-full max-w-xs" required />
                                     <InputError class="mt-2" :message="form.errors.last_name" />
                                 </div>
@@ -177,7 +177,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         <div class="flex mt-6">
                             <div class="flex-col w-1/2 max-w-sm">
                                 <div class="flex ml-2"><InputLabel for="form.company" value="Company" />
-                                    <span v-if="form.title === 'Co.'" class="text-sm text-red-600 ml-2">*</span>
+                                    <span v-if="form.title === 'Co.'" class="text-sm text-error ml-2">*</span>
                                     <span v-else="form.title === 'Co.'" class="text-sm ml-2 invisible">*</span>
                                 </div>
                                 <TextInput v-model="form.company" id="form.company" class="input input-bordered w-full" />

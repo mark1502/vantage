@@ -8,10 +8,12 @@ import EntryForm from "@/Pages/Entries/EntryForm.vue";
 
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { reactive, ref, onMounted, onUnmounted, onUpdated, nextTick, inject, computed } from "vue";
+import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 
 import { useTheme } from '@/Composables/useTheme';
 import Pagination from '@/Components/Pagination.vue'
 import { getAvailableFormats, getColumns } from '@/Config/entryViewFormats.js'
+import { MagnifyingGlassMinusIcon } from '@heroicons/vue/20/solid';
 
 // Get access to theme management
 const { theme, setTheme } = useTheme();
@@ -306,7 +308,7 @@ function keypress_handler(e) {
         else if( e.key === 'ArrowDown' && state.row < (props.entries.data.length - 1) ) {         // ArrowDown and not at list bottom
             state.row++;                                                                                // increase the state.row (list row)
             state.folder_row = getFolderRow();                                                          // get the folder row of the entry
-        }         
+        }
         else if( e.key === 'ArrowUp' && state.row > 0 ) {                                         // ArrowUp and not at list top
             state.row--;                                                                                // decrease state.row
             state.folder_row = getFolderRow();                                                          // get the folder row of the entry
@@ -317,7 +319,7 @@ function keypress_handler(e) {
         else if( e.key === 'PageDown' && props.entries.current_page < props.entries.last_page ) { // PageDown and not on last page
             router.get(props.entries.next_page_url);                                                // router get the url of next page
         }
-    } 
+    }
     else if( state.mode === 'entry_add' || state.mode === 'entry_edit' ) {                        // Else, if we're adding or editing
         if( e.key === 'Escape' ) {                                                                  // if escape is pressed
             e.preventDefault();                                                                         // preventDefault
@@ -330,7 +332,7 @@ function keypress_handler(e) {
             e.preventDefault();                                                                         // preventDefault
             hotkey_pressed.value = e;                                                                   // trigger the hotkey
         }
-    } 
+    }
     else if( state.mode === 'file_show' ) {                                                     // if file_show mode (viewing file info)
         if( e.key === 'Escape' ) {                                                                  // if escape is pressed
             e.preventDefault();                                                                         // preventDefault
@@ -340,7 +342,7 @@ function keypress_handler(e) {
             folder_shortcut(e.key);
         }
 
-    } 
+    }
     else if( state.mode === 'file_edit' ) {                                                      // if file_edit mode ( so we know there are changes to the file info form )
         if( e.key === 'Escape' ) {                                                                  // if escape is pressed
             e.preventDefault();                                                                         // preventDefault
@@ -369,7 +371,7 @@ function getFolderRow( folder_name_in = null  ) {                               
     if( folder_name_in !== null ) {                                                 // if a folder name is passed in
         props.folders.forEach( (folder, index) => {                                     // foreach folder in the props.folders array
             if( folder.name.toLowerCase() === folder_name_in ) {                            // if folder name matches the passed in name, set the folder_id
-                folder_id = folder.id;                                                      
+                folder_id = folder.id;
             }
         });
         if( folder_id < 1 ) folder_id = 0;                                              // if not found, set to 0
@@ -388,7 +390,7 @@ function getFolderRow( folder_name_in = null  ) {                               
 }
 
 
-function getFolderData( whichData, singular = null ) {                                  // returns data about a folder, and if name is requested and singular is true, it returns the singular name 
+function getFolderData( whichData, singular = null ) {                                  // returns data about a folder, and if name is requested and singular is true, it returns the singular name
     let dataBack = null;
     let row = getFolderRow();                                                           // get the row number to access in the props.folders object
     let folder = props.folders[row];                                                    // set a shortcut for cleaner code
@@ -419,15 +421,15 @@ function setEntryClass( index ) {                                               
         textcolor = 'text-base-300';
         bgcolor = 'bg-base-100';
      } else if( entry.expecting_response ) {                                            // else if entry expects a response, set the color
-        textcolor = determine_response_expectation( entry.date_response_expected ) === 'Awaiting response' ? 'text-green-600' : 'text-red-500';
+        textcolor = determine_response_expectation( entry.date_response_expected ) === 'Awaiting response' ? 'text-success' : 'text-error';
     }
 
     if( index === state.row ) {                                                        // if this row is the highlighted row
-        textcolor = 'text-gray-900 dark:text-gray-900';
+        textcolor = 'text-base-content';
         if( entry.expecting_response ) {
-            textcolor = determine_response_expectation( entry.date_response_expected ) === 'Awaiting response' ? 'text-green-600' : 'text-red-500';
+            textcolor = determine_response_expectation( entry.date_response_expected ) === 'Awaiting response' ? 'text-success' : 'text-error';
         }
-        bgcolor = 'bg-blue-200 dark:bg-blue-200';
+        bgcolor = 'bg-primary/20';
         border = 'border-l-4 border-l-blue-600';
     }
 
@@ -527,15 +529,18 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                 <div class="text-base w-2/5 justify-items-start text-left ml-3">
                     <div v-if="state.switch_file == false" class="flex items-baseline">
                         <!-- <Link :href="('/files')" class="hover:underline font-semibold text-blue-800 ml-2"> -->
-                        <Link :href="route('files.index')" class="hover:underline hover:text-blue-500 font-semibold text-base-content ml-2">                        
+                        <Link :href="route('files.index')" class="hover:underline hover:text-blue-500 font-semibold text-base-content ml-2">
                             File
                         </Link>
                         <span class="font-semibold text-base-content mx-2">></span>
-                        <div class="border border-gray-400 rounded ml-1 pl-2 py-1 text-base-content bg-base-100 w-80" @click="SwitchFile()">
+                        <div class="border border-base-300 rounded ml-1 pl-2 py-1 text-base-content bg-base-100 w-80" @click="SwitchFile()">
                             {{ props.file.name }}
                             <!-- Show Button if mode is Browse or file_show -->
-                            <button v-if="state.mode === 'browse' || state.mode === 'file_show'" type="button" class="btn btn-xs border-0 bg-neutral-200 float-end">
-                                <img src="/images/search-50B.png" width="16px" height="16px">
+                            <button v-if="state.mode === 'browse' || state.mode === 'file_show'" type="button" class="btn btn-xs border-0 bg-base-300 float-end">
+                                <!-- <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                </svg> -->
+                            <MagnifyingGlassIcon class="w-4 h-4" />
                             </button>
                         </div>
                     </div>
@@ -550,7 +555,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                             Folder:
                         </label>
                         <select v-model="state.folder_name" id="folderlist"
-                            class="border border-gray-400 rounded p-1 font-normal text-base text-base-content bg-base-100 w-56"
+                            class="border border-base-300 rounded p-1 font-normal text-base text-base-content bg-base-100 w-56"
                             @change="refreshEntryList()">
                             <optgroup label="File Folders:" class="my-2">
                                 <option v-if="file.filetype.has_correspondence === 1" value="correspondence">
@@ -599,17 +604,17 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                         </select>
                     </div>
                     <div v-if="state.mode === 'file_edit'">
-                        <p class="font-bold text-xl text-blue-700 pl-20">
+                        <p class="font-bold text-xl text-info pl-20">
                             File Details
                         </p>
                     </div>
                 </div>
 
                 <div class="w-1/5 pr-16">
-                    <div v-if="state.mode === 'entry_edit' || state.mode === 'file_edit'" class="text-blue-800 dark:text-blue-400 text-lg font-semibold text-right pr-8">
+                    <div v-if="state.mode === 'entry_edit' || state.mode === 'file_edit'" class="text-info text-lg font-semibold text-right pr-8">
                         Edit Mode: On
                     </div>
-                    <div v-if="state.mode === 'entry_add'" class="text-blue-800 dark:text-blue-400 text-lg font-semibold text-right pr-8">
+                    <div v-if="state.mode === 'entry_add'" class="text-info text-lg font-semibold text-right pr-8">
                         Add Mode
                     </div>
                 </div>
@@ -653,10 +658,10 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                 <div v-if="entries.data.length && state.mode != 'entry_add'">
                                     <div>
                                         <table id="entryList" tabindex="0" class="w-full table-fixed border border-base-content text-sm font-sans font-normal">
-                                            <thead class="text-left bg-gray-300 text-gray-800">
+                                            <thead class="text-left bg-base-300 text-base-content">
                                                 <tr>
                                                     <th v-for="col in activeColumns" :key="col.key"
-                                                        class="border-b border-r border-gray-700 pl-1"
+                                                        class="border-b border-r border-base-content pl-1"
                                                         :style="{ width: col.width }">
                                                         {{ col.label(currentFolder) }}
                                                     </th>
@@ -664,7 +669,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                             </thead>
                                             <tbody>
                                                 <tr v-for="(entry, index) in entries.data" :key="entry.id"
-                                                    class="border-b border-gray-400"
+                                                    class="border-b border-base-300"
                                                     :class="setEntryClass(index)"
                                                     @click.left="entryList_click('list', index)"
                                                     @click.right.prevent="entryList_click('right', index)"
@@ -687,7 +692,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                         </template>
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-gray-400 bg-base-100">
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100" :class="n === emptyRows ? 'border-base-content' : 'border-base-300'">
                                                     <td v-for="col in activeColumns" :key="'empty-' + col.key"
                                                         class="pl-1 py-1.5 border-r border-base-content"
                                                         :style="{ width: col.width }">&nbsp;</td>
@@ -705,7 +710,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                 </label>
                                                 <select v-model="state.show" id="state_show"
                                                     @change="refreshEntryList()"
-                                                    class="font-normal text-sm p-1 border border-gray-500 bg-base-300 text-base-content rounded">
+                                                    class="font-normal text-sm p-1 border border-base-300 bg-base-300 text-base-content rounded">
                                                     <option>6</option>
                                                     <option>8</option>
                                                     <option selected>10</option>
@@ -717,7 +722,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                             </div>
                                             <div v-if="props.view_folder_id > 0 && availableFormats.length > 1">
                                                 <select v-model="currentFormatKey" id="view_format" @change="$event.target.blur()"
-                                                    class="font-normal text-sm p-1 border border-gray-500 bg-base-300 text-base-content rounded">
+                                                    class="font-normal text-sm p-1 border border-base-300 bg-base-300 text-base-content rounded">
                                                     <option v-for="fmt in availableFormats" :key="fmt.key" :value="fmt.key">
                                                         {{ fmt.label }}
                                                     </option>
@@ -745,16 +750,16 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                     }">
 
                                     <!-- HERE is the EntryForm -->
-                                    <EntryForm                                         
-                                        ref="EntryForm_ref" 
+                                    <EntryForm
+                                        ref="EntryForm_ref"
                                         v-model:the_mode="state.mode"
-                                        v-model:hotkey_pressed="hotkey_pressed" 
+                                        v-model:hotkey_pressed="hotkey_pressed"
                                         v-model:keep_row="keep_row"
-                                        :index_form="index_form" 
-                                        :state="state" 
-                                        :p1="props" 
+                                        :index_form="index_form"
+                                        :state="state"
+                                        :p1="props"
                                         :file_view="'file'"
-                                        :getFolderRow="getFolderRow" 
+                                        :getFolderRow="getFolderRow"
                                         :getFolderData="getFolderData"
                                     />
                                 </div>
@@ -791,16 +796,16 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                         <h2 class="text-xl font-bold text-base-content mb-4 ml-2">File Contacts</h2>
                         <div v-if="props.file_contact_roles && props.file_contact_roles.length > 0">
                             <table class="w-full max-w-3xl border border-base-content text-sm font-sans font-normal">
-                                <thead class="text-left bg-gray-300 text-gray-800">
+                                <thead class="text-left bg-base-300 text-base-content">
                                     <tr>
-                                        <th class="border-b border-r border-gray-700 pl-2 py-1.5">Contact Name</th>
-                                        <th class="border-b border-r border-gray-700 pl-2 py-1.5">Role</th>
-                                        <th class="border-b border-gray-700 pl-2 py-1.5">Status</th>
+                                        <th class="border-b border-r border-base-content pl-2 py-1.5">Contact Name</th>
+                                        <th class="border-b border-r border-base-content pl-2 py-1.5">Role</th>
+                                        <th class="border-b border-base-content pl-2 py-1.5">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="cr in props.file_contact_roles" :key="cr.id"
-                                        class="border-b border-gray-400 bg-base-100">
+                                        class="border-b border-base-300 bg-base-100">
                                         <td class="pl-2 py-1.5 border-r border-base-content">{{ cr.contact_name }}</td>
                                         <td class="pl-2 py-1.5 border-r border-base-content">{{ cr.role_name }}</td>
                                         <td class="pl-2 py-1.5">
@@ -825,7 +830,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
         <dialog id="timeline_add_modal" class="modal">
             <div class="modal-box w-11/12 max-w-xl">
                 <h3 class="font-bold text-xl text-center">Select The Folder For New Entry</h3>
-                <div class="border border-gray-800 mt-4 w-64 mx-auto p-4">
+                <div class="border border-base-content mt-4 w-64 mx-auto p-4">
                     <label v-if="file.filetype.has_correspondence === 1">
                         <input type="radio" v-model="state.add_folder_id" id="corr" value="1" autocomplete="off">
                         Correspondence<br>
