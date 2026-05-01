@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactRoleController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\EntrytypeController;
 use App\Http\Controllers\FileController;
@@ -45,10 +46,14 @@ Route::middleware('auth', 'welcomed')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    /*
     Route::get('/dashboard', function () {           // dashboard route just renders the dashboard without a controller
         return Inertia::render('Dashboard');
     })->name('dashboard');
+    */
 
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
     Route::resource('users', UserController::class)->names('users');
     Route::resource('contacts', ContactController::class)->names('contacts');
     Route::patch('/contacts/{contact}/restore', [ContactController::class, 'restore'])->name('contacts.restore');

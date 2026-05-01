@@ -207,7 +207,7 @@ update_disp();
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-for="contact, index in contacts.data" :key="contact.id" class="border-b border-base-300"
+                                            <tr v-for="contact, index in contacts.data" :key="contact.id" class="border-b border-base-content/20"
                                                 :class="setEntryClass(index)"
                                                 @click="contact_clicked(index)" @dblclick="contact_dblclick(index)">
                                                 <td class="px-2 py-2 whitespace-nowrap">
@@ -219,7 +219,7 @@ update_disp();
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100" :class="n === emptyRows ? 'border-base-content' : 'border-base-300'">
+                                            <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100" :class="n === emptyRows ? 'border-base-content' : 'border-base-content/20'">
                                                 <td class="px-2 py-2">&nbsp;</td>
                                             </tr>
                                         </tbody>

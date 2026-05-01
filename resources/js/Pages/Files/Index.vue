@@ -224,14 +224,14 @@ update_disp();                                                                  
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="file, index in files.data" :key="file.id" class="border-b border-base-content"
+                                        <tr v-for="file, index in files.data" :key="file.id" class="border-b border-base-content/20"
                                             :class="setEntryClass(index)" @click="file_clicked(index)" @dblclick="file_dblclick(index)">
                                             <td class="px-2 py-2 w-[480px]">
                                                 {{ file.name }}
                                                 <span v-if="file.date_closed" class="badge badge-sm badge-outline badge-error ml-2">closed</span>
                                             </td>
                                         </tr>
-                                        <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-base-content bg-base-100">
+                                        <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100" :class="n === emptyRows ? 'border-base-content' : 'border-base-content/20'" >
                                             <td class="px-2 py-2">&nbsp;</td>
                                         </tr>
                                     </tbody>

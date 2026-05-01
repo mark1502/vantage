@@ -692,7 +692,8 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                         </template>
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100" :class="n === emptyRows ? 'border-base-content' : 'border-base-300'">
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100" 
+                                                    :class="n === emptyRows ? 'border-base-content' : 'border-base-300'" >
                                                     <td v-for="col in activeColumns" :key="'empty-' + col.key"
                                                         class="pl-1 py-1.5 border-r border-base-content"
                                                         :style="{ width: col.width }">&nbsp;</td>
@@ -710,7 +711,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                 </label>
                                                 <select v-model="state.show" id="state_show"
                                                     @change="refreshEntryList()"
-                                                    class="font-normal text-sm p-1 border border-base-300 bg-base-300 text-base-content rounded">
+                                                    class="font-normal text-sm p-1 border border-base-content/25 bg-base-300 text-base-content rounded">
                                                     <option>6</option>
                                                     <option>8</option>
                                                     <option selected>10</option>
@@ -722,7 +723,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                             </div>
                                             <div v-if="props.view_folder_id > 0 && availableFormats.length > 1">
                                                 <select v-model="currentFormatKey" id="view_format" @change="$event.target.blur()"
-                                                    class="font-normal text-sm p-1 border border-base-300 bg-base-300 text-base-content rounded">
+                                                    class="font-normal text-sm p-1 border border-base-content/25 bg-base-300 text-base-content rounded">
                                                     <option v-for="fmt in availableFormats" :key="fmt.key" :value="fmt.key">
                                                         {{ fmt.label }}
                                                     </option>

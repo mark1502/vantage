@@ -105,7 +105,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
 
 <template>
 
-    <Head title="DashboardER" />
+    <Head title="Edit Contact" />
 
     <AuthenticatedLayout>
          <template #header>
