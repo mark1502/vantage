@@ -32,6 +32,8 @@ const props = defineProps({
     getFolderData: Function,
 });
 
+const fileSpecific = ref("true");
+
 const display_name = reactive({                         // used to display the from, to and file names on the form
     from: '',
     to: '',
@@ -248,9 +250,18 @@ watch(hotkey_pressed, (hotkey) => {
     handle_hotkey_press(hotkey);
 });
 
+watch(fileSpecific, (newVal) => {
+    if (newVal === "false") {
+        entry_form.file_id = 1;
+    } else {
+        entry_form.file_id = null;
+    }
+});
+
 // Watch file_id changes in view mode to fetch contact role IDs
 watch(() => entry_form.file_id, (newVal, oldVal) => {
     if (suppress_role_check || !newVal) return;
+    if (newVal === 1) return;
     if (props.file_view === 'view' && (props.state.mode === 'entry_add' || props.state.mode === 'entry_edit')) {
         axios.get('/contact-role-ids/' + newVal)
             .then(response => {
@@ -613,6 +624,7 @@ function isNewFileContact() {
 
 function checkContactRole(contact_id, contact_name) {
     if (!contact_id) return;
+    if (entry_form.file_id === 1) return;
     // Already has a role for this file
     if (known_role_contact_ids.value.includes(contact_id)) return;
     // Already pending assignment
@@ -659,7 +671,8 @@ function update_disp() {
         let theEntry = props.p1.entries.data[props.state.row];                                      // shortcut to the highlighted entry for cleaner code
 
         entry_form.file_id = theEntry.file_id;                                              // set the file id in the form
-        display_name.file = getFileName();                                                  // set the display file name for the form
+        fileSpecific.value = (theEntry.file_id !== 1) ? "true" : "false";
+        display_name.file = (theEntry.file_id === 1) ? 'Not File Related' : getFileName(); // set the display file name for the form
 
         entry_form.folder_id = theEntry.folder_id;                                                  // folder_id
         entry_form.entry_id = theEntry.id;                                                          // entry_id
@@ -809,6 +822,7 @@ function findEntryTypeID( find_folder_id = 0, find_entrytype_name = "" ) {
 }
 
 function getFileName() {                                                    // note: this function avoids an error if looking for undefined 'file' in 'file' entries
+    if (props.p1.entries.data[props.state.row]?.file_id === 1) return 'Not File Related';
     if( 'file' in props.p1.entries.data[props.state.row] ) {                // if the prop 'file' is in the entries object, return the name
             return props.p1.entries.data[props.state.row].file.name;
     } else return '';                                                           // else, return empty string
@@ -897,6 +911,7 @@ function selectFileContact( var_in = "from" ){
 function setup_add() {                                                                                  // function to setup addition of new entry
     disp.show_entry_form = true;                                                                        // display the form on the screen
     entry_form.reset();                                                                                 // reset the form
+    fileSpecific.value = "true";
     entry_form.pending_contact_roles = [];                                                              // clear pending contact roles
     known_role_contact_ids.value = [...(props.p1.contact_role_ids || [])];                               // reset known role contact ids
     objectClear( display_name );                                                                        // clear display names
@@ -1001,24 +1016,36 @@ update_disp();
         <!-- START of This Entry Form -->
         <form id="entry_form" @submit.prevent="submit_ThisEventForm" class="max-w-5xl mx-auto mt-1 p-2 pb-6">
                 <!-- File Row (for use on a view only, while adding) -->
-             <div v-if="props.file_view === 'view' && state.mode === 'entry_add'">
-                <FileLookup_form
-                    v-model:file_id="entry_form.file_id"
-                    id="file_lookup_input"
-                    :state="state"
-                />
-             </div>
+            <div v-if="props.file_view === 'view' && state.mode === 'entry_add'" class="flex items-baseline mb-4">
+                <label class="text-sm font-semibold w-28">File:</label>
+                <div>
+                    <div class="flex items-baseline">
+                        <input type="radio" id="fileSpecific" v-model="fileSpecific" value="true" />
+                        <label for="fileSpecific" class="ml-1 mr-2 text-sm"> - </label>
+                        <FileLookup_form
+                            v-if="fileSpecific === 'true'"
+                            v-model:file_id="entry_form.file_id"
+                            id="file_lookup_input"
+                            :state="state"
+                            :hideLabel="true"
+                        />
+                        <span v-else class="ml-1 text-sm">File Related</span>
+                    </div>
+                    <div class="flex items-baseline pt-2">
+                        <input type="radio" id="not_fileSpecific" v-model="fileSpecific" value="false" />
+                        <label for="not_fileSpecific" class="ml-1 text-sm"> - Not File Related</label>
+                    </div>
+                </div>
+            </div>
                 <!-- File Row (for view only, but not adding, so display disabled) -->
             <div v-else-if="props.file_view === 'view'">
                 <div class="flex items-baseline mb-4">
-                    <label for="display_casename" class="text-sm font-semibold w-28">
-                        File:
-                    </label>
-                    <input v-model="display_name.file" id="display_casename"
-                        autocomplete="off" :disabled="props.state.mode !== 'entry_add'"
+                    <label for="display_casename" class="text-sm font-semibold w-28">File:</label>
+                    <input :value="entry_form.file_id === 1 ? 'Not File Related' : display_name.file"
+                        id="display_casename" autocomplete="off" disabled
                         class="input input-bordered input-sm text-sm rounded-sm w-64 disabled:input-bordered disabled:border-base-300 disabled:text-base-content"/>
                 </div>
-             </div>
+            </div>
             <!-- Folder row - HIDDEN - Should probably remove-->
             <!-- <div v-if="false" class="flex">
                 <label for="file_folder_name" class="text-sm font-semibold pl-4">

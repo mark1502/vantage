@@ -22,7 +22,7 @@ class StoreViewRequest extends FormRequest
     public function rules(): array
     {
         return ['formtype' => 'string|max:20|nullable',
-            'file_id' => 'numeric|integer|nullable',
+            'file_id' => 'required|integer',
             'folder_id' => 'numeric|integer|required',
             'input_time' => 'boolean',
             'hide_date2_prompt' => 'boolean',

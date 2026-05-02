@@ -61,7 +61,7 @@ class ViewController extends Controller
             ->withQueryString();
 
         return Inertia::render('Views/Index',
-            ['view' => $view,
+            [   'view' => $view,
                 'entries' => $entries,
                 'view_folder_id' => $viewfolder_id,
                 'initials' => $view_for,
@@ -131,7 +131,9 @@ class ViewController extends Controller
         $entry->save();                                                                                 // save the entry
 
         // Handle pending contact roles
-        $this->savePendingContactRoles($request, $entry->file_id);
+        if ($entry->file_id !== 1) {
+            $this->savePendingContactRoles($request, $entry->file_id);
+        }
 
         // if this is a response to another entry, handle it
         if ($request->is_a_response != 'N' && ! empty($request->is_response_to)) {
@@ -204,7 +206,9 @@ class ViewController extends Controller
             $entry->save();                                                                                 // save the entry
 
             // Handle pending contact roles
-            $this->savePendingContactRoles($request, $entry->file_id);
+            if ($entry->file_id !== 1) {
+                $this->savePendingContactRoles($request, $entry->file_id);
+            }
 
             if ($request->is_a_response === 'N') {
                 $this->handleIsNoResponse($entry->id);

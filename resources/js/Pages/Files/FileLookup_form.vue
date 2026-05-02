@@ -10,6 +10,7 @@ const file_id = defineModel('file_id');
 
 const props = defineProps({
     state: Object,
+    hideLabel: { type: Boolean, default: false },
 });
 
 const lookup = reactive({
@@ -64,12 +65,12 @@ function handleKeyDown( event ) {
 
 <template>
     <div class="relative">
-        <div class="flex items-baseline mb-4">
-            <label for="file_lookup" class="text-sm font-semibold w-28">
+        <div :class="['flex items-baseline', { 'mb-4': !hideLabel }]">
+            <label v-if="!hideLabel" for="file_lookup" class="text-sm font-semibold w-28">
                 File:
             </label>
 
-            <input v-model="display_file.name" id="file_lookup" @input="lookup_file()" autocomplete="off" 
+            <input v-model="display_file.name" id="file_lookup" @input="lookup_file()" autocomplete="off"
                 class="input input-bordered input-sm rounded-sm w-64" @keydown="handleKeyDown"/>
 
             <table v-if="display_file.name.length && lookup.file == true"
