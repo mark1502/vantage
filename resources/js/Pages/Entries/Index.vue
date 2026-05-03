@@ -415,7 +415,9 @@ function setEntryClass( index ) {                                               
     let entry = props.entries.data[index];                                                   // shortcut for cleaner code
     let textcolor = 'text-base-content';
     let bgcolor = 'bg-base-100';
-    let border = '';
+    let isLastRow = index === props.entries.data.length - 1 && emptyRows.value === 0;
+    let borderBottom = isLastRow ? 'border-b border-b-base-content' : 'border-b border-b-primary/30';
+    let border = borderBottom;
 
     if( state.mode === 'entry_edit' || state.mode === 'entry_add' ) {                  // if adding or entering, then gray out the listbox entries
         textcolor = 'text-base-300';
@@ -429,8 +431,8 @@ function setEntryClass( index ) {                                               
         if( entry.expecting_response ) {
             textcolor = determine_response_expectation( entry.date_response_expected ) === 'Awaiting response' ? 'text-success' : 'text-error';
         }
-        bgcolor = 'bg-primary/20';
-        border = 'border-l-4 border-l-blue-600';
+        bgcolor = 'bg-primary/30';
+        border = 'border-l-4 border-l-blue-600 ' + borderBottom;
     }
 
     return textcolor + ' ' + bgcolor + ' ' + border;
@@ -669,14 +671,13 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                             </thead>
                                             <tbody>
                                                 <tr v-for="(entry, index) in entries.data" :key="entry.id"
-                                                    class="border-b border-base-300"
                                                     :class="setEntryClass(index)"
                                                     @click.left="entryList_click('list', index)"
                                                     @click.right.prevent="entryList_click('right', index)"
                                                     @dblclick="entryList_click('list_double', index)"
                                                 >
                                                     <td v-for="col in activeColumns" :key="col.key"
-                                                        class="pl-1 py-1.5 border-r border-base-content truncate"
+                                                        class="pl-1 py-1.5 border-r border-r-base-content overflow-hidden"
                                                         :style="{ width: col.width }"
                                                         :title="col.getValue(entry, props)">
                                                         <template v-if="col.hasLinkedDoc">
@@ -692,10 +693,10 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                         </template>
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100" 
-                                                    :class="n === emptyRows ? 'border-base-content' : 'border-base-300'" >
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b bg-base-100"
+                                                    :class="n === emptyRows ? 'border-b-base-content' : 'border-b-primary/30'" >
                                                     <td v-for="col in activeColumns" :key="'empty-' + col.key"
-                                                        class="pl-1 py-1.5 border-r border-base-content"
+                                                        class="pl-1 py-1.5 border-r border-r-base-content"
                                                         :style="{ width: col.width }">&nbsp;</td>
                                                 </tr>
                                             </tbody>
@@ -706,7 +707,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                         class="btn-group flex justify-between mt-2 items-center">
                                         <div class="flex items-center gap-4">
                                             <div>
-                                                <label for="state_show" class="font-semibold text-sm text-blue-600 ml-2 mr-1">
+                                                <label for="state_show" class="font-semibold text-sm text-base-content ml-2 mr-1">
                                                     Show:
                                                 </label>
                                                 <select v-model="state.show" id="state_show"

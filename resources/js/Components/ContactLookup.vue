@@ -24,8 +24,9 @@
         local.name.length > 0 && local.name !== local.starting_name
     );
 
-    const isFirmOnlyFolder = computed(() =>                                                  // #4: computed for firm-only folder check
-        props.folder_id > 4 && props.folder_id < 8
+    const isFirmOnly = computed(() =>
+        (props.folder_id > 4 && props.folder_id < 8) ||
+        (props.id === 'entry_to' && props.folder_id == 8)
     );
 
         // watch added_contact_obj - if accept is true && the field matches the id on the entry form, then copy the info to the contact_id and contact_name
@@ -53,8 +54,7 @@
     });
 
     function lookup_contact() {                                                              // #1: removed unnecessary nextTick wrappers and nested nextTick
-        let is_firm_only = isFirmOnlyFolder.value;                                           // folders 5,6 or 7 are firm-only lookups
-        if( props.id === 'entry_to' && props.folder_id == 8 ) is_firm_only = true;           // Phone messages (folder 8) are only To firm members
+        let is_firm_only = isFirmOnly.value;
 
         local.name = space_after_comma( local.name );                                        // Be sure there's a space after a comma
 
@@ -150,7 +150,7 @@
                 {{ contact.display_last_first }}
             </td>
         </tr>
-        <tr v-if="lookup.contact_list.total == 0 && !isFirmOnlyFolder">
+        <tr v-if="lookup.contact_list.total == 0 && !isFirmOnly">
             <td class="text-sm bg-base-100 text-base-content text-center border-4 border-cyan-500">
                 <p class="mt-2">Contact Not Found</p>
                 <button type="button" class="btn btn-outline btn-sm normal-case m-4" @mousedown="clicked_AddNewContact">
@@ -158,7 +158,7 @@
                 </button>
             </td>
         </tr>
-        <tr v-if="lookup.contact_list.total == 0 && isFirmOnlyFolder">
+        <tr v-if="lookup.contact_list.total == 0 && isFirmOnly">
             <td class="text-sm bg-base-100 text-base-content text-center">
                 <p class="p-2">Firm Member Not Found</p>
             </td>

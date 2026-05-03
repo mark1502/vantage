@@ -1,8 +1,8 @@
 import { ref } from 'vue'
 
 const AVAILABLE_THEMES = [
-    'light', 'dark', 'cupcake', 'corporate', 'retro',
-    'forest', 'aqua', 'dracula', 'business', 'night', 'coffee', 'caramellatte', 'nord', 'silk', 'sunset', 'dim', 'winter',
+    'light', 'dark', 'corporate', 'retro',
+    'aqua', 'aqua2', 'dracula', 'business', 'night', 'coffee', 'caramellatte', 'nord', 'dim', 'winter',
     'cmyk', 'fantasy', 'abyss', 'bumblebee',
 ]
 

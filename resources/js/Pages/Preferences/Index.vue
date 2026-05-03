@@ -128,7 +128,7 @@ watch(() => user_prefs.file_recent_spot, saveFileOpen);
                 <div class="bg-base-100 overflow-hidden sm:rounded-lg" id="ContactScreen" name="ContactScreen">
                     <div class="p-6 bg-base-300 border-b border-base-300 min-h-[680px] justify-center">
                         <p class="text-lg font-semibold mb-3 text-base-content">Preferences for User: "{{ props.user_initials }}"</p>
-                        <div class="border border-base-300 rounded-sm mt-5 p-4 w-[700px]">
+                        <div class="border border-base-content rounded-sm mt-5 p-4 w-[700px]">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-lg font-bold text-base-content">Calendar - Event Colors</p>
                                 <span v-if="savedIndicator.colors" class="text-sm text-success transition-opacity">Saved</span>
@@ -148,7 +148,7 @@ watch(() => user_prefs.file_recent_spot, saveFileOpen);
                             </div>
                         </div>
 
-                        <div class="border border-base-300 mt-8 p-4 w-[700px] rounded-sm">
+                        <div class="border border-base-content mt-8 p-4 w-[700px] rounded-sm">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-lg font-bold text-base-content">Calendar - Event Tooltip Display</p>
                                 <span v-if="savedIndicator.hover" class="text-sm text-success transition-opacity">Saved</span>
@@ -163,7 +163,7 @@ watch(() => user_prefs.file_recent_spot, saveFileOpen);
                             </div>
                         </div>
 
-                        <div class="border border-base-300 mt-8 p-4 w-[700px] rounded-sm">
+                        <div class="border border-base-content mt-8 p-4 w-[700px] rounded-sm">
                             <div class="flex items-center justify-between mb-2">
                                 <p class="text-lg font-bold text-base-content">File - Default Open Location</p>
                                 <span v-if="savedIndicator.fileOpen" class="text-sm text-success transition-opacity">Saved</span>

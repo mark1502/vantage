@@ -100,6 +100,137 @@ const emptyRows = computed(() => {
     return Math.max(0, state.show - props.entries.data.length);
 });
 
+// ---------------------------------------------------------------------------
+// View table column definitions (data-driven approach)
+//
+// Each view (memos, todo, events, etc.) defines its own set of columns.
+// A column is an object with:
+//   label  - the header text shown in <th>
+//   width  - CSS width for consistent column sizing
+//   value  - a function that receives an entry and returns the display string
+//
+// The template renders a single <table> that iterates over whichever
+// column set is active, instead of duplicating the entire table per view.
+// ---------------------------------------------------------------------------
+const viewColumns = computed(() => {
+    switch (state.view) {
+
+        // Memos and Phone share the same 3-column layout: Date / From / To
+        case 'memos':
+        case 'phone':
+            return [
+                {
+                    label: table_heading.date1,
+                    width: 'w-28',
+                    value: (entry) => reformat_date(entry.date1, getFolderData('input_time')),
+                },
+                {
+                    label: table_heading.from,
+                    width: 'w-40',
+                    value: (entry) => display_entry_contact(entry, 'from'),
+                },
+                {
+                    label: table_heading.to,
+                    width: 'w-40',
+                    value: (entry) => display_entry_contact(entry, 'to'),
+                },
+            ];
+
+        // To-Do shows Date / For (initials) / the note text
+        case 'todo':
+            return [
+                {
+                    label: 'Date:',
+                    width: 'w-16',
+                    value: (entry) => reformat_date(entry.date1, getFolderData('input_time')),
+                },
+                {
+                    label: 'For:',
+                    width: 'w-12',
+                    value: (entry) => entry.contact_from?.member_initials ?? '',
+                },
+                {
+                    label: 'To-Do:',
+                    width: 'w-80',
+                    value: (entry) => entry.note ?? '',
+                },
+            ];
+
+        // Events shows Date / For (initials) / the entrytype name
+        case 'events':
+            return [
+                {
+                    label: 'Date:',
+                    width: 'w-32',
+                    value: (entry) => reformat_date(entry.date1, getFolderData('input_time')),
+                },
+                {
+                    label: 'For:',
+                    width: 'w-12',
+                    value: (entry) => entry.contact_from?.member_initials ?? '',
+                },
+                {
+                    label: 'Event Type:',
+                    width: 'w-80',
+                    // Look up the entrytype name from the folder's entrytypes array
+                    value: (entry) => {
+                        const folder = props.folders[entry.folder_id - 1];
+                        const et = folder?.entrytypes?.find(t => t.id === entry.entrytype_id);
+                        return et ? et.name : '';
+                    },
+                },
+            ];
+
+        // Timeline shows Date / Folder name / entrytype name (spans all folders)
+        case 'timeline':
+            return [
+                {
+                    label: 'Date:',
+                    width: 'w-36',
+                    // Timeline entries can come from any folder, so pass that folder's input_time
+                    value: (entry) => reformat_date(entry.date1, props.folders[entry.folder_id - 1].input_time, entry.all_day),
+                },
+                {
+                    label: 'Folder:',
+                    width: 'w-12',
+                    value: (entry) => props.folders[entry.folder_id - 1].name,
+                },
+                {
+                    label: 'Type:',
+                    width: 'w-80',
+                    value: (entry) => {
+                        const folder = props.folders[entry.folder_id - 1];
+                        const et = folder?.entrytypes?.find(t => t.id === entry.entrytype_id);
+                        return et ? et.name : '';
+                    },
+                },
+            ];
+
+        // Due shows Response From / Expected By / Date Due (column order differs from others)
+        case 'due':
+            return [
+                {
+                    label: 'Response From',
+                    width: 'w-40',
+                    value: (entry) => display_entry_contact(entry, 'to'),
+                },
+                {
+                    label: 'Expected By',
+                    width: 'w-40',
+                    value: (entry) => display_entry_contact(entry, 'from'),
+                },
+                {
+                    label: 'Date Due',
+                    width: 'w-28',
+                    value: (entry) => reformat_date(entry.date_response_expected),
+                },
+            ];
+
+        default:
+            return [];
+    }
+});
+
 function refreshView() {
     router.reload( {
         only: ['entries','view_folder_id','view','initials','from_to','read'],
@@ -632,194 +763,41 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
 
                                 <div v-if="entries.data.length && state.mode != 'entry_add'">
                                     <div>
-                                        <table v-if="state.view === 'memos' || state.view === 'phone'" id="view_table_1" tabindex="0" 
-                                        class="w-full border border-base-content text-sm font-sans font-normal" >
+                                        <!-- Single data-driven table for all views.
+                                             viewColumns computed returns the column definitions for the active view.
+                                             Headers and cells both iterate over the same column array,
+                                             so adding/changing a view only requires updating the computed, not the template. -->
+                                        <table id="view_table" tabindex="0"
+                                            class="w-full border border-base-content text-sm font-sans font-normal">
+                                            <!-- Column headers from viewColumns -->
                                             <thead class="text-left bg-base-200 text-base-content">
                                                 <tr>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        {{ table_heading.date1 }}
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        {{ table_heading.from }}
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        {{ table_heading.to }}
+                                                    <th v-for="col in viewColumns" :key="col.label"
+                                                        class="border-b border-r border-base-content pl-1">
+                                                        {{ col.label }}
                                                     </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-base-300"
-                                                    :class="setViewClass(index)"
+                                                <!-- Data rows — click handlers are identical across all views -->
+                                                <tr v-for="(entry, index) in entries.data" :key="entry.id"
+                                                    class="border-b"
+                                                    :class="[setViewClass(index), index === entries.data.length - 1 && emptyRows === 0 ? 'border-base-content' : 'border-primary/20']"
                                                     @click.left="viewList_click( 'list', index)"
                                                     @click.right.prevent="viewList_click( 'right', index)"
-                                                    @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-28">
-                                                        {{ reformat_date(entry.date1, getFolderData('input_time')) }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-40 pl-1 text-left">
-                                                        {{ display_entry_contact( entry, 'from' ) }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-40 pl-1">
-                                                        {{ display_entry_contact( entry, 'to' ) }}
+                                                    @dblclick="viewList_click( 'list_double', index)">
+                                                    <!-- Each cell calls col.value(entry) to get its display text -->
+                                                    <td v-for="col in viewColumns" :key="col.label"
+                                                        class="pl-1 py-1.5 border-r border-base-content"
+                                                        :class="col.width">
+                                                        {{ col.value(entry) }}
                                                     </td>
                                                 </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
-                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-base-content">&nbsp;</td>
-                                                    <td>&nbsp;</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <table v-else-if="state.view === 'todo'" id="view_table_2" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-base-200 text-base-content">
-                                                <tr>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Date:
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        For:
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        To-Do:
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-base-300"
-                                                    :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)"
-                                                    @click.right.prevent="viewList_click( 'right', index)"
-                                                    @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-16">
-                                                        {{ reformat_date(entry.date1, getFolderData('input_time')) }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-12 pl-1 text-left">
-                                                        {{ entry.contact_from.member_initials }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-80 pl-1">
-                                                        {{ entry.note }}
-                                                    </td>
-                                                </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
-                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-base-content">&nbsp;</td>
-                                                    <td>&nbsp;</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <table v-else-if="state.view === 'events'" id="view_table_3" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-base-200 text-base-content">
-                                                <tr>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Date:
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        For:
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Event Type:
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-base-300"
-                                                    :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)"
-                                                    @click.right.prevent="viewList_click( 'right', index)"
-                                                    @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-32">
-                                                        {{ reformat_date(entry.date1, getFolderData('input_time')) }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-12 pl-1 text-left">
-                                                        {{ entry.contact_from.member_initials }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-80 pl-1">
-                                                        {{ props.folders[entry.folder_id - 1].entrytypes.find( (entrytype) => entrytype.id === entry.entrytype_id).name }}
-                                                    </td>
-                                                </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
-                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-base-content">&nbsp;</td>
-                                                    <td>&nbsp;</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <table v-else-if="state.view === 'timeline'" id="view_table_4" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-base-200 text-base-content">
-                                                <tr>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Date:
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Folder:
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Type:
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-base-300"
-                                                    :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)"
-                                                    @click.right.prevent="viewList_click( 'right', index)"
-                                                    @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-36">
-                                                        {{ reformat_date(entry.date1, props.folders[entry.folder_id-1].input_time, entry.all_day) }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-12 pl-1 text-left">
-                                                        {{ props.folders[entry.folder_id - 1].name }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-80 pl-1">
-                                                        {{ props.folders[entry.folder_id - 1].entrytypes.find( (entrytype) => entrytype.id === entry.entrytype_id).name }}
-                                                    </td>
-                                                </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
-                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-base-content">&nbsp;</td>
-                                                    <td>&nbsp;</td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                        <table v-else-if="state.view === 'due'" id="view_table_5" tabindex="0" class="w-full border border-base-content text-sm font-sans font-normal" >
-                                            <thead class="text-left bg-base-200 text-base-content">
-                                                <tr>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Response From
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Expected By
-                                                    </th>
-                                                    <th class="border-b border-r border-base-content pl-1">
-                                                        Date Due
-                                                    </th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-for="entry, index in entries.data" :key="entry.id"
-                                                    class="border-b border-base-300"
-                                                    :class="setViewClass(index)"
-                                                    @click.left="viewList_click( 'list', index)"
-                                                    @click.right.prevent="viewList_click( 'right', index)"
-                                                    @dblclick="viewList_click( 'list_double', index)" >
-                                                    <td class="border-x border-base-content w-40 pl-1 text-left">
-                                                        {{ display_entry_contact( entry, 'to' ) }}
-                                                    </td>
-                                                    <td class="border-x border-base-content w-40 pl-1">
-                                                        {{ display_entry_contact( entry, 'from' ) }}
-                                                    </td>
-                                                    <td class="pl-1 pr-2 py-1.5 border-r border-base-content w-28">
-                                                        {{ reformat_date( entry.date_response_expected ) }}
-                                                    </td>
-                                                </tr>
-                                                <tr v-for="n in emptyRows" :key="'empty-' + n" :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-base-300']">
-                                                    <td class="pl-1 pr-2 py-1.5">&nbsp;</td>
-                                                    <td class="border-x border-base-content">&nbsp;</td>
-                                                    <td>&nbsp;</td>
+                                                <!-- Empty padding rows to fill out the table to state.show height -->
+                                                <tr v-for="n in emptyRows" :key="'empty-' + n"
+                                                    :class="['border-b bg-base-100', n === emptyRows ? 'border-base-content' : 'border-primary/20']">
+                                                    <td v-for="col in viewColumns" :key="'empty-' + col.label"
+                                                        class="pl-1 py-1.5 border-r border-base-content">&nbsp;</td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -827,7 +805,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                     <!-- if we're browsing the data (not edit or add), then display show droplist and link buttons -->
                                     <div v-if="state.mode == 'browse'" class="flex justify-between mt-2 items-center">
                                         <div class="flex items-center w-28">
-                                            <label for="state_show" class="font-semibold text-sm text-blue-700 ml-1 mr-1">
+                                            <label for="state_show" class="font-semibold text-sm text-base-content ml-1 mr-1">
                                                 Rows:
                                             </label>
                                             <select v-model="state.show" id="state_show" @change="refreshView()"

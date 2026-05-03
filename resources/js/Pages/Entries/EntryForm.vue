@@ -277,7 +277,7 @@ watch(() => entry_form.file_id, (newVal, oldVal) => {
 watch(() => entry_form.from_contact_id, (newVal, oldVal) => {
     if (suppress_role_check || !newVal) return;
     if (props.state.mode === 'entry_add' || props.state.mode === 'entry_edit') {
-        nextTick(() => checkContactRole(newVal, display_name.from));
+        nextTick(() => checkContactRole(newVal, display_name.from, 'from'));
     }
 });
 
@@ -285,7 +285,7 @@ watch(() => entry_form.from_contact_id, (newVal, oldVal) => {
 watch(() => entry_form.to_contact_id, (newVal, oldVal) => {
     if (suppress_role_check || !newVal) return;
     if (props.state.mode === 'entry_add' || props.state.mode === 'entry_edit') {
-        nextTick(() => checkContactRole(newVal, display_name.to));
+        nextTick(() => checkContactRole(newVal, display_name.to, 'to'));
     }
 });
 
@@ -622,9 +622,12 @@ function isNewFileContact() {
 }
 
 
-function checkContactRole(contact_id, contact_name) {
+function checkContactRole(contact_id, contact_name, field = '') {
     if (!contact_id) return;
     if (entry_form.file_id === 1) return;
+    // Contact unchanged from what was loaded — skip (handles blur-reset in firm-only lookups)
+    const savedKey = field === 'from' ? 'from_contact_id' : field === 'to' ? 'to_contact_id' : '';
+    if (savedKey && saved_entry_form[savedKey] === contact_id) return;
     // Already has a role for this file
     if (known_role_contact_ids.value.includes(contact_id)) return;
     // Already pending assignment
@@ -796,6 +799,24 @@ const fileContactsWithRoles = computed(() => {
 });
 
 
+function isFieldFirmOnly(field) {
+    const folderId = entry_form.folder_id;
+    if (folderId > 4 && folderId < 8) return true;
+    if (field === 'to' && folderId == 8) return true;
+    return false;
+}
+
+const contactPickerList = computed(() => {
+    if (isFieldFirmOnly(disp.show_file_contacts)) {
+        return props.p1.firm_members.map(m => ({
+            id: m.id,
+            display_last_first: m.display_last_first,
+            role_display: m.firm_role || '',
+        }));
+    }
+    return fileContactsWithRoles.value;
+});
+
 function findFileContact( find_contact_id ) {
     // return props.p1.file_contacts.find( (contact) => contact.id === find_contact_id ).display_last_first;
     return fileContactsWithRoles.value.find( (contact) => contact.id === find_contact_id )?.display_last_first ?? '';
@@ -895,13 +916,13 @@ function selectFileContact( var_in = "from" ){
         disp.show_contact_id = null;                                                             // clear the contact id
     } else if( disp.show_file_contacts === 'from' ) {                                                     // if the file contacts are being selected from the 'from' field
         entry_form.from_contact_id = disp.show_contact_id
-        display_name.from = findFileContact( disp.show_contact_id );                            // set the display name for 'from' contact
+        display_name.from = contactPickerList.value.find(c => c.id === disp.show_contact_id)?.display_last_first ?? '';
         disp.show_file_contacts = 'off';
         disp.show_contact_id = null;
         checkEditMode();                                                                      // check if the form changed to set edit mode
-    } else if( disp.show_file_contacts === 'to' ) {                                               
+    } else if( disp.show_file_contacts === 'to' ) {
         entry_form.to_contact_id = disp.show_contact_id
-        display_name.to = findFileContact( disp.show_contact_id );                            // set the display name for 'from' contact
+        display_name.to = contactPickerList.value.find(c => c.id === disp.show_contact_id)?.display_last_first ?? '';
         disp.show_file_contacts = 'off';
         disp.show_contact_id = null;
         checkEditMode();                                                                      // check if the form changed to set edit mode
@@ -1018,7 +1039,7 @@ update_disp();
                 <!-- File Row (for use on a view only, while adding) -->
             <div v-if="props.file_view === 'view' && state.mode === 'entry_add'" class="flex items-baseline mb-4">
                 <label class="text-sm font-semibold w-28">File:</label>
-                <div>
+                <div v-if="[5, 6, 7, 8].includes(state.add_folder_id)">
                     <div class="flex items-baseline">
                         <input type="radio" id="fileSpecific" v-model="fileSpecific" value="true" />
                         <label for="fileSpecific" class="ml-1 mr-2 text-sm"> - </label>
@@ -1036,6 +1057,13 @@ update_disp();
                         <label for="not_fileSpecific" class="ml-1 text-sm"> - Not File Related</label>
                     </div>
                 </div>
+                <FileLookup_form
+                    v-else
+                    v-model:file_id="entry_form.file_id"
+                    id="file_lookup_input"
+                    :state="state"
+                    :hideLabel="true"
+                />
             </div>
                 <!-- File Row (for view only, but not adding, so display disabled) -->
             <div v-else-if="props.file_view === 'view'">
@@ -1148,7 +1176,7 @@ update_disp();
 
                 <InputError class="mt-2 ml-2" :message="entry_form.errors.from_contact_id" />
                 <!-- <InputError class="mt-2 ml-2" :message="entry_form.errors.from_display_last_first" /> -->
-                <button v-if="props.file_view === 'file'" type="button" class="btn btn-xs btn-ghost ml-1" @click="disp.show_file_contacts = 'from'">&darr;</button>
+                <button v-if="props.file_view === 'file' || isFieldFirmOnly('from')" type="button" class="btn btn-xs btn-ghost ml-1" @click="disp.show_file_contacts = 'from'">&darr;</button>
 
             </div>
 
@@ -1172,7 +1200,7 @@ update_disp();
 
                 <InputError class="mt-2" :message="entry_form.errors.to_contact_id" />
                 <InputError class="mt-2" :message="entry_form.errors.to_display_last_first" />
-                <button v-if="props.file_view === 'file'" type="button" class="btn btn-xs btn-ghost ml-1" @click="disp.show_file_contacts = 'to'">&darr;</button>
+                <button v-if="props.file_view === 'file' || isFieldFirmOnly('to')" type="button" class="btn btn-xs btn-ghost ml-1" @click="disp.show_file_contacts = 'to'">&darr;</button>
 
             </div>
 
@@ -1434,13 +1462,13 @@ update_disp();
     <dialog id="file_contacts_modal" class="modal">
         <div class="modal-box">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="selectFileContact( 'cancel' )">✕</button>
-            <h3 class="font-bold text-2xl text-center mb-2">Select File Contact</h3>
+            <h3 class="font-bold text-2xl text-center mb-2">{{ isFieldFirmOnly(disp.show_file_contacts) ? 'Select Firm Member' : 'Select File Contact' }}</h3>
             <p class="text-center text-sm mb-4">{{ disp.show_file_contacts === 'from' ? props.getFolderData('from_prompt') : props.getFolderData('to_prompt') }}</p>
 
             <!-- Scrollable list of contacts -->
             <div class="max-h-96 overflow-y-auto border border-base-300 rounded-md">
                 <div
-                    v-for="(contact, index) in fileContactsWithRoles"
+                    v-for="(contact, index) in contactPickerList"
                     :key="index"
                     @click="disp.show_contact_id = contact.id; selectFileContact()"
                     class="grid grid-cols-2 gap-4 px-4 py-2 hover:bg-base-200 cursor-pointer border-b border-base-300 last:border-b-0"
