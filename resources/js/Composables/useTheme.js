@@ -1,28 +1,25 @@
 import { ref } from 'vue'
 
-const AVAILABLE_THEMES = [
+export const AVAILABLE_THEMES = [
     'light', 'dark', 'corporate', 'retro',
     'aqua', 'aqua2', 'dracula', 'business', 'night', 'coffee', 'caramellatte', 'nord', 'dim', 'winter',
     'cmyk', 'fantasy', 'abyss', 'bumblebee',
 ]
 
+const theme = ref(localStorage.getItem('theme') || 'light')
+
 export const useTheme = () => {
-    const theme = ref(localStorage.getItem('theme') || 'light')
 
     const setTheme = (newTheme) => {
         theme.value = newTheme
-        localStorage.setItem('theme', newTheme)
         document.documentElement.setAttribute('data-theme', newTheme)
+        localStorage.setItem('theme', newTheme)
     }
 
-    const initTheme = () => {
-        const savedTheme = localStorage.getItem('theme')
-        if (savedTheme && AVAILABLE_THEMES.includes(savedTheme)) {
-            setTheme(savedTheme)
-        } else {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-            setTheme(prefersDark ? 'dark' : 'light')
-        }
+    const initTheme = (savedTheme = null) => {
+        const themeToApply = savedTheme ?? localStorage.getItem('theme') ?? 'light'
+        const validated = AVAILABLE_THEMES.includes(themeToApply) ? themeToApply : 'light'
+        setTheme(validated)
     }
 
     return {

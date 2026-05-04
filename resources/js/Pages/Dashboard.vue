@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
+import { onMounted } from 'vue';
 import {
     CalendarDaysIcon,
     ClockIcon,
@@ -8,6 +9,7 @@ import {
     PhoneIcon,
     EnvelopeIcon,
 } from '@heroicons/vue/24/outline';
+import { useTheme } from '@/Composables/useTheme';
 
 const props = defineProps({
     msg_events: String,
@@ -16,6 +18,15 @@ const props = defineProps({
     msg_todo: String,
     msg_phone: String,
     msg_memo: String,
+    theme_preference: String,
+});
+
+const { initTheme } = useTheme();
+
+onMounted(() => {
+    if (props.theme_preference) {
+        initTheme(props.theme_preference);
+    }
 });
 
 const sections = [

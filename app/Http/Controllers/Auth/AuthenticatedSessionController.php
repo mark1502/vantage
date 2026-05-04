@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Pref_default;
+use App\Models\Preference;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +34,19 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        $user = $request->user();
+        $themeDefault = Pref_default::where('name', 'theme')->first();
+        $themePref = Preference::firstOrCreate(
+            ['user_id' => $user->id, 'name' => 'theme'],
+            [
+                'pref_default_id' => $themeDefault->id,
+                'firm_id' => $user->firm_id,
+                'prompt' => $themeDefault->prompt,
+                'setting' => $themeDefault->setting,
+            ]
+        );
+        session()->flash('theme_preference', $themePref->setting);
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

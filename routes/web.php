@@ -53,7 +53,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
     */
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     Route::resource('users', UserController::class)->names('users');
     Route::resource('contacts', ContactController::class)->names('contacts');
     Route::patch('/contacts/{contact}/restore', [ContactController::class, 'restore'])->name('contacts.restore');
@@ -74,6 +74,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
     Route::post('/preferences/eventcolors', [PreferenceController::class, 'eventcolor_update'])->name('preferences.eventcolors');
     Route::post('/preferences/hover_placement', [PreferenceController::class, 'hover_placement_update'])->name('preferences.hover_placement');
     Route::post('/preferences/file_open', [PreferenceController::class, 'file_open_update'])->name('preferences.file_open');
+    Route::post('/preferences/theme', [PreferenceController::class, 'theme_update'])->name('preferences.theme');
     Route::get('/preferences/updateEntrytypes', [PreferenceController::class, 'update_entrytypes']);
 
     Route::get('/recent-files', [RecentFileController::class, 'index'])->name('recent-files.index');

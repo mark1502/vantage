@@ -53,9 +53,14 @@ class PreferenceController extends Controller
             $preferences = $userprefs;
         }
 
-        return Inertia::render('Preferences/Index', ['preferences' => $preferences,
+        $themePref = Preference::where('user_id', $user->id)->where('name', 'theme')->first();
+        $userTheme = $themePref ? $themePref->setting : 'light';
+
+        return Inertia::render('Preferences/Index', [
+            'preferences' => $preferences,
             'user_id' => $user->id,
             'user_initials' => $user_initials,
+            'user_theme' => $userTheme,
         ]);
     }
 
@@ -127,6 +132,20 @@ class PreferenceController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    public function theme_update(Request $request): void
+    {
+        $validated = $request->validate([
+            'user_id' => 'numeric|integer|required',
+            'theme' => 'required|string|max:50',
+        ]);
+
+        if ($request->user()->id == $request->user_id || $request->user()->user_type == 'Admin') {
+            Preference::where('user_id', $request->user_id)
+                ->where('name', 'theme')
+                ->update(['setting' => $request->theme]);
+        }
     }
 
     // just used this to update entrytypes of the firm to be sure it has all of the defaults

@@ -43,6 +43,12 @@ class pref_defaultSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            ['name' => 'theme',
+                'prompt' => 'My Default Theme:',
+                'setting' => 'light',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

@@ -6,7 +6,7 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import HoverDropdown from '@/Components/HoverDropdown.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link, usePage, router } from '@inertiajs/vue3';
+import { Link, usePage, router, useForm } from '@inertiajs/vue3';
 import { FolderOpenIcon, BuildingOffice2Icon, CalendarDaysIcon, IdentificationIcon } from '@heroicons/vue/24/outline';
 
 import { useTheme } from '@/Composables/useTheme'
@@ -16,6 +16,26 @@ const { theme, themes, setTheme, initTheme } = useTheme()
 onMounted(() => {
     initTheme()
 })
+
+const showThemeDialog = ref(false)
+const pendingTheme = ref(null)
+
+function onThemeSelected(t) {
+    setTheme(t)
+    pendingTheme.value = t
+    showThemeDialog.value = true
+}
+
+function confirmThemeSave() {
+    const page = usePage()
+    const form = useForm({ user_id: page.props.auth.user.id, theme: pendingTheme.value })
+    form.post(route('preferences.theme'), { preserveState: true })
+    showThemeDialog.value = false
+}
+
+function declineThemeSave() {
+    showThemeDialog.value = false
+}
 
 provide('currentTheme', theme);
 provide('setThemeFunction', setTheme);
@@ -159,7 +179,7 @@ onUnmounted(() => {
                                         <button
                                             v-for="t in themes"
                                             :key="t"
-                                            @click="setTheme(t)"
+                                            @click="onThemeSelected(t)"
                                             class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 transition duration-150 ease-in-out hover:bg-base-200 focus:bg-base-200 focus:outline-none capitalize"
                                             :class="{ 'font-bold bg-base-200': theme === t }"
                                         >
@@ -279,6 +299,18 @@ onUnmounted(() => {
                 <slot />
             </main>
         </div>
+
+        <!-- Theme save confirmation dialog -->
+        <dialog :open="showThemeDialog" class="modal modal-bottom sm:modal-middle">
+            <div class="modal-box">
+                <h3 class="font-bold text-lg">Save Theme Preference?</h3>
+                <p class="py-4 text-base-content/80">Would you like to save <span class="font-semibold capitalize">{{ pendingTheme }}</span> as your default theme?</p>
+                <div class="modal-action">
+                    <button class="btn btn-ghost" @click="declineThemeSave">No, just for now</button>
+                    <button class="btn btn-primary" @click="confirmThemeSave">Yes, save it</button>
+                </div>
+            </div>
+        </dialog>
     </div>
 </template>
 
