@@ -11,7 +11,7 @@ import { FolderOpenIcon, BuildingOffice2Icon, CalendarDaysIcon, IdentificationIc
 
 import { useTheme } from '@/Composables/useTheme'
 
-const { theme, themes, setTheme, initTheme } = useTheme()
+const { theme, themes, setTheme, initTheme, previewTheme, revertPreview } = useTheme()
 
 onMounted(() => {
     initTheme()
@@ -166,25 +166,26 @@ onUnmounted(() => {
                                 <Dropdown align="right" width="48">
                                     <template #trigger>
                                         <button type="button"
-                                            class="inline-flex items-center px-2 py-2 mr-2 border border-transparent text-sm leading-4 font-medium rounded-md text-base-content/60 bg-base-200 hover:text-base-content focus:outline-none transition ease-in-out duration-150"
+                                            class="self-end mr-2 p-2 rounded-md text-base-content/60 hover:text-base-content hover:scale-110 focus:outline-none transition duration-150 ease-in-out"
+                                            title="Theme Selector"
                                         >
-                                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h1.5c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" />
-                                            </svg>
-                                            <span class="ml-1 text-xs capitalize">{{ theme }}</span>
+                                            <img src="/images/palette.svg" class="w-4 h-4" alt="Theme" />
                                         </button>
                                     </template>
 
                                     <template #content>
-                                        <button
-                                            v-for="t in themes"
-                                            :key="t"
-                                            @click="onThemeSelected(t)"
-                                            class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 transition duration-150 ease-in-out hover:bg-base-200 focus:bg-base-200 focus:outline-none capitalize"
-                                            :class="{ 'font-bold bg-base-200': theme === t }"
-                                        >
-                                            {{ t }}
-                                        </button>
+                                        <div @mouseleave="revertPreview">
+                                            <button
+                                                v-for="t in themes"
+                                                :key="t"
+                                                @mouseenter="previewTheme(t)"
+                                                @click="onThemeSelected(t)"
+                                                class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 transition duration-150 ease-in-out hover:bg-base-200 focus:bg-base-200 focus:outline-none capitalize"
+                                                :class="{ 'font-bold bg-base-200': theme === t }"
+                                            >
+                                                {{ t }}
+                                            </button>
+                                        </div>
                                     </template>
                                 </Dropdown>
 
@@ -306,7 +307,7 @@ onUnmounted(() => {
                 <h3 class="font-bold text-lg">Save Theme Preference?</h3>
                 <p class="py-4 text-base-content/80">Would you like to save <span class="font-semibold capitalize">{{ pendingTheme }}</span> as your default theme?</p>
                 <div class="modal-action">
-                    <button class="btn btn-ghost" @click="declineThemeSave">No, just for now</button>
+                    <button class="btn btn-ghost mr-3" @click="declineThemeSave">No, just use it for now</button>
                     <button class="btn btn-primary" @click="confirmThemeSave">Yes, save it</button>
                 </div>
             </div>

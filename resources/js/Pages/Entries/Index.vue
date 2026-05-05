@@ -535,7 +535,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                             File
                         </Link>
                         <span class="font-semibold text-base-content mx-2">></span>
-                        <div class="border border-base-300 rounded ml-1 pl-2 py-1 text-base-content bg-base-100 w-80" @click="SwitchFile()">
+                        <div class="border border-base-content/20 rounded ml-1 pl-2 py-1 text-base-content bg-base-100 w-80" @click="SwitchFile()">
                             {{ props.file.name }}
                             <!-- Show Button if mode is Browse or file_show -->
                             <button v-if="state.mode === 'browse' || state.mode === 'file_show'" type="button" class="btn btn-xs border-0 bg-base-300 float-end">
@@ -557,7 +557,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                             Folder:
                         </label>
                         <select v-model="state.folder_name" id="folderlist"
-                            class="border border-base-300 rounded p-1 font-normal text-base text-base-content bg-base-100 w-56"
+                            class="border border-base-content/20 rounded p-1 font-normal text-base text-base-content bg-base-100 w-56"
                             @change="refreshEntryList()">
                             <optgroup label="File Folders:" class="my-2">
                                 <option v-if="file.filetype.has_correspondence === 1" value="correspondence">

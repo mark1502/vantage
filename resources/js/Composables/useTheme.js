@@ -1,9 +1,9 @@
 import { ref } from 'vue'
 
 export const AVAILABLE_THEMES = [
-    'light', 'dark', 'corporate', 'retro',
-    'aqua', 'aqua2', 'dracula', 'business', 'night', 'coffee', 'caramellatte', 'nord', 'dim', 'winter',
-    'cmyk', 'fantasy', 'abyss', 'bumblebee',
+    'light', 'corporate', 'autumn', 'fantasy', 'bumblebee', 'winter', 'nord', 'caramellatte', 'retro', 'coffee', 
+    'aqua', 'night', 'dark', 'dracula', 'business', 'dim', 
+    
 ]
 
 const theme = ref(localStorage.getItem('theme') || 'light')
@@ -22,10 +22,20 @@ export const useTheme = () => {
         setTheme(validated)
     }
 
+    const previewTheme = (previewThemeName) => {
+        document.documentElement.setAttribute('data-theme', previewThemeName)
+    }
+
+    const revertPreview = () => {
+        document.documentElement.setAttribute('data-theme', theme.value)
+    }
+
     return {
         theme,
         themes: AVAILABLE_THEMES,
         setTheme,
         initTheme,
+        previewTheme,
+        revertPreview,
     }
 }
