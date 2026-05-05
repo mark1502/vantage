@@ -287,7 +287,7 @@ update_disp();
                             <div name="left-side" class="w-[460px]">
                                 <div class="flex justify-end pb-2">
                                     <input v-model="search" id="searchInput" name="searchInput" type="text"
-                                        placeholder="Search ..." class="input input-bordered input-sm w-56 px-2" autocomplete="off" />
+                                        placeholder="Search ..." class="input input-sm w-56 px-2" autocomplete="off" />
                                 </div>
                                 <div v-if="filetypes.data.length">
                                     <table class="w-full border border-base-content text-base font-sans font-normal" id="contactlist">

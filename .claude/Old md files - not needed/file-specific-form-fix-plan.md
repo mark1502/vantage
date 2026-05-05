@@ -68,7 +68,7 @@ Key: Use `v-if` (not `v-show`) for FileLookup_form so it remounts fresh when tog
         <label for="display_casename" class="text-sm font-semibold w-28">File:</label>
         <input :value="entry_form.file_id === 1 ? 'Not File Related' : display_name.file"
             id="display_casename" autocomplete="off" disabled
-            class="input input-bordered input-sm text-sm rounded-sm w-64 disabled:input-bordered disabled:border-base-300 disabled:text-base-content"/>
+            class="input input-sm text-sm rounded-sm w-64 disabled:border-base-300 disabled:text-base-content"/>
     </div>
 </div>
 ```

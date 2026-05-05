@@ -24,7 +24,7 @@ defineExpose({ focus: () => input.value.focus() });
         ref="input"
     /> -->
     <input
-        class="input input-bordered input-sm text-base w-64"
+        class="input input-sm text-base w-64"
         v-model="model"
         ref="input"
     />

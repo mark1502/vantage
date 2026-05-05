@@ -2,9 +2,45 @@
 @import '@vuepic/vue-datepicker/dist/main.css';
 
 @plugin "daisyui" {
-  themes: light --default, dark --prefersdark, corporate,
+  themes: dark --prefersdark, corporate,
           nord, dim, winter, fantasy, bumblebee;
 }
+
+@plugin "daisyui/theme" {       /* light (default) */
+  name: "light";
+  default: false;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(98% 0 0);
+  --color-base-300: oklch(95% 0 0);
+  --color-base-content: oklch(21% 0.006 285.885);
+  --color-primary: oklch(45% 0.24 277.023);
+  --color-primary-content: oklch(93% 0.034 272.788);
+  --color-secondary: oklch(65% 0.241 354.308);
+  --color-secondary-content: oklch(94% 0.028 342.258);
+  --color-accent: oklch(77% 0.152 181.912);
+  --color-accent-content: oklch(38% 0.063 188.416);
+  --color-neutral: oklch(27% 0.006 286.033);
+  --color-neutral-content: oklch(92% 0.004 286.32);
+  --color-info: oklch(74% 0.16 232.661);
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: oklch(76% 0.177 163.223);
+  --color-success-content: oklch(37% 0.077 168.94);
+  --color-warning: oklch(82% 0.189 84.429);
+  --color-warning-content: oklch(41% 0.112 45.904);
+  --color-error: oklch(71% 0.194 13.428);
+  --color-error-content: oklch(27% 0.105 12.094);
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
 
 @plugin "daisyui/theme" {       /* retro */
   name: "retro";
@@ -108,7 +144,7 @@
   --depth: 0;
   --noise: 0;
 }
-@plugin "daisyui/theme" {       /* carlellatte */
+@plugin "daisyui/theme" {       /* carlmellatte */
   name: "caramellatte";
   default: false;
   prefersdark: false;
@@ -147,17 +183,17 @@
   default: false;
   prefersdark: false;
   color-scheme: "dark";
-  --color-base-100: oklch(35.4% 0.036 56.500);
-  --color-base-200: oklch(18.4% 0.051 53.813);
-  --color-base-300: oklch(20.4% 0.038 88.900);
-  --color-base-content: oklch(87% 0.169 91.605);
-  --color-primary: oklch(75.9% 0.119 62.756);
+  --color-base-100: oklch(27.6% 0.023 19.300);
+  --color-base-200: oklch(24.8% 0.025 36.300);
+  --color-base-300: oklch(20.7% 0.019 30.700);
+  --color-base-content: oklch(77.1% 0.092 79.129);
+  --color-primary: oklch(71.996% 0.123 62.756);
   --color-primary-content: oklch(14.399% 0.024 62.756);
   --color-secondary: oklch(34.465% 0.029 199.194);
   --color-secondary-content: oklch(86.893% 0.005 199.194);
   --color-accent: oklch(42.621% 0.074 224.389);
   --color-accent-content: oklch(88.524% 0.014 224.389);
-  --color-neutral: oklch(16.51% 0.015 326.261);
+  --color-neutral: oklch(16.5% 0.022 24.400);
   --color-neutral-content: oklch(83.302% 0.003 326.261);
   --color-info: oklch(79.49% 0.063 184.558);
   --color-info-content: oklch(15.898% 0.012 184.558);
@@ -167,7 +203,7 @@
   --color-warning-content: oklch(17.63% 0.028 87.722);
   --color-error: oklch(77.318% 0.128 31.871);
   --color-error-content: oklch(15.463% 0.025 31.871);
-  --radius-selector: 0.5rem;
+  --radius-selector: 0.25rem;
   --radius-field: 0.25rem;
   --radius-box: 0.25rem;
   --size-selector: 0.25rem;
@@ -244,7 +280,6 @@
   --depth: 1;
   --noise: 0;
 }
-
 @plugin "daisyui/theme" {       /* business */
   name: "business";
   default: false;
@@ -260,7 +295,7 @@
   --color-secondary-content: oklch(12.818% 0.005 229.389);
   --color-accent: oklch(67.271% 0.167 35.791);
   --color-accent-content: oklch(13.454% 0.033 35.791);
-  --color-neutral: oklch(27.441% 0.013 253.041);
+  --color-neutral: oklch(27% 0.006 286.033);  
   --color-neutral-content: oklch(85.488% 0.002 253.041);
   --color-info: oklch(62.616% 0.143 240.033);
   --color-info-content: oklch(12.523% 0.028 240.033);

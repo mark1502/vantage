@@ -76,7 +76,7 @@ function handleKeyDown( event ) {
 
         <input v-model="display_file.name" id="file_lookup" @input="lookup_file()"
             autocomplete="off" placeholder="Enter file name"
-            class="input input-bordered input-sm rounded-sm w-64" @keydown="handleKeyDown"/>
+            class="input input-sm rounded-sm w-64" @keydown="handleKeyDown"/>
         <table v-if="display_file.name.length && lookup.file == true"
             class="mt-1 border border-base-300 suggestion-table bg-base-100 w-80 ">
             <tr v-for="thefile, index in lookup.matching_files.data" :key="thefile.id"

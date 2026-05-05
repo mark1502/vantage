@@ -105,7 +105,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                             <tr class="flex items-baseline my-4">
                                 <td class="flex items-baseline">
                                     <label for="name" class="mr-3 font-semibold">File Type:</label>
-                                    <input v-model="form.name" type="text" id="name" class="input input-bordered input-sm w-72"/>
+                                    <input v-model="form.name" type="text" id="name" class="input input-sm w-72"/>
                                 </td>
                             </tr>
                             <tr class="h-10">

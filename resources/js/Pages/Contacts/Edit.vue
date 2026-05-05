@@ -114,17 +114,18 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
             </h2>
         </template>
 
-        <div class="py-3 min-h-screen">
+        <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-base-300 overflow-hidden shadow-sm sm:rounded-lg min-h-dvh">
+                <div class="overflow-hidden">
                     <form autocomplete="off" class="max-w-5xl mx-auto mt-4">
+                    <div class="bg-base-200 shadow-sm sm:rounded-lg p-6">
 
                         <div v-if="isFauxDeleted" class="alert alert-warning mb-4">
                             <span>This contact has been deleted. You can restore it from the contacts list.</span>
                         </div>
 
                         <!-- Form 3 - Name Line starts-->
-                        <div class="flex mt-8">
+                        <div class="flex mt-2">
                             <div class="flex-col w-36 max-w-xs mr-4">
                                 <div class="flex ml-2"><InputLabel for="form.title" value="Title" /><span class="text-sm text-error ml-2">*</span></div>
                                 <select v-model="form.title" class="select select-bordered select-sm text-base" id="form.title">
@@ -180,7 +181,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                     <span v-if="form.title === 'Co.'" class="text-sm text-error ml-2">*</span>
                                     <span v-else="form.title === 'Co.'" class="text-sm ml-2 invisible">*</span>
                                 </div>
-                                <TextInput v-model="form.company" id="form.company" class="input input-bordered w-full" />
+                                <TextInput v-model="form.company" id="form.company" class="input w-full" />
                                 <InputError class="mt-2" :message="form.errors.company" />
                             </div>
                             <div v-if="form.title != 'Co.'" class="flex-col w-1/2 max-w-sm ml-32">
@@ -193,7 +194,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         <div class="flex my-5">
                             <div class="flex-col w-1/2 max-w-sm">
                                 <InputLabel for="form.address" value="Address" class="ml-2"/>
-                                <textarea v-model="form.address" id="form.address" class="textarea textarea-bordered text-base p-2 h-32 w-full"></textarea>
+                                <textarea v-model="form.address" id="form.address" rows="4" class="textarea textarea-bordered text-sm p-2 w-full"></textarea>
                                 <InputError class="mt-2" :message="form.errors.address" />
 
                             </div>
@@ -237,18 +238,22 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                             </div>
 
                         </div>
-                        <!-- Form 3 - Notes Line and Buttons-->
-                        <div class="flex mt-6 items-end justify-between">
-                            <div class="flex-col w-1/2">
+                        <!-- Form 3 - Notes Line-->
+                        <div class="flex mt-6">
+                            <div class="flex-col w-full">
                                 <InputLabel for="form.note" value="Notes" class="ml-2"/>
-                                <textarea v-model="form.note" id="formnotes" class="textarea textarea-bordered text-base p-2 w-full" rows="4"></textarea>
+                                <textarea v-model="form.note" id="formnotes" class="textarea textarea-bordered text-base p-2 w-full" rows="3"></textarea>
                                 <InputError class="mt-2" :message="form.errors.note" />
                             </div>
-                            <div class="flex mb-2">
+                        </div>
+
+                    </div>
+
+                    <!-- Buttons outside the card -->
+                        <div class="flex mt-6 justify-center">
                                 <Link href="" class="btn btn-primary w-40 mr-10 gap-0" @click="submitForm"><u>O</u>k</Link>
                                 <Link :href="route( 'contacts.index', { page: form.current_page, show: form.show })" class="btn btn-primary mr-16">Cancel</Link>
                                 <Link href="" class="btn btn-outline btn-error" @click="deleteClicked" >Delete</Link>
-                            </div>
                         </div>
 
                     </form>

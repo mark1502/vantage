@@ -142,7 +142,7 @@ function initials_3_Focus() {
                                     First Name:
                                 </label>
                                 <input v-model="form3.first_name" type="text"
-                                    class="input input-sm input-bordered w-full" name="form3.first_name"
+                                    class="input input-sm w-full" name="form3.first_name"
                                     id="form3.first_name" required />
                                 <InputError class="mt-2" :message="form3.errors.first_name" />
                             </div>
@@ -152,7 +152,7 @@ function initials_3_Focus() {
                                     Middle:
                                 </label>
                                 <input v-model="form3.middle_name" type="text"
-                                    class="input input-sm input-bordered w-full" name="form3.middle_name"
+                                    class="input input-sm w-full" name="form3.middle_name"
                                     id="form3.middle_name" />
                                 <InputError class="mt-2" :message="form3.errors.middle_name" />
                             </div>
@@ -163,7 +163,7 @@ function initials_3_Focus() {
                                     Last Name:
                                 </label>
                                 <input v-model="form3.last_name" type="text"
-                                    class="input input-sm input-bordered w-full" name="form3.last_name"
+                                    class="input input-sm w-full" name="form3.last_name"
                                     id="form3.last_name" required />
                                 <InputError class="mt-2" :message="form3.errors.last_name" />
                             </div>
@@ -172,7 +172,7 @@ function initials_3_Focus() {
                                 <label class="label_sm-700">
                                     Sr/Jr:
                                 </label>
-                                <input v-model="form3.srjr" type="text" class="input input-sm input-bordered w-full"
+                                <input v-model="form3.srjr" type="text" class="input input-sm w-full"
                                     name="form3.srjr" id="form3.srjr" />
                                 <InputError class="mt-2" :message="form3.errors.srjr" />
                             </div>
@@ -192,7 +192,7 @@ function initials_3_Focus() {
                                     Member Initials:
                                 </label>
                                 <input v-model="form3.member_initials" 
-                                    class="input input-sm input-bordered w-48" @focus="initials_3_Focus"
+                                    class="input input-sm w-48" @focus="initials_3_Focus"
                                     id="form3.member_initials" required />
                                 <InputError class="mt-2" :message="form3.errors.member_initials" />
                             </div>
@@ -251,7 +251,7 @@ function initials_3_Focus() {
                                         <span class="text-sm text-error align-baseline mr-1">*</span>
                                         Email:
                                     </label>
-                                    <input v-model="form3.email" class="input input-sm input-bordered w-full"
+                                    <input v-model="form3.email" class="input input-sm w-full"
                                         type="text" name="form3.email" id="form3.email" required />
                                     <InputError class="mt-2" :message="form3.errors.email" />
                                 </div>
@@ -266,7 +266,7 @@ function initials_3_Focus() {
                                         New Password:
                                     </label>
                                     <input v-model="form3.password" type="text"
-                                        class="input input-sm input-bordered w-full"
+                                        class="input input-sm w-full"
                                         name="form3.password" id="form3.password" required />
                                     <InputError class="mt-2" :message="form3.errors.password" />
                                 </div>
@@ -276,7 +276,7 @@ function initials_3_Focus() {
                                         Confirmation:
                                     </label>
                                     <input v-model="form3.password_confirmation" type="text"
-                                        class="input input-sm input-bordered w-full" 
+                                        class="input input-sm w-full" 
                                         name="form3.password_confirmation" id="form3.password_confirmation" required />
                                     <InputError class="mt-2" :message="form3.errors.password_confirmation" />
                                 </div>
@@ -291,7 +291,7 @@ function initials_3_Focus() {
                                 <label class="label_sm-700 ml-2">
                                     Cell Phone:
                                 </label>
-                                <input v-model="form3.cell_phone" class="input input-sm input-bordered w-full" type="text"
+                                <input v-model="form3.cell_phone" class="input input-sm w-full" type="text"
                                     name="cell_phone" id="cell_phone" />
                                 <InputError class="mt-2" :message="form3.errors.cell_phone" />
                             </div>
@@ -300,7 +300,7 @@ function initials_3_Focus() {
                                 <label class="label_sm-700 ml-2">
                                     Home Phone:
                                 </label>
-                                <input v-model="form3.home_phone" class="input input-sm input-bordered w-full" type="text"
+                                <input v-model="form3.home_phone" class="input input-sm w-full" type="text"
                                     name="home_phone" id="home_phone" />
                                 <InputError class="mt-2" :message="form3.errors.home_phone" />
                             </div>
@@ -309,7 +309,7 @@ function initials_3_Focus() {
                                 <label class="label_sm-700 ml-2">
                                     Work Phone:
                                 </label>
-                                <input v-model="form3.work_phone" class="input input-sm input-bordered w-full" type="text"
+                                <input v-model="form3.work_phone" class="input input-sm w-full" type="text"
                                     name="work_phone" id="work_phone" />
                                 <InputError class="mt-2" :message="form3.errors.work_phone" />
                             </div>

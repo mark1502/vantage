@@ -1071,7 +1071,7 @@ update_disp();
                     <label for="display_casename" class="text-sm font-semibold w-28">File:</label>
                     <input :value="entry_form.file_id === 1 ? 'Not File Related' : display_name.file"
                         id="display_casename" autocomplete="off" disabled
-                        class="input input-bordered input-sm text-sm rounded-sm w-64 disabled:input-bordered disabled:border-base-300 disabled:text-base-content"/>
+                        class="input input-sm text-sm rounded-sm w-64 disabled:disabled:border-base-300 disabled:text-base-content"/>
                 </div>
             </div>
             <!-- Folder row - HIDDEN - Should probably remove-->
@@ -1225,7 +1225,7 @@ update_disp();
                     placeholder="e.g., 2024\Smith\contract.pdf"
                     @blur="checkEditMode()"
                     @input="checkEditMode()"
-                    class="input input-bordered input-sm rounded-sm w-80 text-sm text-base-content bg-base-100"
+                    class="input input-sm rounded-sm w-80 text-sm text-base-content bg-base-100"
                 />
                 <button
                     type="button"
@@ -1268,7 +1268,7 @@ update_disp();
                 <label for="entry_amount" class="text-sm font-semibold w-24 mr-4">
                     {{ props.getFolderData('amount_prompt') }}
                 </label>
-                <input v-model="entry_form.amount" type="number" step=".01" id="entry_amount" class="input input-bordered input-sm"/>
+                <input v-model="entry_form.amount" type="number" step=".01" id="entry_amount" class="input input-sm"/>
             </div>
 
 
@@ -1377,7 +1377,7 @@ update_disp();
                         {{ props.getFolderData('entrytype_prompt') }}
                     </label>
                     <input v-model="entrytype_form.name" id="type_name" name="type_name" @input="lookup_entrytype()"
-                        class="input input-bordered ml-4 w-125" autocomplete="off" />
+                        class="input ml-4 w-125" autocomplete="off" />
                 </div>
                 <table
                     v-if="matching.entrytypes.length > 0 && entrytype_form.name.length > 0 && entrytype_form.isChosen == false"
@@ -1447,7 +1447,7 @@ update_disp();
                 <label for="custom_role_label" class="text-sm font-semibold w-20">Label:</label>
                 <input v-model="role_modal.custom_role_label" id="custom_role_label" type="text"
                     placeholder="Enter custom role label"
-                    class="input input-bordered input-sm w-64 text-sm text-base-content bg-base-100" />
+                    class="input input-sm w-64 text-sm text-base-content bg-base-100" />
             </div>
             <div class="modal-action justify-center mt-8">
                 <button type="button" class="btn btn-primary mr-6 w-24"

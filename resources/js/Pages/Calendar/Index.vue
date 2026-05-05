@@ -780,7 +780,7 @@ onUnmounted(() => {
                         <div v-show="calendar_form.fileSpecific == 'true'" id="related_file_div" class="flex items-baseline ml-12 mt-1">
                             <label for="entry_from" class="text-sm font-semibold">File:</label>
                             <input v-model="related_file.name" id="display_related_file" @input="lookup_related_file()"
-                                autocomplete="off" class="ml-3 input input-bordered input-sm rounded-sm w-96 disabled:bg-base-200" />
+                                autocomplete="off" class="ml-3 input input-sm rounded-sm w-96 disabled:bg-base-200" />
                         </div>
                         <InputError class="mt-2 ml-24" :message="cal_errors.file_id" />
 
@@ -882,7 +882,7 @@ onUnmounted(() => {
                             Event Type:
                         </label>
                         <input v-model="entrytype_form.name" id="type_name" name="type_name" @input="lookup_entrytype()"
-                        class="input input-bordered ml-4 w-[500px]" autocomplete="off" />
+                        class="input ml-4 w-[500px]" autocomplete="off" />
                     </div>
                     <table v-if="matching.event_types.length > 0 && entrytype_form.name.length > 0 && entrytype_form.isChosen == false" class="mt-2 ml-32 border w-80">
                         <tr v-for="entrytype, index in matching.event_types" :key="entrytype.id" @click="clicked_matchingEntrytype(index)">

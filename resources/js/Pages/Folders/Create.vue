@@ -22,7 +22,7 @@
                             <label class="label_sm-700 ml-2 mr-4">
                                 Folder
                             </label>
-                            <input v-model="form.name" type="text" autofocus class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.name" type="text" autofocus class="input w-full max-w-xs"
                                 name="form.first_name" id="form.first_name" required/>
                             <InputError class="mt-2" :message="form.errors.name" />
                         </div>
@@ -39,7 +39,7 @@
                             <label class="label_sm-700 ml-2">
                                 Date 1 Prompt
                             </label>
-                            <input v-model="form.date1_prompt" type="text" class="input input-bordered max-w-xs"
+                            <input v-model="form.date1_prompt" type="text" class="input max-w-xs"
                                 name="date1_prompt" id="date1_prompt" required />
                             <InputError class="mt-2" :message="form.errors.date1_prompt" />
                         </div>
@@ -48,7 +48,7 @@
                             <label class="label_sm-700 ml-2">
                                 Date 2 Prompt
                             </label>
-                            <input v-model="form.date2_prompt" type="text" class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.date2_prompt" type="text" class="input w-full max-w-xs"
                                 name="date2_prompt" id="date2_prompt"/>
                             <InputError class="mt-2" :message="form.errors.date2_prompt" />
                         </div>
@@ -65,7 +65,7 @@
                             <label class="label_sm-700 ml-2">
                                 From Prompt
                             </label>
-                            <input v-model="form.from_prompt" type="text" class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.from_prompt" type="text" class="input w-full max-w-xs"
                                 name="from_prompt" id="from_prompt"/>
                             <InputError class="mt-2" :message="form.errors.from_prompt" />
                         </div>
@@ -74,7 +74,7 @@
                             <label class="label_sm-700 ml-2">
                                 To Prompt
                             </label>
-                            <input v-model="form.to_prompt" type="text" class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.to_prompt" type="text" class="input w-full max-w-xs"
                                 name="to_prompt" id="to_prompt"/>
                             <InputError class="mt-2" :message="form.errors.to_prompt" />
                         </div>
@@ -91,7 +91,7 @@
                             <label class="label_sm-700 ml-2">
                                 Entrytype Prompt
                             </label>
-                            <input v-model="form.entrytype_prompt" type="text" class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.entrytype_prompt" type="text" class="input w-full max-w-xs"
                                 name="entrytype_prompt" id="entrytype_prompt"/>
                             <InputError class="mt-2" :message="form.errors.entrytype_prompt" />
                         </div>
@@ -100,7 +100,7 @@
                             <label class="label_sm-700 ml-2">
                                 Note Prompt
                             </label>
-                            <input v-model="form.note_prompt" type="text" class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.note_prompt" type="text" class="input w-full max-w-xs"
                                 name="note_prompt" id="note_prompt"/>
                             <InputError class="mt-2" :message="form.errors.note_prompt" />
                         </div>
@@ -109,7 +109,7 @@
                             <label class="label_sm-700 ml-2">
                                 Response expected Prompt
                             </label>
-                            <input v-model="form.responseexpected_prompt" type="text" class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.responseexpected_prompt" type="text" class="input w-full max-w-xs"
                                 name="responseexpected_prompt" id="responseexpected_prompt"/>
                             <InputError class="mt-2" :message="form.errors.responseexpected_prompt" />
                         </div>
@@ -118,7 +118,7 @@
                             <label class="label_sm-700 ml-2">
                                 Short Name:
                             </label>
-                            <input v-model="form.short_name" type="text" class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.short_name" type="text" class="input w-full max-w-xs"
                                 name="short_name" id="short_name"/>
                             <InputError class="mt-2" :message="form.errors.short_name" />
                         </div>
@@ -127,7 +127,7 @@
                             <label class="label_sm-700 ml-2">
                                 Amount Prompt:
                             </label>
-                            <input v-model="form.amount_prompt" type="text" class="input input-bordered w-full max-w-xs"
+                            <input v-model="form.amount_prompt" type="text" class="input w-full max-w-xs"
                                 name="amount_prompt" id="amount_prompt"/>
                             <InputError class="mt-2" :message="form.errors.amount_prompt" />
                         </div>

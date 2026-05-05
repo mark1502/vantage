@@ -310,14 +310,14 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             <div class="flex items-baseline w-1/2 p-0">
                                 <InputLabel value="Opened:" class="w-32" />
                                 <div>
-                                    <input type="date" id="date_opened" v-model="form.date_opened" class="input input-sm input-bordered w-44" />
+                                    <input type="date" id="date_opened" v-model="form.date_opened" class="input input-sm w-44" />
                                     <InputError class="mt-2" :message="form.errors.date_opened" />
                                 </div>
                             </div>
                             <div class="flex items-baseline w-1/2">
                                 <InputLabel value="SOL Date:" class="w-24" :class="{ 'text-base-content/50': !solEnabled }"/>
                                 <div>
-                                    <input v-if="solEnabled && form.filetype_id" type="date" id="date_sol" v-model="form.date_sol" class="input input-sm input-bordered w-44"
+                                    <input v-if="solEnabled && form.filetype_id" type="date" id="date_sol" v-model="form.date_sol" class="input input-sm w-44"
                                     :class="{ 'input-disabled text-base-content/50 bg-base-200': !solEnabled }" :disabled="!solEnabled" />
                                     <InputError v-if="solEnabled && form.filetype_id" class="mt-2" :message="form.errors.date_sol" />
                                     <div v-if="!solEnabled && form.filetype_id" class="text-xs text-base-content/60 mt-1">
@@ -332,7 +332,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             <div class="flex items-baseline w-1/2 p-0">
                                 <InputLabel value="Filed:" class="w-32" />
                                 <div>
-                                    <input type="date" id="date_filed" v-model="form.date_filed" class="input input-sm input-bordered w-44" />
+                                    <input type="date" id="date_filed" v-model="form.date_filed" class="input input-sm w-44" />
                                     <InputError class="mt-2" :message="form.errors.date_filed" />
                                 </div>
                             </div>
@@ -379,7 +379,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                             <div class="flex items-baseline w-1/2 p-0">
                                 <InputLabel value="Closed:" class="w-32"/>
                                 <div>
-                                    <input type="date" id="date_closed" v-model="form.date_closed" class="input input-sm input-bordered w-44" />
+                                    <input type="date" id="date_closed" v-model="form.date_closed" class="input input-sm w-44" />
                                     <InputError class="mt-2" :message="form.errors.date_closed" />
                                 </div>
                             </div>

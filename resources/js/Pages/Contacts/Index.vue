@@ -196,7 +196,7 @@ update_disp();
                                 <div v-if="contacts.data.length" class="flex justify-end items-center mt-2 pb-2">
                                     <div class="flex items-center">
                                         <label v-if="search" for="searchInput" class="text-base-content text-lg font-semibold mr-2">Searching:</label>
-                                        <input v-model="search" id="searchInput" name="searchInput" placeholder="Search ..." class="input input-bordered input-sm w-56 px-2" autocomplete="off" />
+                                        <input v-model="search" id="searchInput" name="searchInput" placeholder="Search ..." class="input input-sm w-56 px-2" autocomplete="off" />
                                     </div>
                                 </div>
                                 <div v-if="contacts.data.length">

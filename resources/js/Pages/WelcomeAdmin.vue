@@ -294,7 +294,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                 <label for="name" class="label_sm-700 block ml-2">
                                     <span class="red_star-700-2">*</span>Law Firm Name:
                                 </label>
-                                <input v-model="form.name" id="name" class="input input-bordered w-full max-w-xs" required />
+                                <input v-model="form.name" id="name" class="input w-full max-w-xs" required />
                                 <InputError class="mt-2" :message="form.errors.name" />
 
                                 <label for="address" class="label_sm-700 block ml-2 mt-6">
@@ -306,7 +306,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                 <label for="phone" class="label_sm-700 block ml-2 mt-6">
                                     <span class="red_star-700-2">*</span>Phone:
                                 </label>
-                                <input v-model="form.phone" id="phone" class="input input-bordered w-full max-w-xs mb-3" required />
+                                <input v-model="form.phone" id="phone" class="input w-full max-w-xs mb-3" required />
                                 <InputError class="mt-2" :message="form.errors.phone" />
                             </form>
                         </div>
@@ -344,7 +344,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.first_name" class="label_sm-700">
                                             <span class="red_star-700-2">*</span>First Name:
                                         </label>
-                                        <input v-model="form2.first_name" id="form2.first_name" class="input input-bordered w-full max-w-xs" required />
+                                        <input v-model="form2.first_name" id="form2.first_name" class="input w-full max-w-xs" required />
                                         <InputError class="mt-2" :message="form2.errors.first_name" />
                                     </div>
 
@@ -352,7 +352,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.middle_name" class="label_sm-700">
                                             Middle:
                                         </label>
-                                        <input v-model="form2.middle_name" id="form2.middle_name" class="input input-bordered w-full max-w-xs" />
+                                        <input v-model="form2.middle_name" id="form2.middle_name" class="input w-full max-w-xs" />
                                         <InputError class="mt-2" :message="form2.errors.middle_name" />
                                     </div>
 
@@ -360,7 +360,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.last_name" class="label_sm-700">
                                             <span class="red_star-700-2">*</span>Last Name:
                                         </label>
-                                        <input v-model="form2.last_name" id="form2.last_name" class="input input-bordered w-full max-w-xs" @blur="initialsFocus" required />
+                                        <input v-model="form2.last_name" id="form2.last_name" class="input w-full max-w-xs" @blur="initialsFocus" required />
                                         <InputError class="mt-2" :message="form2.errors.last_name" />
                                     </div>
 
@@ -368,7 +368,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.srjr" class="label_sm-700">
                                             Sr/Jr:
                                         </label>
-                                        <input v-model="form2.srjr" id="form2.srjr" class="input input-bordered w-full max-w-xs" @focus="initialsFocus" />
+                                        <input v-model="form2.srjr" id="form2.srjr" class="input w-full max-w-xs" @focus="initialsFocus" />
                                         <InputError class="mt-2" :message="form2.errors.srjr" />
                                     </div>
                                 </div>
@@ -381,7 +381,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <span class="red_star-700-2">*</span>Initials:
                                         </label>
                                         <div>
-                                            <input v-model="form2.member_initials" id="form2.member_initials" class="input input-bordered w-36 max-w-xs" @focus="initialsFocus" />
+                                            <input v-model="form2.member_initials" id="form2.member_initials" class="input w-36 max-w-xs" @focus="initialsFocus" />
                                         </div>
                                     </div>
 
@@ -421,17 +421,17 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                     <div class="mt-12 mr-6 items-baseline">
                                         <div class="flex items-baseline">
                                             <label for="form2.work_phone" class="label_sm-700 mr-4">Work:</label>
-                                            <input v-model="form2.work_phone" id="form2.work_phone" class="input input-bordered w-36 max-w-xs" />
+                                            <input v-model="form2.work_phone" id="form2.work_phone" class="input w-36 max-w-xs" />
                                             <InputError class="mt-2" :message="form2.errors.work_phone" />
                                         </div>
                                         <div class="flex items-baseline mt-3">
                                             <label for="form2.home_phone" class="label_sm-700 mr-2">Home:</label>
-                                            <input v-model="form2.home_phone" id="form2.home_phone" class="input input-bordered w-36 max-w-xs" />
+                                            <input v-model="form2.home_phone" id="form2.home_phone" class="input w-36 max-w-xs" />
                                             <InputError class="mt-2" :message="form2.errors.home_phone" />
                                         </div>
                                         <div class="flex items-baseline mt-3">
                                             <label for="form2.cell_phone" class="label_sm-700 mr-6.5">Cell:</label>
-                                            <input v-model="form2.cell_phone" id="form2.cell_phone" class="input input-bordered w-36 max-w-xs"/>
+                                            <input v-model="form2.cell_phone" id="form2.cell_phone" class="input w-36 max-w-xs"/>
                                             <InputError class="mt-2" :message="form2.errors.cell_phone" />
                                         </div>
                                     </div>
@@ -505,7 +505,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <label for="form3.first_name" class="label_sm-700">
                                                 <span class="red_star-700-2">*</span>First Name:
                                             </label>
-                                            <input v-model="form3.first_name" id="form3.first_name" class="input input-bordered w-full max-w-xs" required />
+                                            <input v-model="form3.first_name" id="form3.first_name" class="input w-full max-w-xs" required />
                                             <InputError class="mt-2" :message="form3.errors.first_name" />
                                         </div>
 
@@ -513,7 +513,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <label for="form3.middle_name" class="label_sm-700">
                                                 Middle:
                                             </label>
-                                            <input v-model="form3.middle_name" id="form3.middle_name" class="input input-bordered w-full max-w-xs" />
+                                            <input v-model="form3.middle_name" id="form3.middle_name" class="input w-full max-w-xs" />
                                             <InputError class="mt-2" :message="form3.errors.middle_name" />
                                         </div>
 
@@ -521,7 +521,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <label for="form3.last_name" class="label_sm-700">
                                                 <span class="red_star-700-2">*</span>Last Name:
                                             </label>
-                                            <input v-model="form3.last_name" id="form3.last_name" class="input input-bordered w-full max-w-xs" required @blur="initials_form3"/>
+                                            <input v-model="form3.last_name" id="form3.last_name" class="input w-full max-w-xs" required @blur="initials_form3"/>
                                             <InputError class="mt-2" :message="form3.errors.last_name" />
                                         </div>
 
@@ -529,7 +529,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <label for="form3.srjr" class="label_sm-700">
                                                 Sr/Jr:
                                             </label>
-                                            <input v-model="form3.srjr" id="form3.srjr" class="input input-bordered w-full max-w-xs" />
+                                            <input v-model="form3.srjr" id="form3.srjr" class="input w-full max-w-xs" />
                                             <InputError class="mt-2" :message="form3.errors.srjr" />
                                         </div>
                                     </div>
@@ -542,7 +542,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                 <span class="red_star-700-2">*</span>Initials:
                                             </label>
                                             <div>
-                                                <input v-model="form3.member_initials" id="form3.member_initials" class="input input-bordered w-36 max-w-xs" required @focus="initials_form3"/>
+                                                <input v-model="form3.member_initials" id="form3.member_initials" class="input w-36 max-w-xs" required @focus="initials_form3"/>
                                             </div>
                                         </div>
 
@@ -557,7 +557,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                     </option>
                                                 </select> -->
                                                 <p class="text-base font-semibold">Attorney</p>
-                                                <!-- <input v-model="form3.firm_role" id="form3.firm_role" value="Attorney" class="input input-bordered" hidden /> -->
+                                                <!-- <input v-model="form3.firm_role" id="form3.firm_role" value="Attorney" class="input " hidden /> -->
                                                 <InputError class="mt-2" :message="form3.errors.firm_role" />
                                             </div>
                                         </div>
@@ -592,7 +592,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                 <span class="red_star-700-2">*</span>Email:
                                             </label>
                                             <div>
-                                                <input v-model="form3.email" id="form3.email" class="input input-bordered w-80 max-w-xs"
+                                                <input v-model="form3.email" id="form3.email" class="input w-80 max-w-xs"
                                                     :disabled="form3.formtype == 'editUser'" />
                                                 <InputError class="mt-2" :message="form3.errors.email" />
                                             </div>
@@ -607,7 +607,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                     <span class="red_star-700-2">*</span>Temporary Password:
                                                 </label>
                                                 <div>
-                                                    <input v-model="form3.password" id="form3.password" class="input input-bordered w-48 max-w-xs" />
+                                                    <input v-model="form3.password" id="form3.password" class="input w-48 max-w-xs" />
                                                     <InputError class="mt-2" :message="form3.errors.password" />
                                                 </div>
                                             </div>
@@ -620,7 +620,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                 <label for="form3.password_confirmation" class="label_sm-700 mr-2">
                                                     <span class="red_star-700-2">*</span>Confirmation:
                                                 </label>
-                                                <input v-model="form3.password_confirmation" id="form3.password_confirmation" class="input input-bordered w-48 max-w-xs" />
+                                                <input v-model="form3.password_confirmation" id="form3.password_confirmation" class="input w-48 max-w-xs" />
                                             </div>
                                             <InputError class="mt-2" :message="form3.errors.password_confirmation" />
                                         </div>

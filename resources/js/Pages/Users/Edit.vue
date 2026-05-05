@@ -139,7 +139,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                     First Name:
                                 </label>
                                 <input v-model="form3.first_name" type="text"
-                                    class="input input-sm input-bordered w-full" name="form3.first_name"
+                                    class="input input-sm w-full" name="form3.first_name"
                                     id="form3.first_name" required />
                                 <InputError class="mt-2" :message="form3.errors.first_name" />
                             </div>
@@ -149,7 +149,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                     Middle:
                                 </label>
                                 <input v-model="form3.middle_name" type="text"
-                                    class="input input-sm input-bordered w-full" name="form3.middle_name"
+                                    class="input input-sm w-full" name="form3.middle_name"
                                     id="form3.middle_name" />
                                 <InputError class="mt-2" :message="form3.errors.middle_name" />
                             </div>
@@ -160,7 +160,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                     Last Name:
                                 </label>
                                 <input v-model="form3.last_name" type="text"
-                                    class="input input-sm input-bordered w-full" name="form3.last_name"
+                                    class="input input-sm w-full" name="form3.last_name"
                                     id="form3.last_name" required />
                                 <InputError class="mt-2" :message="form3.errors.last_name" />
                             </div>
@@ -169,7 +169,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                 <label class="label_sm-700">
                                     Sr/Jr:
                                 </label>
-                                <input v-model="form3.srjr" type="text" class="input input-sm input-bordered w-full"
+                                <input v-model="form3.srjr" type="text" class="input input-sm w-full"
                                     name="form3.srjr" id="form3.srjr" />
                                 <InputError class="mt-2" :message="form3.errors.srjr" />
                             </div>
@@ -186,7 +186,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                     <span class="text-sm text-error align-baseline mr-1">*</span>
                                     Member Initials:
                                 </label>
-                                <input v-model="form3.member_initials" id="form3.member_initials" class="input input-sm input-bordered w-48" required />
+                                <input v-model="form3.member_initials" id="form3.member_initials" class="input input-sm w-48" required />
                             </div>
 
                             <div class="form-control">
@@ -262,7 +262,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                     <label class="label_sm-700">
                                         Email:
                                     </label>
-                                    <input v-model="form3.email" class="input input-sm input-bordered w-full disabled:bg-base-200 disabled:opacity-70"
+                                    <input v-model="form3.email" class="input input-sm w-full disabled:bg-base-200 disabled:opacity-70"
                                         type="text" :disabled="form3.change_email == false" name="form3.email"
                                         id="form3.email" />
                                     <InputError class="mt-2" :message="form3.errors.email" />
@@ -287,7 +287,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                 <div class="form-control">
                                     <label class="label_sm-700">New Password:</label>
                                     <input v-model="form3.password" type="text"
-                                        class="input input-sm input-bordered w-full disabled:bg-base-200 disabled:opacity-70"
+                                        class="input input-sm w-full disabled:bg-base-200 disabled:opacity-70"
                                         :disabled="form3.change_password == false" name="form3.password"
                                         id="form3.password" />
                                     <InputError class="mt-2" :message="form3.errors.password" />
@@ -297,7 +297,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                         Confirmation:
                                     </label>
                                     <input v-model="form3.password_confirmation" type="text"
-                                        class="input input-sm input-bordered w-full disabled:bg-base-200 disabled:opacity-70" 
+                                        class="input input-sm w-full disabled:bg-base-200 disabled:opacity-70" 
                                         :disabled="form3.change_password == false" name="form3.password_confirmation"
                                         id="form3.password_confirmation" />
                                     <InputError class="mt-2" :message="form3.errors.password_confirmation" />
@@ -313,7 +313,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                 <label class="label_sm-700 ml-2">
                                     Cell Phone:
                                 </label>
-                                <input v-model="form3.cell_phone" class="input input-sm input-bordered w-full" type="text"
+                                <input v-model="form3.cell_phone" class="input input-sm w-full" type="text"
                                     name="cell_phone" id="cell_phone" />
                                 <InputError class="mt-2" :message="form3.errors.cell_phone" />
                             </div>
@@ -322,7 +322,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                 <label class="label_sm-700 ml-2">
                                     Home Phone:
                                 </label>
-                                <input v-model="form3.home_phone" class="input input-sm input-bordered w-full" type="text"
+                                <input v-model="form3.home_phone" class="input input-sm w-full" type="text"
                                     name="home_phone" id="home_phone" />
                                 <InputError class="mt-2" :message="form3.errors.home_phone" />
                             </div>
@@ -331,7 +331,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                                 <label class="label_sm-700 ml-2">
                                     Work Phone:
                                 </label>
-                                <input v-model="form3.work_phone" class="input input-sm input-bordered w-full" type="text"
+                                <input v-model="form3.work_phone" class="input input-sm w-full" type="text"
                                     name="work_phone" id="work_phone" />
                                 <InputError class="mt-2" :message="form3.errors.work_phone" />
                             </div>

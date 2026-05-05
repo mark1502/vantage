@@ -189,7 +189,7 @@
         <div class="flex w-32">
             <InputLabel for="filetype_id" value="File Type:" disabled /><span class="red_star-700-2 ml-2">*</span>
         </div>
-        <!-- <input type="text" :value="props.file.filetype?.name ?? ''" class="input input-bordered input-sm w-64" readonly /> -->
+        <!-- <input type="text" :value="props.file.filetype?.name ?? ''" class="input input-sm w-64" readonly /> -->
          <span class="text-sm mr-6 text-base-content border rounded-sm p-2 w-64 cursor-not-allowed">{{ props.file.filetype?.name }}</span>
         <!-- <button @click="click_AddType" class="ml-6 btn btn-xs btn-outline btn-primary">Add New Type</button> -->
     </div>
@@ -213,7 +213,7 @@
                     :value="client_name"
                     type="text"
                     disabled
-                    class="input input-sm input-bordered w-64 disabled:input-bordered disabled:text-base-content disabled:bg-base-200"
+                    class="input input-sm w-64 disabled:text-base-content disabled:bg-base-200"
                 /> -->
                 <span class="text-sm text-base-content">{{ client_name }}</span>
             </div>
@@ -228,7 +228,7 @@
                     <!-- <VueDatePicker v-model="file_form.date_opened" uid="date_opened" model-type="yyyy-MM-dd" class="vdtp_main_date vdtp_date"
                         text-input hide-input-icon :enable-time-picker="false" auto-apply :clearable="false"
                         @closed="file_datepicker_closed('date_opened', 'f')" @blur="file_form_changed()" /> -->
-                    <input type="date" id="date_opened" v-model="file_form.date_opened" class="input input-sm input-bordered w-44" @change="form_change()" @blur="form_change()"/>
+                    <input type="date" id="date_opened" v-model="file_form.date_opened" class="input input-sm w-44" @change="form_change()" @blur="form_change()"/>
                     <InputError class="mt-2" :message="file_form.errors.date_opened" />
                 </div>
             </div>
@@ -238,7 +238,7 @@
                     <!-- <VueDatePicker v-model="file_form.date_sol" uid="date_sol" model-type="yyyy-MM-dd" class="vdtp_main_date vdtp_date"
                         text-input hide-input-icon :enable-time-picker="false" :auto-apply="true" :clearable="false"
                         @closed="file_datepicker_closed('date_sol', 'f')" @blur="file_form_changed()"/> -->
-                    <input v-if="solEnabled" type="date" id="date_sol" v-model="file_form.date_sol" class="input input-sm input-bordered w-44"
+                    <input v-if="solEnabled" type="date" id="date_sol" v-model="file_form.date_sol" class="input input-sm w-44"
                         @change="form_change()" @blur="form_change()"/>
                     <div v-if="!solEnabled" class="text-xs text-base-content/60 mt-1">
                         N/A - '{{ props.file.filetype.name }}' file
@@ -256,7 +256,7 @@
                     <!-- <VueDatePicker v-model="file_form.date_filed" uid="date_filed" model-type="yyyy-MM-dd" class="vdtp_main_date vdtp_date"
                         text-input hide-input-icon :enable-time-picker="false" auto-apply :clearable="false"
                         @closed="file_datepicker_closed('date_filed', 'f')" @blur="file_form_changed()" /> -->
-                    <input type="date" id="date_filed" v-model="file_form.date_filed" class="input input-sm input-bordered w-44"
+                    <input type="date" id="date_filed" v-model="file_form.date_filed" class="input input-sm w-44"
                         @change="form_change()" @blur="form_change()"/>
                     <InputError class="mt-2" :message="file_form.errors.date_filed" />
                 </div>
@@ -311,7 +311,7 @@
                     <!-- <VueDatePicker v-model="file_form.date_closed" uid="date_closed" model-type="yyyy-MM-dd" class="vdtp_main_date vdtp_date"
                         text-input hide-input-icon :enable-time-picker="false" auto-apply :clearable="false"
                         @closed="file_datepicker_closed('date_closed', 'f')" @blur="file_form_changed()" /> -->
-                    <input type="date" id="date_closed" v-model="file_form.date_closed" class="input input-sm input-bordered w-44"
+                    <input type="date" id="date_closed" v-model="file_form.date_closed" class="input input-sm w-44"
                         @change="form_change()" @blur="form_change()"/>
                     <InputError class="mt-2" :message="file_form.errors.date_closed" />
                 </div>

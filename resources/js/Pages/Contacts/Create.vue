@@ -9,12 +9,13 @@
             </h2>
         </template>
 
-        <div class="py-3 min-h-screen">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 min-h-screen">
-                <div class="bg-base-300 overflow-hidden shadow-sm sm:rounded-lg min-h-dvh">
+        <div class="py-3">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="overflow-hidden">
                     <form autocomplete="off" class="max-w-5xl mx-auto mt-4">
+                    <div class="bg-base-200 shadow-sm sm:rounded-lg p-6">
                     <!-- Name Line starts-->
-                        <div class="flex mt-8">
+                        <div class="flex mt-2">
                             <div class="flex-col w-36 max-w-xs mr-4">
                                 <div class="flex ml-2"><InputLabel for="form.title" value="Title" /><span class="text-sm text-error ml-2">*</span></div>
                                 <select v-model="form.title" class="select select-bordered select-sm text-base" id="form.title">
@@ -70,7 +71,7 @@
                                     <span v-if="form.title === 'Co.'" class="text-sm text-error ml-2">*</span>
                                     <span v-else="form.title === 'Co.'" class="text-sm ml-2 invisible">*</span>
                                 </div>
-                                <TextInput v-model="form.company" id="form.company" class="input input-bordered w-full" />
+                                <TextInput v-model="form.company" id="form.company" class="input w-full" />
                                 <InputError class="mt-2" :message="form.errors.company" />
                             </div>
                             <div v-if="form.title != 'Co.'" class="flex-col w-1/2 max-w-sm ml-32">
@@ -84,7 +85,7 @@
                         <div class="flex my-5">
                             <div class="flex-col w-1/2 max-w-sm">
                                 <InputLabel for="form.address" value="Address" class="ml-2"/>
-                                <textarea v-model="form.address" id="form.address" class="textarea textarea-bordered text-base p-2 h-32 w-full"></textarea>
+                                <textarea v-model="form.address" id="form.address" rows="4" class="textarea textarea-bordered text-sm p-2 w-full"></textarea>
                                 <InputError class="mt-2" :message="form.errors.address" />
 
                             </div>
@@ -101,7 +102,7 @@
 
                     <!-- Phones Line starts-->
                         <span class="text-sm font-semibold ml-2">PHONES:</span>
-                        <div class="flex space-x-4 border border-base-content rounded p-4">
+                        <div class="flex space-x-4 border border-base-content/40 rounded p-4">
                             <div class="flex-col w-1/5 max-w-sm">
                                 <InputLabel for="form.work_phone" value="Work" class="ml-2"/>
                                 <TextInput v-model="form.work_phone" id="form.work_phone" class="w-full" />
@@ -129,19 +130,21 @@
                             </div>
                         </div>
 
-                    <!--Notes Line and Buttons-->
-                        <div class="flex mt-6 items-end">
-                            <div class="flex-col w-2/3">
+                    <!--Notes Line-->
+                        <div class="flex mt-6">
+                            <div class="flex-col w-full">
                                 <InputLabel for="form.note" value="Notes" class="ml-2"/>
-                                <textarea v-model="form.note" id="formnotes" class="textarea textarea-bordered text-base p-2 w-full" rows="4"></textarea>
+                                <textarea v-model="form.note" id="formnotes" class="textarea textarea-bordered text-base p-2 w-full" rows="3"></textarea>
                                 <InputError class="mt-2" :message="form.errors.note" />
                             </div>
-                            <div class="flex pt-12 ml-24">
-                                <!-- <Link href="" class="btn btn-primary w-40 mr-10 gap-0" @click="submitForm"><u>O</u>k</Link> -->
-                                <button type="button" class="btn btn-primary w-40 mr-10 gap-0" @click="submitForm"><u>O</u>k</button>
+                        </div>
 
+                    </div>
+
+                    <!-- Buttons outside the card -->
+                        <div class="flex mt-6 justify-center">
+                                <button type="button" class="btn btn-primary w-40 mr-10 gap-0" @click="submitForm"><u>O</u>k</button>
                                 <Link :href="route( 'contacts.index', { page: form.current_page, show: form.show })" class="btn btn-primary mr-16">Cancel</Link>
-                            </div>
                         </div>
 
                     </form>
