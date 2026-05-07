@@ -21,11 +21,11 @@ const props = defineProps({
     theme_preference: String,
 });
 
-const { initTheme } = useTheme();
+const { setTheme } = useTheme();
 
 onMounted(() => {
     if (props.theme_preference) {
-        initTheme(props.theme_preference);
+        setTheme(props.theme_preference);
     }
 });
 

@@ -11,11 +11,7 @@ import { FolderOpenIcon, BuildingOffice2Icon, CalendarDaysIcon, IdentificationIc
 
 import { useTheme } from '@/Composables/useTheme'
 
-const { theme, themes, setTheme, initTheme, previewTheme, revertPreview } = useTheme()
-
-onMounted(() => {
-    initTheme()
-})
+const { theme, themes, setTheme, previewTheme, revertPreview } = useTheme()
 
 const showThemeDialog = ref(false)
 const pendingTheme = ref(null)

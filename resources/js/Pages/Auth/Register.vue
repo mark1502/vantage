@@ -1,10 +1,7 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
 
 const form = useForm({
     firm_name: '',
@@ -17,6 +14,12 @@ const form = useForm({
     terms: false,
 });
 
+const firmNameInput = ref(null);
+
+onMounted(() => {
+    firmNameInput.value.focus();
+});
+
 const submit = () => {
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
@@ -27,53 +30,52 @@ const submit = () => {
 <template>
     <GuestLayout>
         <Head title="Register" />
-        <p class="text-xl text-center my-3">Law Firm Registration</p>
+        <p class="text-xl text-center text-gray-800 font-bold my-3">Law Firm Registration</p>
 
         <form @submit.prevent="submit">
 
-            <div class="mx-auto border border-primary rounded p-3 mb-4" style="width: 98%">
+            <div class="mx-auto border border-gray-300 rounded p-3 mb-4" style="width: 98%">
                 <div>
-                <InputLabel for="firm_name" value="Law Firm Name:" />
-                <TextInput id="firm_name" type="text" class="form-input mt-1 block w-full" v-model="form.firm_name" autocomplete="off" required autofocus/>
-                <InputError class="mt-2" :message="form.errors.firm_name" />
+                <label for="firm_name" class="block text-md font-medium text-gray-700">Law Firm Name:</label>
+                <input id="firm_name" type="text" class="input border border-gray-300 rounded bg-white text-gray-800 outline-indigo-700 mt-1 block w-full" v-model="form.firm_name" ref="firmNameInput" autocomplete="off" required />
+                <p v-show="form.errors.firm_name" class="mt-2 text-sm text-red-600">{{ form.errors.firm_name }}</p>
                 </div>
-                <!--
+
                 <div class="mt-4">
-                <InputLabel for="phone" value="Phone:" />
-                <TextInput id="phone" type="text" class="mt-1 block w-full" v-model="form.phone" required/>
-                <InputError class="mt-2" :message="form.errors.phone" />
-                </div>
-                -->
-                <div class="mt-4">
-                <InputLabel for="name" value="Your Name:" />
-                <TextInput id="name" type="text" class="form-input mt-1 block w-full" v-model="form.name" autocomplete="off" required/>
-                <InputError class="mt-2" :message="form.errors.name" />
+                <label for="name" class="block text-md font-medium text-gray-700">Your Name:</label>
+                <input id="name" type="text" class="input border border-gray-300 bg-white text-gray-800 outline-indigo-700 rounded mt-1 block w-full" v-model="form.name" autocomplete="off" required />
+                <p v-show="form.errors.name" class="mt-2 text-sm text-red-600">{{ form.errors.name }}</p>
                 </div>
                 <div class="mt-4">
-                <InputLabel for="email" value="Email:" />
-                <TextInput id="email" type="email" class="form-input mt-1 block w-full" v-model="form.email" autocomplete="off" required/>
-                <InputError class="mt-2" :message="form.errors.email" />
+                <label for="email" class="block text-md font-medium text-gray-700">Email:</label>
+                <input id="email" type="email" class="input border border-gray-300 bg-white text-gray-800 outline-indigo-700 rounded mt-1 block w-full" v-model="form.email" autocomplete="off" required />
+                <p v-show="form.errors.email" class="mt-2 text-sm text-red-600">{{ form.errors.email }}</p>
                 </div>
                 <div class="mt-4">
-                <InputLabel for="password" value="Password:" />
-                <TextInput id="password" type="password" class="form-input mt-1 block w-full" v-model="form.password" autocomplete="off" required/>
-                <InputError class="mt-2" :message="form.errors.password" />
+                <label for="password" class="block text-md font-medium text-gray-700">Password:</label>
+                <input id="password" type="password" class="input border border-gray-300 rounded bg-white text-gray-800 outline-indigo-700 mt-1 block w-full" v-model="form.password" autocomplete="off" required />
+                <p v-show="form.errors.password" class="mt-2 text-sm text-red-600">{{ form.errors.password }}</p>
                 </div>
                 <div class="mt-4">
-                <InputLabel for="password_confirmation" value="Confirm Password:" />
-                <TextInput id="password_confirmation" type="password" class="form-input mt-1 block w-full" v-model="form.password_confirmation" autocomplete="off" required/>
-                <InputError class="mt-2" :message="form.errors.password_confirmation" />
+                <label for="password_confirmation" class="block text-md font-medium text-gray-700">Confirm Password:</label>
+                <input id="password_confirmation" type="password" class="input border border-gray-300 rounded bg-white text-gray-800 outline-indigo-700 mt-1 block w-full" v-model="form.password_confirmation" autocomplete="off" required />
+                <p v-show="form.errors.password_confirmation" class="mt-2 text-sm text-red-600">{{ form.errors.password_confirmation }}</p>
                 </div>
             </div>
 
             <div class="flex items-center justify-end mt-4">
-                <Link :href="route('login')" class="underline text-sm text-base-content/60 hover:text-base-content">
+                <Link :href="route('login')" class="underline text-sm text-gray-600 hover:text-gray-900">
                     Already registered?
                 </Link>
 
-                <PrimaryButton class="ml-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                <button
+                    type="submit"
+                    class="ml-4 inline-flex items-center rounded-md border border-transparent bg-gray-800 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition duration-150 ease-in-out hover:bg-gray-700 focus:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-gray-900"
+                    :class="{ 'opacity-25': form.processing }"
+                    :disabled="form.processing"
+                >
                     Register
-                </PrimaryButton>
+                </button>
 
             </div>
         </form>
