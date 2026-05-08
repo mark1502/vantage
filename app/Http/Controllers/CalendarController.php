@@ -53,6 +53,8 @@ class CalendarController extends Controller
                 'bg_colors' => $bg_colors,
                 'text_colors' => $text_colors,
                 'hover_placement' => $hover_placement,
+                'initial_view' => $request->query('user') ? 'timeGridDay' : null,
+                'initial_user' => $request->query('user') ? (int) $request->query('user') : null,
             ]);
     }
 

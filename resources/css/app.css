@@ -405,10 +405,12 @@
   /* Match Tailwind v3 default sizing */
   html {
     font-size: 16px; /* Tailwind v4 might default to 14px in some contexts */
+    overflow-y: auto;
   }
   
   body {
     font-size: 1rem;
     line-height: 1.5;
+    overflow-y: scroll;
   }
 }

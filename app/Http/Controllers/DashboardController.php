@@ -95,6 +95,8 @@ class DashboardController extends Controller
             'msg_todo' => $msg_todo,
             'msg_phone' => $msg_phone,
             'msg_memo' => $msg_memo,
+            'member_initials' => $user_contact?->member_initials,
+            'user_contact_id' => $user_contact_id,
             'theme_preference' => session('theme_preference'),
         ]);
     }

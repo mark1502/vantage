@@ -951,7 +951,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                     <input type="radio" v-model="disp.events_filter" id="all_events" value="all_events" checked /> - Show All Dates
                     </label>
                 </div>
-                <div class="mt-1 ml-3">
+                <div class="mt-2 ml-3">
                     <label for="date_range">
                     <input type="radio" v-model="disp.events_filter" id="date_range" value="date_range"  /> - Specify a Date Range
                     </label>

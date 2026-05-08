@@ -51,6 +51,9 @@ const props = defineProps({
     'text_colors': Object,
     'new_event_type': Object,
     'hover_placement': { type: String, default: 'upper_right' },
+    'initial_view': { type: String, default: null },
+    'initial_date': { type: String, default: null },
+    'initial_user': { type: Number, default: null },
 });
 
 const matching = reactive({ event_types: Object });
@@ -86,7 +89,7 @@ const entrytype_form = useForm({
 
 const calendarFor = reactive({
     initials: '****',
-    id: 1,
+    id: props.initial_user ?? 1,
 });
 
 const tooltip = reactive({
@@ -143,7 +146,7 @@ const calendarOptions = reactive({                              // HERE is the S
         end: 'dayGridMonth,timeGridWeek,timeGridDay'
     },
 
-    initialView: 'timeGridWeek',
+    initialView: props.initial_view ?? 'timeGridWeek',
 
     events: '/get_events?user1=' + calendarFor.id + '&include_due=' + state.includeDueDates + '&due_to=' + state.dueTo + '&due_from=' + state.dueFrom,  // HERE is the events url to get the calendar data
 
@@ -621,6 +624,10 @@ onMounted(() => {
     document.addEventListener('keydown', keypress_handler);
     updateCalendarRight();
     window.addEventListener('resize', updateCalendarRight);
+
+    if (window.location.search) {
+        window.history.replaceState({}, '', window.location.pathname);
+    }
 });
 
 onUnmounted(() => {
@@ -703,6 +710,7 @@ onUnmounted(() => {
                         </Transition>
                     </div>
                     <div class="p-4 text-base-content">
+                            <!-- Here's the FullCalendar component -->
                         <FullCalendar ref='fullCalendar' :options="calendarOptions" />
                     </div>
                 </div>
