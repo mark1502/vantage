@@ -162,7 +162,7 @@ const viewColumns = computed(() => {
                 {
                     label: 'Date:',
                     width: 'w-32',
-                    value: (entry) => reformat_date(entry.date1, getFolderData('input_time')),
+                    value: (entry) => reformat_date(entry.date1, getFolderData('input_time'), entry.all_day),
                 },
                 {
                     label: 'For:',

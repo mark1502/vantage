@@ -73,7 +73,7 @@ class CalendarController extends Controller
                 'entrytype_id' => 'numeric|integer|required',
                 'from_contact_id' => 'numeric|integer|required',
                 'note' => 'string|max:5000|nullable',
-                'allDay' => 'boolean',
+                'all_day' => 'boolean',
                 // 'fileSpecific' => 'boolean',
             ],
             [
@@ -83,7 +83,7 @@ class CalendarController extends Controller
                 'from_contact_id' => 'This field is required',
             ]);
 
-        if ($request->allDay == false) {     // if not allDay, validate datetime format
+        if ($request->all_day == false) {     // if not allDay, validate datetime format
             $verifiedDates = $request->validate([
                 'date1' => 'date_format:Y-m-d H:i:s|required',
                 'date2' => 'date_format:Y-m-d H:i:s|nullable',
@@ -109,7 +109,7 @@ class CalendarController extends Controller
             $event->date2 = $request->date2;
 
             $event->on_calendar = true;
-            $event->all_day = $request->allDay;
+            $event->all_day = $request->all_day;
             $event->save();
 
         } elseif ($request->action === 'edit' && $request->entry_id) {
@@ -124,7 +124,7 @@ class CalendarController extends Controller
             $event->date2 = $request->date2;
 
             $event->on_calendar = true;
-            $event->all_day = $request->allDay;
+            $event->all_day = $request->all_day;
 
             $event->save();
 
@@ -278,10 +278,10 @@ class CalendarController extends Controller
             ['formtype' => 'string|max:20|nullable',
                 'action' => 'string|max:10|nullable',
                 'entry_id' => 'numeric|integer|required',
-                'allDay' => 'boolean',
+                'all_day' => 'boolean',
             ]);
 
-        if ($request->allDay == false) {     // if not allDay, validate datetime format
+        if ($request->all_day == false) {     // if not allDay, validate datetime format
             $verifiedDates = $request->validate([
                 'date1' => 'date_format:Y-m-d H:i:s|required',
                 'date2' => 'date_format:Y-m-d H:i:s|nullable',
@@ -296,13 +296,13 @@ class CalendarController extends Controller
         $event = Entry::where('id', $request->entry_id)->first();
 
         if ($event && $event->id == $request->entry_id && $event->firm_id == $request->user()->firm_id) {    // if retrieved the correct event, and it's for the correct law firm, then make the changes
-            $event->all_day = $request->allDay;
+            $event->all_day = $request->all_day;
             $event->date1 = $request->date1;
 
             if ($request->action == 'move') {
                 $event->date2 = $request->date2 != null ? $request->date2 : null;
 
-                if ($request->allDay == false && $event->date2 == null) {    // if not allDay and end time is NULL, then set end time to 1 hour after start time
+                if ($request->all_day == false && $event->date2 == null) {    // if not allDay and end time is NULL, then set end time to 1 hour after start time
                     $event->date2 = date('Y-m-d H:i:s', strtotime('+1 hour', strtotime($event->date1)));
                 }
             } elseif ($request->action == 'resize') {

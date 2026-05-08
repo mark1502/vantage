@@ -10,6 +10,13 @@ class Entry extends Model
 {
     use HasFactory;
 
+    protected function casts(): array
+    {
+        return [
+            'all_day' => 'boolean',
+        ];
+    }
+
     public function folder()
     {
         return $this->belongsTo(Folder::class);

@@ -71,7 +71,7 @@ const calendar_form = useForm({
     date1: "",
     date2: "",
     note: "",
-    allDay: false,
+    all_day: false,
     fileSpecific: true,
     display_date_string: '',
 });
@@ -167,9 +167,19 @@ const calendarOptions = reactive({                              // HERE is the S
             const weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date(parseInt(startParts[0]), parseInt(startParts[1]) - 1, parseInt(startParts[2])).getDay()];
             tooltip.date = `${weekday}, ${parseInt(startParts[1])}/${parseInt(startParts[2])}/${startParts[0]}`;
 
-            let starting_time = toolTimeCalc( mouseEnterInfo.event.startStr );
-            let ending_time = toolTimeCalc( mouseEnterInfo.event.endStr );
-            tooltip.timespan = starting_time + ' - ' + ending_time;
+            if (mouseEnterInfo.event.allDay) {
+                tooltip.timespan = '(all day)';
+            } else {
+                let starting_time = toolTimeCalc( mouseEnterInfo.event.startStr );
+                let ending_time = toolTimeCalc( mouseEnterInfo.event.endStr );
+                const endDateStr = mouseEnterInfo.event.endStr.slice(0, 10);
+                const startDateStr = mouseEnterInfo.event.startStr.slice(0, 10);
+                if (endDateStr !== startDateStr) {
+                    const endParts = endDateStr.split('-');
+                    ending_time = `${parseInt(endParts[1])}/${parseInt(endParts[2])}/${endParts[0]} ${ending_time}`;
+                }
+                tooltip.timespan = starting_time + ' - ' + ending_time;
+            }
 
             tooltip.heading = 'Event Information:';
             tooltip.text = mouseEnterInfo.event.title;
@@ -380,7 +390,7 @@ function clear_calendarform() {
     calendar_form.date1 = "";
     calendar_form.date2 = "";
     calendar_form.note = "";
-    calendar_form.allDay = false;
+    calendar_form.all_day = false;
     calendar_form.fileSpecific = "true";
     calendar_form.display_date_string = "";
 
@@ -433,7 +443,7 @@ function click_date(eventInfo) {
     calendarform_title.value = 'Add New Event'
 
     calendar_form.action = 'add';
-    calendar_form.allDay = eventInfo.allDay;
+    calendar_form.all_day = eventInfo.allDay;
     calendar_form.date1 = eventInfo.dateStr.slice(0, 19).replace('T', ' ');  // cut off the time offset and replace the 'T' with a ' '
 
     var enddate = new Date();               // default end date to one our later
@@ -443,7 +453,8 @@ function click_date(eventInfo) {
     if( eventInfo.allDay != true  /* eventInfo.view.type != 'dayGridMonth' */ ) {       // if not allday event, then set the datetime display and the end date
         calendar_form.display_date_string = convertDateTimeToLocal(eventInfo.dateStr);
         calendar_form.date2 = enddate.toISOString().slice(0, 19).replace('T', ' ');
-    } else {                                                                            // else (allday), just set the date display (without time)
+    } else {                                                                            // else (allday), set date2 = date1 and display (without time)
+        calendar_form.date2 = calendar_form.date1;
         calendar_form.display_date_string = convertDateToLocal(eventInfo.dateStr) + ' (all day)';
     }
 
@@ -487,7 +498,7 @@ function click_event(eventInfo) {
         related_file.initial_name = eventInfo.event.extendedProps.file_name;
     }
 
-    calendar_form.allDay = eventInfo.event.allDay;
+    calendar_form.all_day = eventInfo.event.allDay;
     calendar_form.date1 = eventInfo.event.startStr.slice(0, 19).replace('T', ' '); // cut off the time offset and replace the 'T' with a ' '
     calendar_form.date2 = eventInfo.event.endStr ? eventInfo.event.endStr.slice(0, 19).replace('T', ' ') : ''; // cut off the time offset and replace the 'T' with a ' '
 
@@ -497,7 +508,11 @@ function click_event(eventInfo) {
     else {
         calendar_form.display_date_string = eventInfo.event.start.toLocaleDateString() + ' @ ' + eventInfo.event.start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         if (eventInfo.event.end) {
-            calendar_form.display_date_string += ' - ' + eventInfo.event.end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            let endPart = eventInfo.event.end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            if (eventInfo.event.end.toDateString() !== eventInfo.event.start.toDateString()) {
+                endPart = eventInfo.event.end.toLocaleDateString() + ' @ ' + endPart;
+            }
+            calendar_form.display_date_string += ' - ' + endPart;
         }
     }
 
@@ -510,7 +525,7 @@ function click_event(eventInfo) {
 function event_placement(eventInfo, ptype) {
     calendar_form.action = ptype;   // assign the action/placement type
     calendar_form.entry_id = eventInfo.event.id;
-    calendar_form.allDay = eventInfo.event.allDay;
+    calendar_form.all_day = eventInfo.event.allDay;
     if( eventInfo.event.allDay == true ) {
         calendar_form.date1 = eventInfo.event.startStr;
         calendar_form.date2 = eventInfo.event.endStr;
@@ -730,7 +745,7 @@ onUnmounted(() => {
                         <label for="" class="mr-9 font-semibold text-sm">Event Date:</label>
                         <p>{{ calendar_form.display_date_string }}</p>
                         <!-- <div class="flex items-center ml-12">
-                            <input type="checkbox" v-model="calendar_form.allDay" id="check_allDay" value="true"
+                            <input type="checkbox" v-model="calendar_form.all_day" id="check_allDay" value="true"
                                 @change="setAllDay()">
                             <label for="check_allDay" class="ml-1">- All Day</label>
                         </div> -->
