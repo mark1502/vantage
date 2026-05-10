@@ -189,7 +189,7 @@ class CalendarController extends Controller
                 }
             })
             ->with([
-                'file:id,name',
+                'file:id,name,date_closed',
                 'contact_to:id,display_last_first,member_initials,user_id',
                 'contact_from:id,display_last_first,member_initials,user_id',
                 'entrytype:id,name',
@@ -219,7 +219,7 @@ class CalendarController extends Controller
                     'extendedProps' => [
                         'is_due_date' => false,
                         'file_id' => $event->file->id,
-                        'file_name' => $event->file->name,
+                        'file_name' => $event->file->name.($event->file->date_closed ? ' (closed)' : ''),
                         'entrytype_id' => $event->entrytype->id,
                         'event_for' => $event->contact_to->id,
                         'note' => $event->note,
@@ -260,7 +260,7 @@ class CalendarController extends Controller
                     'extendedProps' => [
                         'is_due_date' => true,
                         'file_id' => $event->file->id,
-                        'file_name' => $event->file->name,
+                        'file_name' => $event->file->name.($event->file->date_closed ? ' (closed)' : ''),
                         'entrytype_id' => $event->entrytype->id,
                         'event_for' => $event->contact_to->id,
                         'note' => $event->note,

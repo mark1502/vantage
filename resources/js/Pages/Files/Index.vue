@@ -113,12 +113,19 @@ function statusChanged() {
 }
 
 
+const deleteModal = ref(null);
+const deleteFileId = ref(null);
+const deleteFileName = ref('');
+
 function deleteClicked() {
-    let r = confirm("Do you want to delete this file?\n\nName: " + props.files.data[state.current_row].name + "\n\nClick Ok to delete");
-    if (r == true) {
-       form.delete("/files/" + props.files.data[state.current_row].id + "?page=" + props.files.current_page + "&show=" + state.show, {
-        });
-    }
+    deleteFileId.value = props.files.data[state.current_row].id;
+    deleteFileName.value = props.files.data[state.current_row].name;
+    deleteModal.value.showModal();
+}
+
+function confirmDelete() {
+    deleteModal.value.close();
+    router.delete("/files/" + deleteFileId.value + "?page=" + props.files.current_page + "&show=" + state.show);
 }
 
 
@@ -290,9 +297,9 @@ update_disp();                                                                  
                                     <Link v-if="files.total !== 0" id="openbutton" :href='disp.openurl' class="btn btn-primary gap-0 w-32" :disable="disable_button">
                                         🗁 &nbsp;<u>O</u>pen
                                     </Link>
-                                    <Link v-if="files.total !== 0" id="deletebutton" href='' @click="deleteClicked" class="btn btn-outline btn-error" >
+                                    <button v-if="files.total !== 0" id="deletebutton" @click="deleteClicked" class="btn btn-outline btn-error">
                                         - &nbsp;Delete
-                                    </Link>
+                                    </button>
                                 </div>
                                 <div v-if="atFileLimit" class="text-sm mt-3 mb-2 ml-2">
                                     <Link v-if="isAdmin" :href="route('subscription.index')" class="link link-primary font-semibold">
@@ -352,4 +359,21 @@ update_disp();                                                                  
             </div>
         </div>
     </AuthenticatedLayout>
+
+    <dialog ref="deleteModal" class="modal">
+        <div class="modal-box">
+            <h3 class="text-lg font-bold">Delete File</h3>
+            <p class="py-4">Are you sure you want to delete this file?</p>
+            <p class="font-semibold">{{ deleteFileName }}</p>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn">Cancel</button>
+                </form>
+                <button class="btn btn-error" @click="confirmDelete">Delete</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 </template>

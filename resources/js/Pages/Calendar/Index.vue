@@ -35,6 +35,7 @@ const related_file = reactive({
 const show_filters = ref(true);
 const fullCalendar = ref(null);
 let calApi = null;
+const gotoDateValue = ref('');
 
 const state = reactive({
     weekdaysOnly: false,
@@ -141,9 +142,19 @@ const calendarOptions = reactive({                              // HERE is the S
         interactionPlugin,
     ],
     headerToolbar: {
-        start: 'prevYear,nextYear prev,next today',
+        // start: 'prevYear,nextYear prev,next today,gotoDateBtn',
+        start: 'prev,next today gotoDateBtn',
         center: 'title',
         end: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    customButtons: {
+        gotoDateBtn: {
+            text: 'go to…',
+            click: function () {
+                gotoDateValue.value = '';
+                display_modal('goto_date', true);
+            }
+        }
     },
 
     initialView: props.initial_view ?? 'timeGridWeek',
@@ -329,6 +340,13 @@ function submit_calendarform() {
 } // end function
     
 
+function goToDate() {
+    if (gotoDateValue.value) {
+        calApi.gotoDate(gotoDateValue.value);
+        display_modal('goto_date', false);
+    }
+}
+
 function refresh_calendar() {
     calendarOptions.events = '/get_events?user1=' + calendarFor.id + '&include_due=' + state.includeDueDates + '&due_to=' + state.dueTo + '&due_from=' + state.dueFrom;
 }
@@ -362,6 +380,7 @@ function display_modal( which_modal, setting = null ) {
         case 'confirm_file_change':
         case 'entrytype':
         case 'confirm_delete_event':
+        case 'goto_date':
             modal_name = which_modal + '_modal';
             break;            
     }
@@ -894,6 +913,23 @@ onUnmounted(() => {
         </dialog>        
 
 
+
+        <!-- Modal - Go to Date -->
+        <dialog id="goto_date_modal" class="modal">
+            <div class="modal-box w-80">
+                <h3 class="font-bold text-xl text-center">Go to Date</h3>
+                <div class="flex flex-col items-center mt-6">
+                    <!-- <label for="goto_date_input" class="font-semibold text-sm mb-2">Go to:</label> -->
+                    <input type="date" v-model="gotoDateValue" id="goto_date_input"
+                        class="input input-bordered w-48"
+                        @keydown.enter.prevent="goToDate()" />
+                </div>
+                <div class="modal-action justify-center mt-6">
+                    <button type="button" class="btn mr-4" @click="display_modal('goto_date', false)">Cancel</button>
+                    <button type="button" class="btn btn-primary w-28" @click="goToDate()">Go To Date</button>
+                </div>
+            </div>
+        </dialog>
 
         <!-- Modal - add new event type -->
         <dialog id="entrytype_modal" class="modal">

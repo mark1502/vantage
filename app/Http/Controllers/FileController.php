@@ -306,7 +306,17 @@ class FileController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $file = File::find($id);
+
+        if (!$file) {
+            return redirect()->back()->with('error', 'Unable to delete this file. If the problem persists, contact support.');
+        }
+
+        $file->date_closed = now();
+        $file->summary = trim($file->summary . "\nFile Closed as DELETED");
+        $file->save();
+
+        return redirect()->back();
     }
 
     public function lookup_file(Request $request)

@@ -638,7 +638,6 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                             :filetypes="props.filetypes"
                             :assigned_attorney_id="props.assigned_attorney_id"
                             :client_name="props.client_name"
-                            :index_form="index_form"
                         />
                     </div>
                     <!-- end of tab 1 content panel -->
