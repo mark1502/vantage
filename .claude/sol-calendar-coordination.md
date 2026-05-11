@@ -2,7 +2,7 @@
 
 ## Overview
 
-When a File's `date_sol` is set on create or changed on edit, automatically create/update an all-day calendar event entry for the file's assigned attorney. The event should be immovable on the calendar — clicking it explains it must be changed via file details and offers navigation to the file edit page.
+When a File's `date_sol` is set on file create or changed on file edit, automatically create/update an all-day calendar event entry for the file's assigned attorney. The event should be immovable on the calendar — clicking it explains it must be changed via file details and offers navigation to the file edit page.
 
 ---
 

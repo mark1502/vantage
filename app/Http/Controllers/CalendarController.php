@@ -319,6 +319,7 @@ class CalendarController extends Controller
             ->select('id', 'name')
             ->where('firm_id', $request->user()->firm_id)
             ->where('name', 'like', $request->search.'%')
+            ->whereNull('date_closed')  // only open files
             ->orderBy('name')
             ->simplePaginate(8);
         // ->withQueryString();

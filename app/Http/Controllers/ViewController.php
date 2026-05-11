@@ -47,7 +47,7 @@ class ViewController extends Controller
 
         // now, exuecute the query and then render the View
         $entries = $entries
-            ->with('file:id,name')
+            ->with('file:id,name,date_closed')
             ->with('contact_from:id,display_last_first,member_initials')
             ->with('contact_to:id,display_last_first,member_initials')
             ->with(['response' => ['response_to'],
@@ -251,7 +251,7 @@ class ViewController extends Controller
             $folders = Folder::query()
                 ->where('id', '>', '0')                        // get all the folders with their entrytypes
                 ->with(['entrytypes' => function ($query) use ($thefirmid) {
-                    $query->where('firm_id', $thefirmid)->orderBy('name');
+                    $query->where('firm_id', $thefirmid)->where('faux_deleted', false)->orderBy('name');
                 }])
                 ->get();
         }

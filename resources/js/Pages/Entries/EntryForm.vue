@@ -1068,10 +1068,11 @@ update_disp();
                 <!-- File Row (for view only, but not adding, so display disabled) -->
             <div v-else-if="props.file_view === 'view'">
                 <div class="flex items-baseline mb-4">
-                    <label for="display_casename" class="text-sm font-semibold w-28">File:</label>
+                    <label for="display_filename" class="text-sm font-semibold w-28">File:</label>
                     <input :value="entry_form.file_id === 1 ? 'Not File Related' : display_name.file"
-                        id="display_casename" autocomplete="off" disabled
-                        class="input input-sm text-sm rounded-sm w-64 disabled:disabled:border-base-300 disabled:text-base-content"/>
+                        id="display_filename" disabled class="input input-sm text-sm rounded-sm w-64 disabled:border-base-300 disabled:text-base-content"
+                    />
+                    <span v-if="props.p1.entries.data[props.state.row].file.date_closed" class="text-sm text-base-content ml-2">(closed file)</span>
                 </div>
             </div>
             <!-- Folder row - HIDDEN - Should probably remove-->

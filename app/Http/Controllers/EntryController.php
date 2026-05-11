@@ -397,17 +397,17 @@ class EntryController extends Controller
         $folder_list = ['all', 'correspondence', 'pleadings', 'discovery', 'documents',
             'memos', 'events', 'todo', 'phone', 'medrecs', 'medbills', 'costs'];
 
-        if ($what === 'id') {                                          // if what we want back is the folder id
-            if ($var_in === 'info') {
+        if ($what === 'id') {                           // if what we want back is the folder id
+            if ($var_in === 'info') {                       // if 'info', sendback is -1
                 $sendback = -1;
-            }                        // if 'info', sendback is -1
-            elseif ($var_in === 'file_contacts') {
+            }
+            elseif ($var_in === 'file_contacts') {          // if 'file_contacts', sendback is -2
                 $sendback = -2;
-            }           // if 'file_contacts', sendback is -2
-            else {
+            }
+            else {                                          // else, sendback is the position in array
                 $sendback = array_search($var_in, $folder_list);
-            }         // else, sendback is the position in array
-        } elseif ($what === 'name') {                                 // else if we want the folder name
+            }
+        } elseif ($what === 'name') {                   // else if we want the folder name
             if ($var_in >= 0 && $var_in < 12) {
                 $sendback = $folder_list[$var_in];
             } // sendback is folder name
@@ -847,8 +847,7 @@ class EntryController extends Controller
             $from_contacts = DB::table('entries')->select('from_contact_id')->where('file_id', $file_id)->distinct();       // get all "from" contact ids for this file
             $to_contacts = DB::table('entries')->select('to_contact_id')->where('file_id', $file_id)->distinct();           // get all "to" contact ids for this file
 
-            $file_contacts = DB::table('contacts')->select('id', 'display_last_first')
-                ->where('faux_deleted', false)
+            $file_contacts = DB::table('contacts')->select('id', 'display_last_first', 'faux_deleted')
                 ->where(function ($query) use ($from_contacts, $to_contacts) {
                     $query->whereIn('id', $from_contacts)
                         ->orWhereIn('id', $to_contacts);
@@ -868,7 +867,7 @@ class EntryController extends Controller
             $folders = Folder::query()
                 ->where('id', '>', '0')                                                                     // get all the folders with their entrytypes for this firm
                 ->with(['entrytypes' => function ($query) use ($thefirmid) {
-                    $query->select('id', 'folder_id', 'name')->where('firm_id', $thefirmid)->orderBy('name');
+                    $query->select('id', 'folder_id', 'name')->where('firm_id', $thefirmid)->where('faux_deleted', false)->orderBy('name');
                 }])
                 ->get();
         } else {

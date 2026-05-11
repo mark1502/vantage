@@ -54,7 +54,7 @@ function update_disp() {
 
         disp.id = props.folders.data[state.current_row].id;
         disp.editurl = '/folders/' + disp.id + '/edit?page=' + props.folders.current_page + '&show=' + state.show;
-        disp.typesurl = '/folders/' + disp.id + '/entrytypes?page=' + props.folders.current_page + '&show=' + state.show;
+        disp.typesurl = '/entrytypes?folder_id=' + disp.id;
     }
     else {
         disp.folder_name = '';

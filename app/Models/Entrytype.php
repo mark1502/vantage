@@ -11,12 +11,22 @@ class Entrytype extends Model
 {
     use HasFactory;
 
-    public function entries() {
+    protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'faux_deleted' => 'boolean',
+        ];
+    }
+
+    public function entries()
+    {
         return $this->hasMany(Entry::class);
     }
 
-    public function folder() {
+    public function folder()
+    {
         return $this->belongsTo(Folder::class);
     }
-
 }

@@ -883,7 +883,7 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
         <!-- Put this part before </body> tag - timeline add modal-->
         <dialog id="timeline_add_modal" class="modal">
             <div class="modal-box w-11/12 max-w-xl">
-                <h3 class="font-bold text-xl text-center">Please Select a Folder For New Entry</h3>
+                <h3 class="font-bold text-xl text-center">Select a Folder For The New Entry</h3>
                 <div class="border border-base-content mt-4 w-64 mx-auto p-4">
                     <label>
                         <input type="radio" v-model="state.add_folder_id" id="corr" :value="1" autocomplete="off"> Correspondence

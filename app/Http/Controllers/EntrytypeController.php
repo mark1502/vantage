@@ -9,124 +9,96 @@ use Illuminate\Http\Request;
 
 class EntrytypeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request, Folder $folder)
+    public function index(Request $request): \Inertia\Response
     {
-        $show = $request->query('show');
+        $firmId = $request->user()->firm_id;
+        $folderId = $request->query('folder_id');
+        $show = $request->query('show', 10);
+        $filter = $request->query('filter', 'current');
 
-        $entrytypes = Entrytype::where('firm_id', $request->user()->firm_id)
-                        ->where('folder_id', $folder->id)
-                        ->orderBy('name')
-                        ->paginate($show ? $show : 10)
-                        ->withQueryString();
+        $folders = Folder::query()
+            ->whereNotIn('id', [5, 7, 10])
+            ->orderBy('id')
+            ->get(['id', 'name']);
 
-        // dd($entrytypes);
-                        
-        return Inertia::render('Entrytypes/Index', [ 'entrytypes' => $entrytypes, 'folder' => $folder ]);
+        if (! $folderId && $folders->isNotEmpty()) {
+            $folderId = $folders->first()->id;
+        }
+
+        $entrytypes = Entrytype::query()
+            ->where('firm_id', $firmId)
+            ->where('folder_id', $folderId)
+            ->when($filter === 'current', fn ($query) => $query->where('faux_deleted', false))
+            ->when($filter === 'deleted', fn ($query) => $query->where('faux_deleted', true))
+            ->orderBy('name')
+            ->paginate($show)
+            ->withQueryString();
+
+        return Inertia::render('Entrytypes/Index', [
+            'entrytypes' => $entrytypes,
+            'folders' => $folders,
+            'selectedFolderId' => (int) $folderId,
+            'filter' => $filter,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create(Folder $folder)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        return inertia::render('Entrytypes/Create', [
-            'entrytype' => [
-                'id' => 0,
-                'folder_name' => $folder->name,
-                'folder_id' => $folder->id,
-                'name' => '',
-            ],
+        $request->validate([
+            'name' => 'required|max:255',
+            'folder_id' => 'required|integer',
         ]);
 
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request, Folder $folder)
-    {
-        $verified = $request->validate(
-            [   'name' => 'required|max:255',
-            ]);
-        $thetype = new Entrytype;
-        $thetype->firm_id = $request->user()->firm_id;
-        $thetype->folder_id = $folder->id;
-        $thetype->name = $request->name;
-
-        $thetype->save();
-
-        return redirect('/folders/' . $folder->id . '/entrytypes?page=' . $request->current_page . '&show=' . $request->show);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Folder $folder, Entrytype $entrytype)
-    {
-        // dd($entrytype);
-        
-        return Inertia::render('Entrytypes/Edit', [
-            'entrytype' => [
-                'id' => $entrytype->id,
-                'folder_id' => $folder->id,
-                'name' => $entrytype->name,
-            ],
+        Entrytype::create([
+            'firm_id' => $request->user()->firm_id,
+            'folder_id' => $request->folder_id,
+            'name' => $request->name,
         ]);
-        
+
+        return redirect(route('entrytypes.index', [
+            'folder_id' => $request->folder_id,
+            'show' => $request->show,
+            'filter' => $request->filter,
+        ]));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Folder $folder, Entrytype $entrytype)
+    public function update(Request $request, Entrytype $entrytype): \Illuminate\Http\RedirectResponse
     {
-        $verified = $request->validate(
-            [   'name' => 'required|max:255',
-            ]);
+        $request->validate([
+            'name' => 'required|max:255',
+        ]);
 
-        $entrytype->name = $request->name;
+        $entrytype->update(['name' => $request->name]);
 
-        $entrytype->save();
-
-        return redirect('/folders/' . $folder->id . '/entrytypes?page=' . $request->current_page . '&show=' . $request->show);
+        return redirect(route('entrytypes.index', [
+            'folder_id' => $request->folder_id,
+            'page' => $request->page,
+            'show' => $request->show,
+            'filter' => $request->filter,
+        ]));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function destroy(Request $request, Entrytype $entrytype): \Illuminate\Http\RedirectResponse
     {
-        //
+        $entrytype->update(['faux_deleted' => true]);
+
+        return redirect(route('entrytypes.index', [
+            'folder_id' => $request->folder_id,
+            'page' => $request->page,
+            'show' => $request->show,
+            'filter' => $request->filter,
+        ]));
+    }
+
+    public function restore(Request $request, Entrytype $entrytype): \Illuminate\Http\RedirectResponse
+    {
+        $entrytype->update(['faux_deleted' => false]);
+
+        return redirect(route('entrytypes.index', [
+            'folder_id' => $request->folder_id,
+            'page' => $request->page,
+            'show' => $request->show,
+            'filter' => $request->filter,
+        ]));
     }
 }

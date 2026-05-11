@@ -35,7 +35,7 @@
                             </tr>
                             <tr>
                                 <td class="py-3 pr-6">
-                                    <Link class="btn btn-primary text-white px-8 w-40" href="/Entrytypes">Entry Types</Link>
+                                    <Link class="btn btn-primary text-white px-8 w-40" :href="route('entrytypes.index')">Entry Types</Link>
                                 </td>
                                 <td class="py-3 text-base-content">Manage entry types within each folder</td>
                             </tr>
