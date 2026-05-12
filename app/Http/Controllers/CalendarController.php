@@ -205,6 +205,7 @@ class CalendarController extends Controller
                 $color_bg = $all_colors->where('user_id', $color_owner_id)->where('name', 'event_bg')->first();
                 $color_text = $all_colors->where('user_id', $color_owner_id)->where('name', 'event_text')->first();
 
+                $is_sol = $event->entrytype->name === 'Deadline - Statute of Limitations';
                 $e_title = '('.$event->contact_to->member_initials.') '.$event->entrytype->name.' - '.$event->note;
 
                 $events_back[] = [
@@ -213,11 +214,12 @@ class CalendarController extends Controller
                     'end' => $event->date2,
                     'title' => $e_title,
                     'allDay' => $event->all_day,
-                    'editable' => true,
+                    'editable' => ! $is_sol,
                     'backgroundColor' => $color_bg->setting ?? '#fff68f',
                     'textColor' => $color_text->setting ?? '#000000',
                     'extendedProps' => [
                         'is_due_date' => false,
+                        'is_sol' => $is_sol,
                         'file_id' => $event->file->id,
                         'file_name' => $event->file->name.($event->file->date_closed ? ' (closed)' : ''),
                         'entrytype_id' => $event->entrytype->id,

@@ -60,6 +60,7 @@ const props = defineProps({
 const matching = reactive({ event_types: Object });
 
 const calendarform_title = ref('Add New Event');
+const solEventFileId = ref(null);
 
 const calendar_form = useForm({
     formtype: "calendar",
@@ -171,6 +172,12 @@ const calendarOptions = reactive({                              // HERE is the S
     eventClick:  function (eventInfo) { click_event(eventInfo); },
     eventDrop:   function (eventInfo) { event_placement(eventInfo, 'move'); },
     eventResize: function (eventInfo) { event_placement(eventInfo, 'resize'); },
+
+    eventDidMount: function (info) {
+        if (info.event.extendedProps.is_sol) {
+            info.el.style.cursor = 'not-allowed';
+        }
+    },
 
     eventMouseEnter: function (mouseEnterInfo) {
         if (!mouseEnterInfo.event.extendedProps.is_due_date) {                      // calendar event: show timespan
@@ -490,7 +497,12 @@ function click_date(eventInfo) {
 
     // the user clicked on an existing event, so we're editing the event
 function click_event(eventInfo) {
-    if (eventInfo.event.extendedProps.is_due_date) { return; }  // due dates are not editable
+    if (eventInfo.event.extendedProps.is_due_date) { return; }
+    if (eventInfo.event.extendedProps.is_sol) {
+        solEventFileId.value = eventInfo.event.extendedProps.file_id;
+        document.getElementById('sol_event_modal').showModal();
+        return;
+    }
     clear_calendarform();
     calendarform_title.value = 'Edit an Event'
     calendar_form.action = 'edit';
@@ -958,7 +970,24 @@ onUnmounted(() => {
                 </div>
 
             </div>
-        </dialog>        
+        </dialog>
+
+        <!-- SOL Event Modal -->
+        <dialog id="sol_event_modal" class="modal">
+            <div class="modal-box w-11/12 max-w-xl">
+                <h3 class="font-bold text-2xl text-center">Statute of Limitations</h3>
+                <p class="text-lg mt-4 text-center">The Statute of Limitations date cannot be moved on the calendar.</p>
+                <p class="text-lg mt-2 text-center">It must be changed in the file details.</p>
+                <div class="modal-action justify-center mt-8">
+                    <button type="button" class="btn btn-primary mr-10"
+                        @click="close(); router.visit(route('entries.index', { file: solEventFileId, filepart: 'info', page: 1, show: 10 } ))">
+                        Edit File Details
+                    </button>
+                    <form method="dialog"><button class="btn btn-primary">Close</button></form>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
 
         <!-- Event Hover Tooltip -->
         <Teleport to="body">

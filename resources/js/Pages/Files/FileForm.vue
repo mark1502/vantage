@@ -47,12 +47,22 @@
 
     let saved_file_form = { ...file_form }; // clone a copy of the file form
 
+    const originalDateSol = props.file.date_sol;
+
     let solEnabled = ref(false);                                                            // reactive variable to determine if the SOL date is enabled
 
     solEnabled.value = props.file.filetype.enable_file_SOL === 1 ? true : false;    // set solEnabled based on the file type's enable_file_SOL property
     
     if( solEnabled.value === false ) {                                                      // if the SOL date is not enabled, set it to null
         file_form.date_sol = null;
+    }
+
+    const solConfirmMessage = ref('');
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const [y, m, d] = dateStr.split('-');
+        return `${parseInt(m)}/${parseInt(d)}/${y}`;
     }
 
     const fileform_isDirty = ref(false);
@@ -81,14 +91,54 @@
         // fileform_isDirty.value = JSON.stringify( file_form ) !== JSON.stringify( saved_file_form );
     }
 
+    function solDateChanged() {
+        const orig = originalDateSol || null;
+        const curr = file_form.date_sol || null;
+        return orig !== curr;
+    }
+
+    function buildSolConfirmMessage() {
+        const orig = originalDateSol || null;
+        const curr = file_form.date_sol || null;
+
+        if (!orig && curr) {
+            return `The SOL Date has been set to ${formatDate(curr)}. Do you want ${formatDate(curr)} to be the SOL Date for this file?`;
+        } else if (orig && !curr) {
+            return `The SOL Date ${formatDate(orig)} has been removed. Do you want to remove the SOL Date for this file?`;
+        } else if (orig && curr && orig !== curr) {
+            return `The SOL Date has been changed from ${formatDate(orig)} to ${formatDate(curr)}. Do you want ${formatDate(curr)} to be the SOL Date for this file?`;
+        }
+        return '';
+    }
+
+    function solConfirmYes() {
+        display_modal('solconfirm', false);
+        proceedWithSave();
+    }
+
+    function solConfirmNo() {
+        display_modal('solconfirm', false);
+        file_form.date_sol = originalDateSol;
+        form_change();
+    }
+
+    function proceedWithSave() {
+        if( solEnabled.value === true && (file_form.date_sol == '' || file_form.date_sol == null) ) {
+            display_modal( 'sol', true );
+        } else {
+            file_save_clicked = true;
+            fileform_actions('submit');
+        }
+    }
+
     function fileform_click( what ) {
         switch( what ) {
         case 'ok':
-            if( solEnabled.value === true && (file_form.date_sol == '' || file_form.date_sol == null) ) {           // if the SOL date is not set, display sol modal
-                display_modal( 'sol', true );
-            } else {                                                                // else, save the file form
-                file_save_clicked = true;
-                fileform_actions('submit');
+            if( solEnabled.value && solDateChanged() ) {
+                solConfirmMessage.value = buildSolConfirmMessage();
+                display_modal('solconfirm', true);
+            } else {
+                proceedWithSave();
             }
             break;
         case 'cancel':
@@ -138,6 +188,7 @@
         let modal_name = '';
         if( which_modal == 'filechanged' ) modal_name = 'filechanged_modal';
         else if( which_modal == 'sol' ) modal_name = 'sol_modal';
+        else if( which_modal == 'solconfirm' ) modal_name = 'solconfirm_modal';
         else if( which_modal == 'entrychanged' ) modal_name = 'entrychanged_modal';
         else if( which_modal == 'contact' ) modal_name = 'contact_modal';
         else if( which_modal == 'entrytype' ) modal_name = 'entrytype_modal';
@@ -392,6 +443,18 @@
             </div>
         </dialog>
 
+
+        <!-- SOL Date Change Confirmation Modal -->
+        <dialog id="solconfirm_modal" class="modal">
+            <div class="modal-box w-11/12 max-w-3xl">
+                <h3 class="font-bold text-2xl text-center">Confirm: SOL Date Change</h3>
+                <p class="text-xl mt-4">{{ solConfirmMessage }}</p>
+                <div class="modal-action justify-center mt-12">
+                    <button type="button" class="btn mr-10 w-28 gap-0" @click="solConfirmYes"><u>Y</u>es</button>
+                    <button type="button" class="btn gap-0" @click="solConfirmNo"><u>N</u>o</button>
+                </div>
+            </div>
+        </dialog>
 
         <!-- Put this part before </body> tag - Confirm File Changemodal -->
         <dialog id="filechanged_modal" class="modal">

@@ -9,7 +9,11 @@ const props = defineProps({
     folders: Array,
     selectedFolderId: Number,
     filter: String,
+    activeCount: Number,
+    solEntrytypeId: Number,
 });
+
+const isProtected = computed(() => selected.value?.id === props.solEntrytypeId);
 
 const activeFolderId = ref(props.selectedFolderId);
 const activeFilter = ref(props.filter || 'current');
@@ -64,6 +68,10 @@ function rowClicked(index) {
 
 function rowDblClicked(index) {
     state.current_row = index;
+    if (props.entrytypes.data[index]?.id === props.solEntrytypeId) {
+        document.getElementById('protected_modal').showModal();
+        return;
+    }
     if (props.entrytypes.data[index]?.faux_deleted) {
         document.getElementById('deleted_edit_modal').showModal();
         return;
@@ -127,6 +135,10 @@ function submitEdit() {
 // Delete
 function openDeleteModal() {
     document.activeElement.blur();
+    if (props.activeCount <= 1) {
+        document.getElementById('cannot_delete_modal').showModal();
+        return;
+    }
     document.getElementById('delete_modal').showModal();
 }
 
@@ -164,7 +176,7 @@ const handleKeypress = (e) => {
         if (!isDeleted.value && activeFilter.value !== 'deleted') openAddModal();
     } else if (e.altKey && e.key === 'c') {
         e.preventDefault();
-        if (!isDeleted.value) openEditModal();
+        if (!isDeleted.value && !isProtected.value) openEditModal();
     } else {
         const navKeys = ['Escape', 'ArrowDown', 'ArrowUp', 'Enter', 'PageUp', 'PageDown'];
         if (navKeys.includes(e.key)) e.preventDefault();
@@ -176,7 +188,7 @@ const handleKeypress = (e) => {
         } else if (e.key === 'ArrowUp' && state.current_row > 0) {
             state.current_row--;
         } else if (e.key === 'Enter') {
-            if (!isDeleted.value && selected.value) openEditModal();
+            if (!isDeleted.value && !isProtected.value && selected.value) openEditModal();
         } else if (e.key === 'PageUp' && props.entrytypes.prev_page_url) {
             router.get(props.entrytypes.prev_page_url);
         } else if (e.key === 'PageDown' && props.entrytypes.next_page_url) {
@@ -297,11 +309,11 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
                             + &nbsp;<u>A</u>dd
                         </button>
                         <button v-if="entrytypes.total !== 0" class="btn btn-primary gap-0"
-                            :class="isDeleted ? 'btn-disabled' : ''"
+                            :class="(isDeleted || isProtected) ? 'btn-disabled' : ''"
                             @click="openEditModal()">
                             △ &nbsp;<u>C</u>hange
                         </button>
-                        <button v-if="entrytypes.total !== 0 && !isDeleted" class="btn btn-outline btn-error"
+                        <button v-if="entrytypes.total !== 0 && !isDeleted && !isProtected" class="btn btn-outline btn-error"
                             @click="openDeleteModal()">
                             - &nbsp;Delete
                         </button>
@@ -360,6 +372,35 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
                     <div class="mt-8 flex justify-center gap-10">
                         <button class="btn btn-primary" @click="submitDelete()">Delete</button>
                         <button class="btn btn-primary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
+
+        <!-- Cannot Delete Last Entry Type Modal -->
+        <dialog id="cannot_delete_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="text-xl font-bold text-center">Cannot Delete Entry Type</h3>
+                <p class="py-4 text-lg text-center">This entry type cannot be deleted because each folder must have at least one entry type.</p>
+                <form method="dialog">
+                    <div class="mt-4 flex justify-center">
+                        <button class="btn btn-primary">OK</button>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
+
+        <!-- Protected Entrytype Modal -->
+        <dialog id="protected_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="text-xl font-bold text-center">Protected Entry Type</h3>
+                <p class="py-4 text-lg text-center">The "Deadline - Statute of Limitations" entry type is used by the system to manage SOL calendar events.</p>
+                <p class="text-base text-center">It cannot be renamed or deleted.</p>
+                <form method="dialog">
+                    <div class="mt-8 flex justify-center">
+                        <button class="btn btn-primary">OK</button>
                     </div>
                 </form>
             </div>

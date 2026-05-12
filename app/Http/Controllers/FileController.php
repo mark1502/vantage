@@ -170,6 +170,11 @@ class FileController extends Controller
             'is_file_client' => true,
         ]);
 
+        $filetype = Filetype::find($newCase->filetype_id);
+        if ($filetype && $filetype->enable_file_SOL) {
+            $newCase->syncSolCalendarEntry();
+        }
+
         return redirect(route('files.index', ['page' => $request->current_page, 'show' => $request->show]));
     }
 
@@ -296,6 +301,8 @@ class FileController extends Controller
                 'is_file_attorney' => true,
             ]);
         });
+
+        $file->syncSolCalendarEntry();
     }
 
     /**
@@ -308,12 +315,12 @@ class FileController extends Controller
     {
         $file = File::find($id);
 
-        if (!$file) {
+        if (! $file) {
             return redirect()->back()->with('error', 'Unable to delete this file. If the problem persists, contact support.');
         }
 
         $file->date_closed = now();
-        $file->summary = trim($file->summary . "\nFile Closed as DELETED");
+        $file->summary = trim($file->summary."\nFile Closed as DELETED");
         $file->save();
 
         return redirect()->back();

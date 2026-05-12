@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
-use App\Models\Folder;
 use App\Models\Entrytype;
+use App\Models\Folder;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class EntrytypeController extends Controller
 {
+    private const SOL_ENTRYTYPE_NAME = 'Deadline - Statute of Limitations';
+
+    private const SOL_FOLDER_ID = 6;
+
     public function index(Request $request): \Inertia\Response
     {
         $firmId = $request->user()->firm_id;
@@ -25,6 +29,12 @@ class EntrytypeController extends Controller
             $folderId = $folders->first()->id;
         }
 
+        $activeCount = Entrytype::query()
+            ->where('firm_id', $firmId)
+            ->where('folder_id', $folderId)
+            ->where('faux_deleted', false)
+            ->count();
+
         $entrytypes = Entrytype::query()
             ->where('firm_id', $firmId)
             ->where('folder_id', $folderId)
@@ -34,11 +44,19 @@ class EntrytypeController extends Controller
             ->paginate($show)
             ->withQueryString();
 
+        $solEntrytypeId = Entrytype::query()
+            ->where('firm_id', $firmId)
+            ->where('folder_id', self::SOL_FOLDER_ID)
+            ->where('name', self::SOL_ENTRYTYPE_NAME)
+            ->value('id');
+
         return Inertia::render('Entrytypes/Index', [
             'entrytypes' => $entrytypes,
             'folders' => $folders,
             'selectedFolderId' => (int) $folderId,
             'filter' => $filter,
+            'activeCount' => $activeCount,
+            'solEntrytypeId' => $solEntrytypeId,
         ]);
     }
 
@@ -64,6 +82,11 @@ class EntrytypeController extends Controller
 
     public function update(Request $request, Entrytype $entrytype): \Illuminate\Http\RedirectResponse
     {
+        if ($entrytype->name === self::SOL_ENTRYTYPE_NAME
+            && $entrytype->folder_id === self::SOL_FOLDER_ID) {
+            return back();
+        }
+
         $request->validate([
             'name' => 'required|max:255',
         ]);
@@ -80,6 +103,21 @@ class EntrytypeController extends Controller
 
     public function destroy(Request $request, Entrytype $entrytype): \Illuminate\Http\RedirectResponse
     {
+        if ($entrytype->name === self::SOL_ENTRYTYPE_NAME
+            && $entrytype->folder_id === self::SOL_FOLDER_ID) {
+            return back();
+        }
+
+        $activeCount = Entrytype::query()
+            ->where('firm_id', $entrytype->firm_id)
+            ->where('folder_id', $entrytype->folder_id)
+            ->where('faux_deleted', false)
+            ->count();
+
+        if ($activeCount <= 1) {
+            return back();
+        }
+
         $entrytype->update(['faux_deleted' => true]);
 
         return redirect(route('entrytypes.index', [
