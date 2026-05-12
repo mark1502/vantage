@@ -867,7 +867,9 @@ class EntryController extends Controller
             $folders = Folder::query()
                 ->where('id', '>', '0')                                                                     // get all the folders with their entrytypes for this firm
                 ->with(['entrytypes' => function ($query) use ($thefirmid) {
-                    $query->select('id', 'folder_id', 'name')->where('firm_id', $thefirmid)->where('faux_deleted', false)->orderBy('name');
+                    $query->select('id', 'folder_id', 'name')
+                    ->where('firm_id', $thefirmid)
+                    ->orderBy('name');
                 }])
                 ->get();
         } else {

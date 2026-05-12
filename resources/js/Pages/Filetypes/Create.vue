@@ -87,17 +87,19 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
 
     <AuthenticatedLayout>
          <template #header>
-            <h2 class="font-normal text-sm text-base-content leading-tight ml-2">
-                <Link :href="'/adminmenu'">Admin</Link> > File Types > Create File Type
+            <h2 class="font-bold text-xl text-base-content ml-3">
+                <Link :href="'/adminmenu'">Admin</Link> > 
+                <Link :href="'/filetypes'" class="hover:text-blue-600">File Types</Link> > 
+                Create New File Type
             </h2>
         </template>
 
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-base-300 overflow-hidden sm:rounded-lg min-h-dvh">
-                    <p class="mt-3 text-3xl font-bold text-center text-blue-600">
+                    <!-- <p class="mt-3 text-3xl font-bold text-center text-blue-600">
                         Create New File Type
-                    </p>
+                    </p> -->
 
                     <form autocomplete="off" class="max-w-3xl mx-auto mt-4 text-base-content">
                         <table class="ml-10">

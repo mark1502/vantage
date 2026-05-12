@@ -15,7 +15,7 @@ class FiletypeController extends Controller
      */
     public function index( Request $request )
     {   
-        $show = $request->query('show') ?? 15;
+        $show = $request->query('show') ?? 10;
 
         $this_firm_id = $request->user()->firm_id;
 
@@ -50,7 +50,7 @@ class FiletypeController extends Controller
         $filetypes = Filetype::query();
         $filetypes = $filetypes->where('firm_id', $request->user()->firm_id)
         ->orderBy('name')
-        ->paginate($show ? $show : 15)
+        ->paginate($show ? $show : 10)
         ->withQueryString();
 
         // dd($filetypes);

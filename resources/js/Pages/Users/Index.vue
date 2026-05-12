@@ -7,7 +7,7 @@ import Pagination from '@/Components/Pagination.vue';
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
-const props = defineProps({ users: Object });
+const props = defineProps({ users: Object, status: String });
 
 let form = useForm({
     formtype: "contact_short",
@@ -22,6 +22,7 @@ const state = reactive({
     hover: false,
     current_row: 0,
     show: props.users.per_page,
+    status: props.status || 'A',
     display: 'last_first',
     sort_on: 'last_first',
     sort_order: 'asc'
@@ -43,8 +44,8 @@ function update_disp() {
         disp.id = props.users.data[state.current_row].id;
         // disp.editurl = '/users/' + disp.id + '/edit?page=' + props.users.current_page + '&show=' + state.show;
         // disp.preferencesurl = '/users/' + disp.id + '/preferences?page=' + props.users.current_page + '&show=' + state.show;
-        disp.editurl = route( 'users.edit', { user: disp.id, page: props.users.current_page, show: state.show });
-        disp.preferencesurl = route( 'preferences.index', { user: disp.id, page: props.users.current_page, show: state.show });
+        disp.editurl = route( 'users.edit', { user: disp.id, page: props.users.current_page, show: state.show, status: state.status });
+        disp.preferencesurl = route( 'preferences.index', { user: disp.id, page: props.users.current_page, show: state.show, status: state.status });
     }
     else {
         // disp.display_name = '';
@@ -55,7 +56,7 @@ function update_disp() {
     } // end if
 
     // disp.createurl = '/users/create?page=' + props.users.current_page + '&show=' + state.show;
-    disp.createurl = route( 'users.create', { page: props.users.current_page, show: state.show });
+    disp.createurl = route( 'users.create', { page: props.users.current_page, show: state.show, status: state.status });
 }
 
 
@@ -70,7 +71,16 @@ function user_dblclick(index) {
 }
 
 function showChanged() {
-    router.get( route('users.index', { page: 1, show: state.show }) );
+    router.get( route('users.index', { page: 1, show: state.show, status: state.status }) );
+}
+
+function statusChanged() {
+    router.get( route('users.index', { page: 1, show: state.show, status: state.status }) );
+}
+
+function showAllUsers() {
+    state.status = 'both';
+    router.get( route('users.index', { page: 1, show: state.show, status: 'both' }) );
 }
 
 function deleteClicked() {
@@ -198,20 +208,28 @@ update_disp();
             </h2>
          -->
             <div class="flex">
-                <div class="w-1/3 text-sm text-base-content">
-                    <Link href="/adminmenu" class="hover:underline hover:text-blue-600">Admin</Link> > Users
+                <div class="font-bold text-xl text-base-content ml-3">
+                    <Link href="/adminmenu" class="hover:underline hover:text-blue-600">Admin</Link> > Law Firm Users
                 </div>
-                <div class="w-1/3 font-bold text-3xl text-center text-base-content">Law Firm Users</div>
-                <div class="w-1/3"></div>
+                <!-- <div class="w-1/3 font-bold text-3xl text-center text-base-content">Law Firm Users</div>
+                <div class="w-1/3"></div> -->
             </div>
         </template>
 
         <div id="users_index_screen" class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-base-300 p-4 min-h-dvh sm:rounded-lg" id="UserScreen">
-                    <div class="mt-6 w-3/4 mx-auto">
+                    <div class="mt-6 w-11/12 mx-auto">
                         <div v-if="users.data.length" class="">
-                            <table class="w-full border border-base-content text-base font-sans font-normal" id="userlist">
+                            <table class="w-full table-fixed border border-base-content text-base font-sans font-normal" id="userlist">
+                                <colgroup>
+                                    <col class="w-[28%]" />
+                                    <col class="w-[8%]" />
+                                    <col class="w-[28%]" />
+                                    <col class="w-[14%]" />
+                                    <col class="w-[12%]" />
+                                    <col class="w-[10%]" />
+                                </colgroup>
                                 <thead class="text-left text-md bg-base-300">
                                     <tr>
                                         <th class="border-b border-r border-base-content text-base-content pl-4">Name</th>
@@ -226,12 +244,12 @@ update_disp();
                                     <tr v-for="user, index in users.data" :key="user.id" class="border-b border-base-content"
                                         :class="setEntryClass(index)"
                                         @click="user_clicked(index)" @dblclick="user_dblclick(index)">
-                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.name }}</td>
-                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.member_initials }}</td>
-                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.email }}</td>
-                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.firm_role }}</td>
-                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.user_type }}</td>
-                                        <td class="px-2 py-2 whitespace-nowrap border-r border-base-content">{{ user.current == 'F' ? 'Former' : 'Current' }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap overflow-hidden text-ellipsis border-r border-base-content">{{ user.name }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap overflow-hidden text-ellipsis border-r border-base-content">{{ user.member_initials }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap overflow-hidden text-ellipsis border-r border-base-content">{{ user.email }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap overflow-hidden text-ellipsis border-r border-base-content">{{ user.firm_role }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap overflow-hidden text-ellipsis border-r border-base-content">{{ user.user_type }}</td>
+                                        <td class="px-2 py-2 whitespace-nowrap overflow-hidden text-ellipsis border-r border-base-content">{{ user.account_status === 'A' ? 'Active' : 'Inactive' }}</td>
                                     </tr>
                                     <tr v-for="n in emptyRows" :key="'empty-' + n" class="border-b border-base-content bg-base-100">
                                         <td class="px-2 py-2 border-r border-base-content">&nbsp;</td>
@@ -244,42 +262,59 @@ update_disp();
                                 </tbody>
                             </table>
                             <div class="btn-group flex justify-between mt-2 items-center">
-                                <div class="flex items-center">
-                                    <label for="showSelect" class="font-bold ml-2 mr-1">
-                                        Show:
-                                    </label>
-                                    <select v-model="state.show" id="showSelect" @change="showChanged"
-                                        class="select select-bordered select-sm">
-                                        <option>6</option>
-                                        <option>8</option>
-                                        <option selected>10</option>
-                                        <option>12</option>
-                                        <option>15</option>
-                                        <option>20</option>
-                                        <option>25</option>
-                                    </select>
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center">
+                                        <label for="showSelect" class="font-bold ml-2 mr-1">
+                                            Show:
+                                        </label>
+                                        <select v-model="state.show" id="showSelect" @change="showChanged"
+                                            class="select select-bordered select-sm">
+                                            <option>6</option>
+                                            <option>8</option>
+                                            <option selected>10</option>
+                                            <option>12</option>
+                                            <option>15</option>
+                                            <option>20</option>
+                                            <option>25</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <label for="statusSelect" class="font-bold mr-1">
+                                            Status:
+                                        </label>
+                                        <select v-model="state.status" id="statusSelect" @change="statusChanged"
+                                            class="select select-bordered select-sm">
+                                            <option value="A">Active</option>
+                                            <option value="I">Inactive</option>
+                                            <option value="both">Both</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div class="pr-2">
                                     <Pagination :links="users.links" />
                                 </div>
                             </div>
                         </div>
-                        <div v-else class="border p-4 text-xl text-center">No Data Found!
+                        <div v-else class="border p-4 text-xl text-center">
+                            <p class="mb-4">No users found for the selected filter.</p>
+                            <button @click="showAllUsers" class="btn btn-primary">Show All Users</button>
                         </div>
-                        <div name="control_buttons" class="flex mt-8 justify-around">
-                            <Link :href='disp.createurl' class="btn btn-primary gap-0">+
-                                &nbsp;<u>A</u>dd
-                            </Link>
-                            <Link id="editbutton" name="editbutton" :href='disp.editurl'
-                                class="btn btn-primary gap-0">△
-                                &nbsp;<u>C</u>hange
-                            </Link>
-                            <Link id="deletebutton" name="deletebutton" href='' @click="deleteClicked"
-                                class="btn btn-outline btn-error">- &nbsp;Delete
-                            </Link>
+                        <div v-if="users.data.length" name="control_buttons" class="flex mt-10 justify-between">
+                            <div class="flex gap-12 ml-32">
+                                <Link :href='disp.createurl' class="btn btn-primary gap-0">+
+                                    &nbsp;<u>A</u>dd
+                                </Link>
+                                <Link id="editbutton" name="editbutton" :href='disp.editurl'
+                                    class="btn btn-primary gap-0">△
+                                    &nbsp;<u>C</u>hange
+                                </Link>
+                                <Link id="deletebutton" name="deletebutton" href='' @click="deleteClicked"
+                                    class="btn btn-outline btn-error">- &nbsp;Delete
+                                </Link>
+                            </div>
                             <Link id="prefsbutton" :href='disp.preferencesurl'
-                                class="btn btn-primary gap-0">⋈
-                                &nbsp;<u>P</u>references
+                                class="btn btn-primary gap-0 mr-32">⋈
+                                &nbsp;User &nbsp;<u>P</u>references
                             </Link>
                         </div>
 

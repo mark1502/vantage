@@ -4,16 +4,16 @@
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-base-content leading-tight">
-                Admin Menu
+            <h2 class="font-bold text-xl text-base-content ml-3">
+                Administrator Menu
             </h2>
         </template>
 
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-base-300 p-4 min-h-dvh sm:rounded-lg">
-                    <p class="text-3xl text-base-content text-center mt-8">Administrators Menu</p>
-                    <table class="mx-auto mt-12">
+                    <!-- <p class="text-3xl text-base-content text-center mt-8">Administrators Menu</p> -->
+                    <table class="mx-auto mt-10">
                         <tbody>
                             <tr>
                                 <td class="py-3 pr-6">

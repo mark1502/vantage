@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { reactive, ref, computed, onMounted, onUnmounted } from "vue";
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import Pagination from '@/Components/Pagination.vue';
 
 const props = defineProps({
@@ -194,18 +194,19 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-base-content ml-2">
-                Edit Entry Types
+            <h2 class="font-semibold text-xl text-base-content ml-3">
+                <Link :href="route('adminmenu')" class="hover:underline hover:text-blue-700">Admin</Link> > Edit Entry Types
             </h2>
         </template>
 
         <div class="py-3">
-            <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-base-300 overflow-hidden sm:rounded-lg min-h-dvh px-4">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-base-300 overflow-hidden sm:rounded-lg min-h-dvh p-4">
 
                     <!-- Folder selector -->
-                    <div class="flex items-center gap-4 mt-4 mb-2">
-                        <label class="text-base font-bold text-base-content">Folder:</label>
+                    <div class="max-w-3xl mx-auto">
+                    <div class="flex items-center gap-4 mt-6 mb-6">
+                        <label class="text-lg font-bold text-base-content">Folder:</label>
                         <select v-model="activeFolderId" class="select select-bordered select-sm text-base w-64"
                             @change="folderChanged">
                             <option v-for="folder in folders" :key="folder.id" :value="folder.id">
@@ -214,7 +215,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
                         </select>
                     </div>
 
-                    <h3 class="text-base font-bold text-base-content mb-1">Entrytypes:</h3>
+                    <h3 class="text-lg font-bold text-base-content mb-1">Entry Types:</h3>
 
                     <!-- Table -->
                     <div v-if="entrytypes.data.length">
@@ -290,7 +291,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
                     </div>
 
                     <!-- Action buttons -->
-                    <div class="flex mt-8 justify-around">
+                    <div class="flex mt-8 justify-center gap-12">
                         <button v-if="activeFilter !== 'deleted'" class="btn btn-primary gap-0"
                             @click="openAddModal()">
                             + &nbsp;<u>A</u>dd
@@ -309,6 +310,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
                             ↩ &nbsp;Restore
                         </button>
                     </div>
+                    </div>
 
                 </div>
             </div>
@@ -321,7 +323,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
                 <div class="py-4">
                     <label class="font-bold">Name:</label>
                     <input id="add_name_input" v-model="addName" type="text" class="input input-bordered w-full mt-2"
-                        maxlength="255" @keydown.enter.prevent="submitAdd()" />
+                        maxlength="255" autocomplete="off" @keydown.enter.prevent="submitAdd()" />
                 </div>
                 <div class="mt-4 flex justify-center gap-10">
                     <button class="btn btn-primary" @click="submitAdd()">Save</button>
@@ -338,7 +340,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
                 <div class="py-4">
                     <label class="font-bold">Name:</label>
                     <input id="edit_name_input" v-model="editName" type="text" class="input input-bordered w-full mt-2"
-                        maxlength="255" @keydown.enter.prevent="submitEdit()" />
+                        maxlength="255" autocomplete="off" @keydown.enter.prevent="submitEdit()" />
                 </div>
                 <div class="mt-4 flex justify-center gap-10">
                     <button class="btn btn-primary" @click="submitEdit()">Save</button>
@@ -352,7 +354,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeypress));
         <dialog id="delete_modal" class="modal">
             <div class="modal-box">
                 <h3 class="text-xl font-bold text-center">Confirm Delete</h3>
-                <p v-if="selected" class="py-4 text-lg">Remove entry type from active list: "{{ selected.name }}"?</p>
+                <p v-if="selected" class="py-4 text-lg">Remove "{{ selected.name }}" entry type from active list?</p>
                 <p>Are you sure?</p>
                 <form method="dialog">
                     <div class="mt-8 flex justify-center gap-10">

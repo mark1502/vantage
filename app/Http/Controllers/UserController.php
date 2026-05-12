@@ -15,16 +15,21 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $show = $request->query('show');
+        $status = $request->query('status', 'A');
 
-        $users = DB::table('users')
-            ->where('users.firm_id', $request->user()->firm_id)    // users from this firm
-        // ->where('users.id', '<>', $request->user()->id)        // but not this user
-            ->join('contacts', 'users.id', '=', 'contacts.user_id') // include the users info from the contacts file
+        $query = DB::table('users')
+            ->where('users.firm_id', $request->user()->firm_id)
+            ->join('contacts', 'users.id', '=', 'contacts.user_id')
             ->select('users.id', 'users.name', 'users.email', 'users.user_type', 'contacts.title', 'contacts.last_name', 'contacts.middle_name', 'contacts.first_name',
-                'contacts.srjr', 'contacts.firm_role', 'contacts.member_initials', 'contacts.display_name', 'contacts.display_last_first')
-            ->paginate($show ? $show : 10);
+                'contacts.srjr', 'contacts.firm_role', 'contacts.member_initials', 'contacts.display_name', 'contacts.display_last_first', 'contacts.account_status');
 
-        return Inertia::render('Users/Index', compact('users'));
+        if ($status !== 'both') {
+            $query->where('contacts.account_status', $status);
+        }
+
+        $users = $query->paginate($show ? $show : 10);
+
+        return Inertia::render('Users/Index', compact('users', 'status'));
     }
 
     public function create()

@@ -101,12 +101,12 @@ function initials_3_Focus() {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex">
-                <div class="w-1/3 text-base text-base-content">
+                <div class="font-bold text-xl text-base-content ml-3">
                     <Link href="/adminmenu" class="hover:underline hover:text-blue-600">Admin</Link> > 
                     <Link href="/users" class="hover:underline hover:text-blue-600">Users</Link> > <b>Add New User</b>
                 </div>
-                <div class="w-1/3 font-bold text-3xl text-center text-blue-700">Add New User</div>
-                <div class="w-1/3"></div>
+                <!-- <div class="w-1/3 font-bold text-3xl text-center text-blue-700">Add New User</div>
+                <div class="w-1/3"></div> -->
             </div>
         </template>
 

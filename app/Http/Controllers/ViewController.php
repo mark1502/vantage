@@ -251,7 +251,8 @@ class ViewController extends Controller
             $folders = Folder::query()
                 ->where('id', '>', '0')                        // get all the folders with their entrytypes
                 ->with(['entrytypes' => function ($query) use ($thefirmid) {
-                    $query->where('firm_id', $thefirmid)->where('faux_deleted', false)->orderBy('name');
+                    $query->where('firm_id', $thefirmid)
+                    ->orderBy('name');
                 }])
                 ->get();
         }

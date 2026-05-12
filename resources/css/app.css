@@ -47,7 +47,8 @@
   default: false;
   prefersdark: false;
   color-scheme: "light";
-  --color-base-100: oklch(91.637% 0.034 90.515);
+  /* --color-base-100: oklch(91.637% 0.034 90.515); */
+  --color-base-100: oklch(91.3% 0.029 94.300);
   --color-base-200: oklch(88.272% 0.049 91.774);
   --color-base-300: oklch(78.8% 0.065 90.856);
   --color-base-content: oklch(27% 0.077 45.635);
@@ -169,9 +170,14 @@
   --color-warning-content: oklch(41% 0.112 45.904);
   --color-error: oklch(70% 0.191 22.216);
   --color-error-content: oklch(39% 0.141 25.723);
-  --radius-selector: 2rem;
+  /* --radius-selector: 2rem;
   --radius-field: 0.5rem;
   --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem; */
+  --radius-selector: .25rem;
+  --radius-field: 0.25rem;
+  --radius-box: .5rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 2px;

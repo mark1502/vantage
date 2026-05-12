@@ -274,8 +274,8 @@ update_disp();
     <AuthenticatedLayout>
 
         <template #header>
-            <h2 class="font-semibold text-xl text-base-content">
-                <Link :href="'/adminmenu'" class="text-blue-600 hover:underline">Admin Menu</Link> > File Types
+            <h2 class="font-bold text-xl text-base-content ml-3">
+                <Link :href="'/adminmenu'" class="hover:text-blue-600 hover:underline">Admin</Link> > File Types
             </h2>
         </template>
 
@@ -398,8 +398,9 @@ update_disp();
                                     <div v-else class="card-body"> </div>
                                 </div>
                                 <div v-if="filetypes.data.length" class="mt-8 text-center">
-                                    <Link class="btn btn-outline btn-primary gap-0" @click="setDefaultFileType()" href="">
-                                        Set '{{ disp.name }}' as the Default type
+                                    <Link class="btn btn-outline btn-primary gap-0" @click="setDefaultFileType()" href="" 
+                                    title="Set the Default suggested type for new files.  But new files can be any type when created.">
+                                        Set Default Type to '{{ disp.name }}'
                                     </Link>
 
                                 </div>

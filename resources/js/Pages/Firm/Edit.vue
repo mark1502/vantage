@@ -38,17 +38,17 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-normal text-sm text-base-content leading-tight ml-2">
-                <Link :href="route('adminmenu')">Admin</Link> > Firm Settings
+            <h2 class="font-bold text-xl text-base-content ml-3">
+                <Link class="hover:underline hover:text-blue-600" :href="route('adminmenu')">Admin</Link> > Firm Settings
             </h2>
         </template>
 
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-base-300 overflow-hidden sm:rounded-lg min-h-dvh">
-                    <p class="mt-3 text-3xl font-bold text-center text-blue-600">
+                    <!-- <p class="mt-3 text-3xl font-bold text-center text-blue-600">
                         Firm Settings
-                    </p>
+                    </p> -->
 
                     <form autocomplete="off" class="max-w-2xl mx-auto mt-8 text-base-content">
 
