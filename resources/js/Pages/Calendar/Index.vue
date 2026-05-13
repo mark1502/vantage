@@ -979,8 +979,7 @@ onUnmounted(() => {
                 <p class="text-lg mt-4 text-center">The Statute of Limitations date cannot be moved on the calendar.</p>
                 <p class="text-lg mt-2 text-center">It must be changed in the file details.</p>
                 <div class="modal-action justify-center mt-8">
-                    <button type="button" class="btn btn-primary mr-10"
-                        @click="close(); router.visit(route('entries.index', { file: solEventFileId, filepart: 'info', page: 1, show: 10 } ))">
+                    <button type="button" class="btn btn-primary mr-10" @click="router.get(route('entries.index', { file: solEventFileId, filepart: 'info', page: 1, show: 10 } ))">
                         Edit File Details
                     </button>
                     <form method="dialog"><button class="btn btn-primary">Close</button></form>

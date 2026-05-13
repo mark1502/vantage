@@ -182,6 +182,15 @@ const has_responses_data = ref([]);
 
 function handle_delete_click() {
     const entry = props.entries.data[state.row];
+
+    // SOL entries can't be deleted here — skip the confirm dialog and let EntryForm show the SOL modal
+    const eventsFolder = props.folders.find(f => f.id === 6);
+    const solType = eventsFolder?.entrytypes.find(et => et.name === 'Deadline - Statute of Limitations');
+    if (solType && entry?.entrytype_id === solType.id) {
+        state.mode = 'entry_delete';
+        return;
+    }
+
     if (entry?.responses_received && entry.responses_received.length > 0) {
         has_responses_data.value = entry.responses_received;
         display_modal('has_responses', true);

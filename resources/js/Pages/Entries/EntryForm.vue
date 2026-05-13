@@ -211,6 +211,24 @@ let save_clicked = false;                               // use this to avoid rep
 let refresh_entrytype_pending = ref(false);             // use this to stop update_disp (in onUpdate) upon return from posting to add a new entrytype
 const showDocumentPicker = ref(false);                  // controls the DocumentPicker modal
 
+// --- Statute of Limitations (SOL) protection ---
+// The SOL entry is managed through file details, not the entry form.
+// We need to block add, edit, and delete of SOL entries and direct the user to file details instead.
+const solEventFileId = ref(null);                       // holds the file_id for the SOL modal's "Edit File Details" link
+
+// Find the entrytype_id for "Deadline - Statute of Limitations" (folder_id 6 = Events folder)
+const solEntrytypeId = computed(() => {
+    const eventsFolder = props.p1.folders.find(f => f.id === 6);
+    if (!eventsFolder) return null;
+    const solType = eventsFolder.entrytypes.find(et => et.name === 'Deadline - Statute of Limitations');
+    return solType ? solType.id : null;
+});
+
+// Check whether the current entry_form is for a Statute of Limitations entry
+function isSOLEntry() {
+    return solEntrytypeId.value && entry_form.entrytype_id === solEntrytypeId.value;
+}
+
 // Contact role assignment state
 const role_modal = reactive({
     show: false,
@@ -242,7 +260,17 @@ watch(the_mode, (newMode, oldMode) => {                 // watch for mode change
             setup_add();
         });
     }
-    else if (newMode === 'entry_delete') entry_actions('submit');
+    else if (newMode === 'entry_delete') {
+        // Block deletion of a Statute of Limitations entry — SOL is managed via file details
+        const theEntry = props.p1.entries.data[props.state.row];
+        if (theEntry && solEntrytypeId.value && theEntry.entrytype_id === solEntrytypeId.value) {
+            solEventFileId.value = theEntry.file_id;
+            display_modal('sol_event', true);
+            the_mode.value = 'browse';              // revert mode so the user isn't stuck in delete state
+            return;
+        }
+        entry_actions('submit');
+    }
     else if (newMode === 'set_edit') the_mode.value = 'entry_edit';     // it seems set_edit is used when user types in contact field in ContactLookup.vue
 });
 
@@ -361,6 +389,7 @@ function display_modal(which_modal, OnOff = null) {
     let modal_name = '';
     if (which_modal === 'filechanged') modal_name = 'filechanged_modal';
     else if (which_modal === 'sol') modal_name = 'sol_modal';
+    else if (which_modal === 'sol_event') modal_name = 'sol_event_modal';
     else if (which_modal === 'entrychanged') modal_name = 'entrychanged_modal';
     //         else if( which_modal === 'contact' ) modal_name = 'contact_modal';
     else if (which_modal === 'entrytype') modal_name = 'entrytype_modal';
@@ -470,6 +499,12 @@ function clicked_mark_read() {                                                  
 function clicked_entryform_button(what, index = null) {                                             // there was a click on the entry form buttons
     switch (what) {
         case 'ok':
+            // Block saving a Statute of Limitations entry — SOL is managed via file details, not here
+            if (isSOLEntry()) {
+                solEventFileId.value = entry_form.file_id;
+                display_modal('sol_event', true);
+                return;
+            }
             save_clicked = true;                                                                    // set to avoid reaction when component is unmounted
             entry_actions('submit');
             break;
@@ -1427,6 +1462,22 @@ update_disp();
                 <button type="button" class="btn gap-0" @click="display_modal('addcancelled', false)"><u>N</u>o</button>
             </div>
         </div>
+    </dialog>
+
+    <!-- SOL Entry Modal — blocks add/edit/delete of Statute of Limitations entries -->
+    <dialog id="sol_event_modal" class="modal">
+        <div class="modal-box w-11/12 max-w-xl">
+            <h3 class="font-bold text-2xl text-center">Statute of Limitations</h3>
+                <p class="text-lg mt-4 text-center">The Statute of Limitations cannot be added, edited, or deleted here.</p>
+                <p class="text-lg mt-2 text-center">Changes to the statute of limitations must be made in the file details.</p>
+                <div class="modal-action justify-center mt-8">
+                    <button type="button" class="btn btn-primary mr-10" @click="save_clicked = true; router.get(route('entries.index', { file: solEventFileId, filepart: 'info', page: 1, show: 10 } ))">
+                        Edit File Details
+                    </button>
+                    <form method="dialog"><button class="btn btn-primary">Close</button></form>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
     </dialog>
 
     <!-- Contact Role Assignment Modal -->
