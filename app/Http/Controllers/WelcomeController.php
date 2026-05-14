@@ -22,7 +22,7 @@ class WelcomeController extends Controller
 
     public function welcome_user(Request $request)
     {
-        dd('welcome_user');
+        // dd('welcome_user');
     }
 
     public function postWelcomeAdmin(Request $request)

@@ -19,7 +19,6 @@ class FileController extends Controller
      */
     public function index(Request $request)
     {
-        // dd($request->user()->firm_id);
         $show = $request->query('show');
         $status = $request->query('status', 'open');
 
@@ -42,14 +41,11 @@ class FileController extends Controller
             ->paginate($show ? $show : 10)
             ->withQueryString();
 
-        // dd($file_list);
-
         $fileOpenTo = $request->user()->preferences()
             ->where('name', 'file_open_to')
             ->value('setting') ?? 'correspondence';
 
         return Inertia::render('Files/Index', compact('files', 'fileOpenTo', 'status'));
-
     }
 
     /**
