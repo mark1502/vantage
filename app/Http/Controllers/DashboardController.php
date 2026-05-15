@@ -105,6 +105,7 @@ class DashboardController extends Controller
             $base = function () use ($firmId, $attorneyContactId) {
                 $q = File::query()
                     ->where('firm_id', $firmId)
+                    ->with(['assignedAttorney.contact:id,member_initials'])
                     ->select(['id', 'name', 'date_sol', 'date_filed']);
 
                 if ($attorneyContactId !== null) {
@@ -117,7 +118,7 @@ class DashboardController extends Controller
             $next90 = $base()
                 ->whereBetween('date_sol', [$today, $in90])
                 ->orderBy('date_sol')
-                ->get(['id', 'name', 'date_sol', 'date_filed']);
+                ->get();
 
             $next90Unfiled = $next90->whereNull('date_filed')->values();
 
@@ -126,17 +127,19 @@ class DashboardController extends Controller
                 ->where('date_sol', '<', $today)
                 ->where(fn ($w) => $w->whereNull('date_filed')->orWhereColumn('date_filed', '>', 'date_sol'))
                 ->orderBy('date_sol')
-                ->get(['id', 'name', 'date_sol']);
+                ->get();
 
             $unspecified = $base()
                 ->whereNull('date_sol')
                 ->whereHas('filetype', fn ($f) => $f->where('enable_file_SOL', true))
                 ->orderBy('name')
-                ->get(['id', 'name', 'date_sol']);
+                ->get();
 
             $project = fn ($collection) => $collection->map(fn ($f) => [
                 'name' => $f->name,
+                'attorney' => $f->assignedAttorney?->contact?->member_initials,
                 'date_sol' => $f->date_sol,
+                'date_filed' => $f->date_filed,
             ])->values();
 
             return [

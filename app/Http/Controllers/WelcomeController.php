@@ -23,6 +23,7 @@ class WelcomeController extends Controller
     public function welcome_user(Request $request)
     {
         // dd('welcome_user');
+        return Inertia::render('Dashboard');
     }
 
     public function postWelcomeAdmin(Request $request)

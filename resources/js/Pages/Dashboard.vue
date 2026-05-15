@@ -8,6 +8,7 @@ import {
     ClipboardDocumentListIcon,
     PhoneIcon,
     EnvelopeIcon,
+    MagnifyingGlassIcon,
 } from '@heroicons/vue/24/outline';
 import { useTheme } from '@/Composables/useTheme';
 
@@ -146,10 +147,10 @@ const sections = [
             </h2>
         </template>
 
-        <div class="py-12">
+        <div class="py-10">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-base-100 shadow-sm sm:rounded-lg">
-                    <div class="divide-y divide-base-300">
+                    <div class="divide-y divide-base-content/30">
                         <div v-for="section in sections" :key="section.label" class="flex items-center px-6 py-5" >
                             <div class="flex w-2/5 items-start gap-4">
                                 <component :is="section.icon" class="mt-0.5 h-6 w-6 shrink-0 text-primary" />
@@ -207,15 +208,15 @@ const sections = [
                 </div>
 
                 <div v-if="sol_summary" class="mt-2 overflow-hidden bg-base-100 shadow-sm sm:rounded-lg">
-                    <div class="px-6 py-5">
-                        <h3 class="text-lg font-semibold text-base-content">
+                    <div class="px-6 py-4">
+                        <h3 class="text-center text-lg font-semibold text-base-content">
                             Statutes of Limitations
                         </h3>
-                        <table class="table mt-4 w-full border border-base-300 [&_td]:border-l [&_td]:border-base-300 [&_td:first-child]:border-l-0 [&_th]:border-l [&_th]:border-base-300 [&_th:first-child]:border-l-0">
-                            <thead>
+                        <table class="table mt-4 w-full border border-base-content/30 [&_td]:border-l [&_td]:border-base-content/30 [&_td:first-child]:border-l-0 [&_th]:border-l [&_th]:border-base-content/30 [&_th:first-child]:border-l-0">
+                            <thead class="[&_th]:text-base-content [&_th]:text-sm [&_th]:font-bold">
                                 <tr>
                                     <th></th>
-                                    <th class="text-center">Within Next 90 Days</th>
+                                    <th class="text-center">S.O.L. Within Next 90 Days</th>
                                     <th class="text-center">Expired (unfiled or late)</th>
                                     <th class="text-center">Unspecified S.O.L. Date</th>
                                 </tr>
@@ -224,45 +225,55 @@ const sections = [
                                 <tr v-if="sol_summary.is_attorney && sol_summary.your_files">
                                     <th>Your files</th>
                                     <td class="text-center">
-                                        <button v-if="sol_summary.your_files.next90_total > 0" type="button" class="link link-primary" @click="openSolModal('mine', 'next90')">
-                                            {{ sol_summary.your_files.next90_total }}
+                                        <button type="button" class="btn btn-ghost btn-xs" :disabled="sol_summary.your_files.next90_total === 0" @click="openSolModal('mine', 'next90')">
+                                            <span class="font-bold">Total:</span> {{ sol_summary.your_files.next90_total }}
+                                            <MagnifyingGlassIcon class="h-4 w-4" />
                                         </button>
-                                        <span v-else>{{ sol_summary.your_files.next90_total }}</span>
-                                        (<button v-if="sol_summary.your_files.next90_unfiled > 0" type="button" class="link link-primary" @click="openSolModal('mine', 'next90_unfiled')">{{ sol_summary.your_files.next90_unfiled }}</button><span v-else>{{ sol_summary.your_files.next90_unfiled }}</span> unfiled)
+                                        <button type="button" class="btn btn-ghost btn-xs ml-8" :disabled="sol_summary.your_files.next90_unfiled === 0" @click="openSolModal('mine', 'next90_unfiled')">
+                                            <span class="font-bold">Unfiled:</span> {{ sol_summary.your_files.next90_unfiled }}
+                                            <MagnifyingGlassIcon class="h-4 w-4" />
+                                        </button>
                                     </td>
                                     <td class="text-center">
-                                        <button v-if="sol_summary.your_files.expired > 0" type="button" class="link link-primary" @click="openSolModal('mine', 'expired')">
-                                            {{ sol_summary.your_files.expired }}
+                                        <button v-if="sol_summary.your_files.expired > 0" type="button" class="btn btn-ghost btn-xs" @click="openSolModal('mine', 'expired')">
+                                            <span class="font-bold">Expired files:</span> {{ sol_summary.your_files.expired }}
+                                            <MagnifyingGlassIcon class="h-4 w-4" />
                                         </button>
-                                        <span v-else>{{ sol_summary.your_files.expired }}</span>
+                                        <span v-else class="text-sm">0</span>
                                     </td>
                                     <td class="text-center">
-                                        <button v-if="sol_summary.your_files.unspecified > 0" type="button" class="link link-primary" @click="openSolModal('mine', 'unspecified')">
-                                            {{ sol_summary.your_files.unspecified }}
+                                        <button v-if="sol_summary.your_files.unspecified > 0" type="button" class="btn btn-ghost btn-xs" @click="openSolModal('mine', 'unspecified')">
+                                            <span class="font-bold">Unspecified files:</span> {{ sol_summary.your_files.unspecified }}
+                                            <MagnifyingGlassIcon class="h-4 w-4" />
                                         </button>
-                                        <span v-else>{{ sol_summary.your_files.unspecified }}</span>
+                                        <span v-else class="text-sm">0</span>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>Entire Office</th>
                                     <td class="text-center">
-                                        <button v-if="sol_summary.all_files.next90_total > 0" type="button" class="link link-primary" @click="openSolModal('all', 'next90')">
-                                            {{ sol_summary.all_files.next90_total }}
+                                        <button type="button" class="btn btn-ghost btn-xs" :disabled="sol_summary.all_files.next90_total === 0" @click="openSolModal('all', 'next90')">
+                                            <span class="font-bold">Total:</span> {{ sol_summary.all_files.next90_total }}
+                                            <MagnifyingGlassIcon class="h-4 w-4" />
                                         </button>
-                                        <span v-else>{{ sol_summary.all_files.next90_total }}</span>
-                                        (<button v-if="sol_summary.all_files.next90_unfiled > 0" type="button" class="link link-primary" @click="openSolModal('all', 'next90_unfiled')">{{ sol_summary.all_files.next90_unfiled }}</button><span v-else>{{ sol_summary.all_files.next90_unfiled }}</span> unfiled)
+                                        <button type="button" class="btn btn-ghost btn-xs ml-8" :disabled="sol_summary.all_files.next90_unfiled === 0" @click="openSolModal('all', 'next90_unfiled')">
+                                            <span class="font-bold">Unfiled:</span> {{ sol_summary.all_files.next90_unfiled }}
+                                            <MagnifyingGlassIcon class="h-4 w-4" />
+                                        </button>
                                     </td>
                                     <td class="text-center">
-                                        <button v-if="sol_summary.all_files.expired > 0" type="button" class="link link-primary" @click="openSolModal('all', 'expired')">
-                                            {{ sol_summary.all_files.expired }}
+                                        <button v-if="sol_summary.all_files.expired > 0" type="button" class="btn btn-ghost btn-xs" @click="openSolModal('all', 'expired')">
+                                            <span class="font-bold">Expired files:</span> {{ sol_summary.all_files.expired }}
+                                            <MagnifyingGlassIcon class="h-4 w-4" />
                                         </button>
-                                        <span v-else>{{ sol_summary.all_files.expired }}</span>
+                                        <span v-else class="text-sm">0</span>
                                     </td>
                                     <td class="text-center">
-                                        <button v-if="sol_summary.all_files.unspecified > 0" type="button" class="link link-primary" @click="openSolModal('all', 'unspecified')">
-                                            {{ sol_summary.all_files.unspecified }}
+                                        <button v-if="sol_summary.all_files.unspecified > 0" type="button" class="btn btn-ghost btn-xs" @click="openSolModal('all', 'unspecified')">
+                                            <span class="font-bold">Unspecified files:</span> {{ sol_summary.all_files.unspecified }}
+                                            <MagnifyingGlassIcon class="h-4 w-4" />
                                         </button>
-                                        <span v-else>{{ sol_summary.all_files.unspecified }}</span>
+                                        <span v-else class="text-sm">0</span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -280,13 +291,17 @@ const sections = [
                         <thead>
                             <tr>
                                 <th>File Name</th>
-                                <th class="w-40">S.O.L. Date</th>
+                                <th class="w-24">Attorney</th>
+                                <th class="w-32">S.O.L. Date</th>
+                                <th class="w-32">Date Filed</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="(file, idx) in solModalFiles" :key="idx">
                                 <td>{{ file.name }}</td>
+                                <td>{{ file.attorney ?? '—' }}</td>
                                 <td>{{ formatSolDate(file.date_sol) }}</td>
+                                <td>{{ formatSolDate(file.date_filed) }}</td>
                             </tr>
                         </tbody>
                     </table>

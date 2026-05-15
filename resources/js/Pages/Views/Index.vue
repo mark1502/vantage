@@ -52,10 +52,10 @@ const state = reactive({
 const disp = reactive({
     date_range: 'All',
     events_filter: 'all_events',
-    check_from: false,
-    check_to: true,
-    check_read: false,
-    check_unread: true,
+    check_from: state.from_to === 'from' || state.from_to === 'both',
+    check_to:   state.from_to === 'to'   || state.from_to === 'both',
+    check_read:   state.read === 'read'   || state.read === 'all',
+    check_unread: state.read === 'unread' || state.read === 'all',
 });
 
 // if( props.view === 'todo' ) {

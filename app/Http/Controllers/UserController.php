@@ -71,6 +71,7 @@ class UserController extends Controller
         $aUser->firm_id = $user->firm_id;       // this user's firm id (from the user making the request)
         $aUser->user_type = $verified['user_type'];
         $aUser->password = Hash::make($verified['password']);
+        $aUser->welcomed = true;
         $aUser->save();
 
         $contact = new Contact;

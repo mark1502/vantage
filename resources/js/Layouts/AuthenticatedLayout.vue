@@ -1,8 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, provide } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
 import HoverDropdown from '@/Components/HoverDropdown.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
@@ -37,6 +35,12 @@ provide('currentTheme', theme);
 provide('setThemeFunction', setTheme);
 
 const showingNavigationDropdown = ref(false);
+
+const closeUserMenu = () => {
+    if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+    }
+};
 
 const user = usePage().props.auth.user;
 let isAdmin = ref(false);
@@ -180,39 +184,51 @@ onUnmounted(() => {
                                     </ul>
                                 </details>
 
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
-                                        <span class="inline-flex rounded-md">
-                                            <button type="button"
-                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-base-content/60 bg-base-200 hover:text-base-content focus:outline-none transition ease-in-out duration-150"
-                                            >
-                                                {{ $page.props.auth.user.name }}
-
-                                                <svg
-                                                    class="ml-2 -mr-0.5 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </template>
-
-                                    <template #content>
-                                        <DropdownLink :href="route('profile.edit')"> Profile </DropdownLink>
-                                        <DropdownLink v-if="$page.props.auth.user.user_type === 'Admin'" :href="route('adminmenu')">Admin Menu</DropdownLink>
-                                        <DropdownLink :href="route('preferences.index', $page.props.auth.user.id)"> Preferences </DropdownLink>
-                                        <DropdownLink :href="route('logout')" method="post" as="button">
-                                            Log Out
-                                        </DropdownLink>
-                                    </template>
-                                </Dropdown>
+                                <div class="dropdown dropdown-end" @keydown.esc="closeUserMenu">
+                                    <div tabindex="0" role="button"
+                                        class="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium rounded-md text-base-content/60 bg-base-200 hover:text-base-content transition ease-in-out duration-150"
+                                    >
+                                        {{ $page.props.auth.user.name }}
+                                        <svg
+                                            class="ml-2 -mr-0.5 h-4 w-4"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                fill-rule="evenodd"
+                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                clip-rule="evenodd"
+                                            />
+                                        </svg>
+                                    </div>
+                                    <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-md shadow-lg border border-neutral z-50 mt-1 w-48 p-1">
+                                        <li>
+                                            <Link :href="route('profile.edit')" @click="closeUserMenu"
+                                                class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 hover:bg-base-200 focus:bg-base-200 focus:outline-none">
+                                                Profile
+                                            </Link>
+                                        </li>
+                                        <li v-if="$page.props.auth.user.user_type === 'Admin'">
+                                            <Link :href="route('adminmenu')" @click="closeUserMenu"
+                                                class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 hover:bg-base-200 focus:bg-base-200 focus:outline-none">
+                                                Admin Menu
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link :href="route('preferences.index', $page.props.auth.user.id)" @click="closeUserMenu"
+                                                class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 hover:bg-base-200 focus:bg-base-200 focus:outline-none">
+                                                Preferences
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link :href="route('logout')" method="post" as="button" @click="closeUserMenu"
+                                                class="block w-full px-4 py-2 text-start text-sm leading-5 text-base-content/80 hover:bg-base-200 focus:bg-base-200 focus:outline-none">
+                                                Log Out
+                                            </Link>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
 
