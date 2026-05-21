@@ -2,6 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CRITICAL: File Creation/Editing Rule (READ FIRST)
+
+**ALWAYS use the Write or Edit tool — NEVER use Bash or PowerShell — to create, write, or modify files.**
+
+This includes:
+- Creating new files of any kind (`.md`, `.php`, `.vue`, `.json`, config files, plans, etc.)
+- Writing content to files
+- Creating directories that will hold new files
+
+**Forbidden for file creation/editing:** `echo >`, `echo >>`, `cat <<EOF`, `printf >`, `New-Item` (for files with content), `Set-Content`, `Out-File`, `Add-Content`, `mkdir` followed by file writes via shell, `tee`, redirection operators (`>`, `>>`), heredocs.
+
+**Why:** On this Laragon 6 / Windows 11 setup, using Bash/PowerShell to create or write files has repeatedly **crashed Claude Code, causing loss of hours of in-progress work**. This is non-negotiable.
+
+**How to apply:** Whenever you need to put content into a file — even a one-line file, even a "quick" scratch file, even a plan file — use the Write tool. Use the Edit tool to modify existing files. Use Bash/PowerShell **only** for non-file-writing operations: git, npm, composer, artisan, ls, grep, etc.
+
+If you catch yourself about to run a shell command that writes a file, stop and use Write/Edit instead.
+
 ## Project Overview
 
 This is a **Laravel 12 + Inertia.js + Vue 3** application called "Vantage" - a file and document management system with calendar integration. The application uses a multi-tenant architecture where users manage files, entries, contacts, and folders organized by firms.

@@ -214,7 +214,7 @@ Goal: Fortify is installed and configured; auth routes work via curl/Postman bef
 
 ## Phase 5 — Auth Inertia pages (the daisyUI rewrite of Breeze)
 
-Goal: a user can register, log in, log out, reset their password, and verify their email — all through daisyUI-styled Inertia pages.
+Goal: a user can register, log in, log out, reset their password, and verify their email — all through daisyUI-styled Inertia pages.  We can use Breeze as a starting reference point for the layouts and auth pages.
 
 For each page, structure mirrors Breeze: a `GuestLayout.vue` wrapper with a centered `card`, a logo, the form. Use Inertia's `useForm()` for client state and submission. Error display via daisyUI `label-text-alt text-error` under each input.
 

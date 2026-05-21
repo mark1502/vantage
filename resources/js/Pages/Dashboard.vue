@@ -204,15 +204,11 @@ const sections = [
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div v-if="sol_summary" class="mt-2 overflow-hidden bg-base-100 shadow-sm sm:rounded-lg">
-                    <div class="px-6 py-4">
-                        <h3 class="text-center text-lg font-semibold text-base-content">
-                            Statutes of Limitations
-                        </h3>
-                        <table class="table mt-4 w-full border border-base-content/30 [&_td]:border-l [&_td]:border-base-content/30 [&_td:first-child]:border-l-0 [&_th]:border-l [&_th]:border-base-content/30 [&_th:first-child]:border-l-0">
+                        <div v-if="sol_summary" class="px-6 py-5 border-t-1 border-base-content/40">
+                            <h3 class="text-center text-lg font-semibold text-base-content">
+                                Statutes of Limitations
+                            </h3>
+                            <table class="table mt-4 w-full border border-base-content/30 [&_td]:border-l [&_td]:border-base-content/30 [&_td:first-child]:border-l-0 [&_th]:border-l [&_th]:border-base-content/30 [&_th:first-child]:border-l-0">
                             <thead class="[&_th]:text-base-content [&_th]:text-sm [&_th]:font-bold">
                                 <tr>
                                     <th></th>
@@ -278,6 +274,7 @@ const sections = [
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>

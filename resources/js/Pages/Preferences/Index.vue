@@ -107,7 +107,14 @@ function saveFileOpen() {
 }
 
 const selectedTheme = ref(props.user_theme ?? 'light');
-const { setTheme } = useTheme();
+const { setTheme, previewTheme, revertPreview } = useTheme();
+const themeDropdown = ref(null);
+
+function onThemeSelected(t) {
+    setTheme(t);
+    selectedTheme.value = t;
+    themeDropdown.value?.removeAttribute('open');
+}
 
 function saveTheme() {
     const form = useForm({
@@ -148,29 +155,46 @@ watch(selectedTheme, saveTheme);
                     <div class="p-6 bg-base-300 border-b border-base-300 min-h-[680px] justify-center">
                         <p class="text-lg font-semibold mb-3 text-base-content">Preferences for User: "{{ props.user_initials }}"</p>
                         <div class="grid grid-cols-2 gap-6 mt-5">
-                            <!-- Left column -->
-                            <div class="flex flex-col gap-6">
-                                <div class="border border-base-content rounded-sm p-4 flex-1">
+                            <!-- Row 1, left: Display Theme -->
+                            <div class="h-full">
+                                <div class="border border-base-content p-4 rounded-sm h-full">
                                     <div class="flex items-center justify-between mb-2">
-                                        <p class="text-lg font-bold text-base-content">Calendar - Event Colors</p>
-                                        <span v-if="savedIndicator.colors" class="text-sm text-success transition-opacity">Saved</span>
+                                        <p class="text-lg font-bold text-base-content">Display Theme</p>
+                                        <span v-if="savedIndicator.theme" class="text-sm text-success transition-opacity">Saved</span>
                                     </div>
                                     <div class="flex items-center">
-                                        <label for="text-color" class="ml-2 mr-2 font-semibold text-base-content">Text Color:</label>
-                                        <input type="color" id="text-color" v-model="user_prefs.event_text" class="w-10 h-8 cursor-pointer" />
-                                        <label for="background-color" class="ml-6 mr-2 font-semibold text-base-content">Background Color:</label>
-                                        <input type="color" id="background-color" v-model="user_prefs.event_bg" class="w-10 h-8 cursor-pointer" />
-                                    </div>
-                                    <p class="mt-2 text-sm ml-2 text-base-content">Preview:</p>
-                                    <div class="ml-2 mb-1 p-4 border border-base-300 rounded" :style="{ backgroundColor: user_prefs.event_bg, color: user_prefs.event_text }">
-                                        This is a preview of calendar event colors.
-                                    </div>
-                                    <div class="flex justify-end">
-                                        <a class="text-sm link link-primary cursor-pointer" @click="revertToDefaultColors">Revert to Default</a>
+                                        <label for="theme-select" class="ml-2 mr-3 font-semibold text-base-content">Theme:</label>
+                                        <details ref="themeDropdown" class="dropdown dropdown-right">
+                                            <summary
+                                                id="theme-select"
+                                                class="border border-base-300 rounded-md py-1 px-3 bg-base-100 text-base-content capitalize cursor-pointer list-none min-w-32 flex items-center justify-between gap-2"
+                                            >
+                                                <span>{{ selectedTheme }}</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                                </svg>
+                                            </summary>
+                                            <ul class="menu dropdown-content bg-base-100 rounded-box z-50 w-48 p-2 shadow-lg flex-nowrap" @mouseleave="revertPreview">
+                                                <li v-for="t in AVAILABLE_THEMES" :key="t">
+                                                    <button
+                                                        type="button"
+                                                        @mouseenter="previewTheme(t)"
+                                                        @click="onThemeSelected(t)"
+                                                        class="capitalize"
+                                                        :class="{ 'font-bold bg-base-200': selectedTheme === t }"
+                                                    >
+                                                        {{ t }}
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </details>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="border border-base-content p-4 rounded-sm">
+                            <!-- Row 1, right: Event Tooltip Display -->
+                            <div class="h-full">
+                                <div class="border border-base-content p-4 rounded-sm h-full">
                                     <div class="flex items-center justify-between mb-2">
                                         <p class="text-lg font-bold text-base-content">Calendar - Event Tooltip Display</p>
                                         <span v-if="savedIndicator.hover" class="text-sm text-success transition-opacity">Saved</span>
@@ -186,9 +210,9 @@ watch(selectedTheme, saveTheme);
                                 </div>
                             </div>
 
-                            <!-- Right column -->
-                            <div class="flex flex-col gap-6">
-                                <div class="border border-base-content p-4 rounded-sm flex-1">
+                            <!-- Row 2, left: File - Default Open Location -->
+                            <div class="h-full">
+                                <div class="border border-base-content p-4 rounded-sm h-full">
                                     <div class="flex items-center justify-between mb-2">
                                         <p class="text-lg font-bold text-base-content">File - Default Open Location</p>
                                         <span v-if="savedIndicator.fileOpen" class="text-sm text-success transition-opacity">Saved</span>
@@ -219,18 +243,27 @@ watch(selectedTheme, saveTheme);
                                     </div>
                                     <p class="text-sm ml-8 mt-1 text-base-content opacity-70">(overrides above setting when opening from the recent files menu)</p>
                                 </div>
+                            </div>
 
-                                <div class="border border-base-content p-4 rounded-sm">
+                            <!-- Row 2, right: Event Colors -->
+                            <div class="h-full">
+                                <div class="border border-base-content rounded-sm p-4 h-full">
                                     <div class="flex items-center justify-between mb-2">
-                                        <p class="text-lg font-bold text-base-content">Display Theme</p>
-                                        <span v-if="savedIndicator.theme" class="text-sm text-success transition-opacity">Saved</span>
+                                        <p class="text-lg font-bold text-base-content">Calendar - Event Colors</p>
+                                        <span v-if="savedIndicator.colors" class="text-sm text-success transition-opacity">Saved</span>
                                     </div>
                                     <div class="flex items-center">
-                                        <label for="theme-select" class="ml-2 mr-3 font-semibold text-base-content">Theme:</label>
-                                        <select v-model="selectedTheme" id="theme-select"
-                                            class="border border-base-300 rounded-md p-1 bg-base-100 text-base-content capitalize">
-                                            <option v-for="t in AVAILABLE_THEMES" :key="t" :value="t" class="capitalize">{{ t }}</option>
-                                        </select>
+                                        <label for="text-color" class="ml-2 mr-2 font-semibold text-base-content">Text Color:</label>
+                                        <input type="color" id="text-color" v-model="user_prefs.event_text" class="w-10 h-8 cursor-pointer" />
+                                        <label for="background-color" class="ml-6 mr-2 font-semibold text-base-content">Background Color:</label>
+                                        <input type="color" id="background-color" v-model="user_prefs.event_bg" class="w-10 h-8 cursor-pointer" />
+                                    </div>
+                                    <p class="mt-2 text-sm ml-2 text-base-content">Preview:</p>
+                                    <div class="ml-2 mb-1 p-4 border border-base-300 rounded" :style="{ backgroundColor: user_prefs.event_bg, color: user_prefs.event_text }">
+                                        This is a preview of calendar event colors.
+                                    </div>
+                                    <div class="flex justify-end">
+                                        <a class="text-sm link link-primary cursor-pointer" @click="revertToDefaultColors">Revert to Default</a>
                                     </div>
                                 </div>
                             </div>
