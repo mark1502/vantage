@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Firm;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,8 +23,18 @@ class UpdateFirmRequest extends FormRequest
             'phone' => 'nullable|string|max:50',
             'email' => ['required', 'email', 'max:255', Rule::unique('firms', 'email')->ignore($firmId)],
             'document_base_path' => ['nullable', 'string', 'max:500', function ($attribute, $value, $fail) {
-                if (! empty($value) && ! is_dir($value)) {
+                if (empty($value)) {
+                    return;
+                }
+
+                if (! is_dir($value)) {
                     $fail('The document storage path does not exist or is not accessible by the server.');
+
+                    return;
+                }
+
+                if (Firm::safeDocumentBasePath($value) === null) {
+                    $fail('The document storage path is not an allowed location. It must be a configured firm document directory and cannot point inside the application server.');
                 }
             }],
         ];

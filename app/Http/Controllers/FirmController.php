@@ -60,16 +60,22 @@ class FirmController extends Controller
 
     public function browseDirectory(Request $request): JsonResponse
     {
+        $request->validate([
+            'path' => 'nullable|string|max:500',
+        ]);
+
         $firm = Firm::findOrFail($request->user()->firm_id);
 
         if (empty($firm->document_base_path)) {
             return response()->json(['error' => 'No document storage path configured for your firm.'], 422);
         }
 
-        $resolvedBase = realpath($firm->document_base_path);
+        // Resolve via the shared safety check: rejects paths that are missing,
+        // inside the application directory, or outside the configured allow-list.
+        $resolvedBase = Firm::safeDocumentBasePath($firm->document_base_path);
 
-        if ($resolvedBase === false) {
-            return response()->json(['error' => 'The firm document storage path does not exist or is not accessible.'], 422);
+        if ($resolvedBase === null) {
+            return response()->json(['error' => 'The firm document storage path is not configured to an allowed location.'], 422);
         }
 
         // Normalize the requested sub-path and build the target directory

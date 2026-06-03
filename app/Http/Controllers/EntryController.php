@@ -24,12 +24,19 @@ class EntryController extends Controller
 {
     public function index(Request $request, $file_id)
     {
+        $firmId = $request->user()->firm_id;
+        $reservedFileId = config('documents.reserved_file_id');
+
         $file = File::where('id', $file_id)                              // get the file record
-            ->with('Filetype')->first();                                // with the filetype
+            ->where(function ($query) use ($firmId, $reservedFileId) {   // caller's own file, or the shared reserved (non-file-specific) file
+                $query->where('firm_id', $firmId)
+                    ->orWhere('id', $reservedFileId);
+            })
+            ->with('Filetype')->firstOrFail();                          // with the filetype; 404 if missing or another firm's
 
         $refresh = $request->header('X-Custom-Refresh') ?? 'full';                  // if refresh flag is set in the header, otherwise full
 
-        $show = $request->query('show');                                            // how many rows to show
+        $show = min((int) $request->query('show', 15) ?: 15, 50);                   // how many rows to show (capped at 50)
         $filepart = $request->query('filepart', 'correspondence');                  // what file part (folder) to display
 
         // Validate that the requested folder exists for this file's type
@@ -50,7 +57,8 @@ class EntryController extends Controller
             (int) ($show ?: 15)
         );
 
-        $entries = Entry::query();                                                  // start building the entry query
+        $entries = Entry::query()                                                   // start building the entry query
+            ->where('firm_id', $firmId);                                            // isolate to the caller's firm (essential for the shared reserved file; no-op for normal files)
 
         if ($viewfolder_id > -1) {                                                 // if folder id > -1, we're requesting entries for a file, so;
             $entries->where('file_id', $file->id);                          // add a filter on file_id
@@ -71,7 +79,7 @@ class EntryController extends Controller
             ->orderBy('date1')
                 // ->leftJoin('contacts', 'entries.from_contact_id', '=', 'contacts.id')    // NOTE: this is how to sort (orderBy) the entries by contact name
                 // ->orderBy('contacts.last_name')                                          // to implement sorting on the list
-            ->paginate($show ? $show : 15)                                      // paginate by show value, if available, else 15
+            ->paginate($show)                                                   // paginate by capped show value
             ->withQueryString();
 
         $assignedAttorney = $file->assignedAttorney;                                // Load the assigned attorney (File.php) from contact_roles
@@ -87,17 +95,17 @@ class EntryController extends Controller
                 'entries' => $entries,                                                                              // entries
                 'view_folder_id' => $viewfolder_id,                                                                 // id of folder being viewed
                 'view_folder_name' => $filepart,                                                                     // resolved folder name (may differ from URL if defaulted)
-                'expecting_response' => $this->getExpectingResponse($file->id),                               // file entries expecting a response
-                'firm_members' => $this->getFirmMembers($file->firm_id, $refresh),                            // firm members
-                'attorneys' => $this->getAttorneys($file->firm_id, $refresh),                                 // attorneys
-                'filetypes' => $this->getFileTypes($file->firm_id, $refresh),                         // all the firm's filetypes (for the file edit and the droplist)
-                'folders' => $this->getFirmFolders($file->firm_id, $refresh, $request->new_entrytype_added),  // folders (with their entrytypes)
-                'file_contacts' => $this->getFileContacts($file->id, $refresh, $request->new_contact_added),  // all contacts in this file
+                'expecting_response' => $this->getExpectingResponse($file->id, $firmId),                       // file entries expecting a response
+                'firm_members' => $this->getFirmMembers($firmId, $refresh),                                   // firm members (caller's firm, not the file owner — matters for the shared reserved file)
+                'attorneys' => $this->getAttorneys($firmId, $refresh),                                        // attorneys
+                'filetypes' => $this->getFileTypes($firmId, $refresh),                                // all the firm's filetypes (for the file edit and the droplist)
+                'folders' => $this->getFirmFolders($firmId, $refresh, $request->new_entrytype_added),         // folders (with their entrytypes)
+                'file_contacts' => $this->getFileContacts($file->id, $firmId, $refresh, $request->new_contact_added),  // all contacts in this file
                 'assigned_attorney_id' => $assignedAttorney?->contact_id,
                 'client_name' => $clientContactRole?->contact?->display_last_first ?? '',
-                'contact_role_ids' => $this->getContactRoleIds($file->id),
+                'contact_role_ids' => $this->getContactRoleIds($file->id, $firmId),
                 'role_options' => ContactRole::ROLE_LABELS,
-                'file_contact_roles' => $this->getFileContactRoles($file->id, $refresh),
+                'file_contact_roles' => $this->getFileContactRoles($file->id, $firmId, $refresh),
                 'firm_document_base_path' => Firm::find($request->user()->firm_id)?->document_base_path,
             ]);
     }
@@ -210,9 +218,13 @@ class EntryController extends Controller
 
     public function edit(File $file, $entry_id, Request $request)               // NOTE: this might not get called anymore, because the edit is now in the index
     {
-        dd('THIS IS CALLED');
+        if ($file->id !== config('documents.reserved_file_id')) {               // the shared reserved file is accessible to all firms; the entry below is still firm-scoped
+            $this->authorize('view', $file);
+        }
+
         $entry = Entry::query()
             ->where('id', $entry_id)
+            ->where('firm_id', $request->user()->firm_id)                       // scope to the caller's firm
             ->with(['contact_from:id,display_last_first',
                 'contact_to:id,display_last_first',
                 'folder:id,name',
@@ -220,7 +232,7 @@ class EntryController extends Controller
                 'response',
                 'responses_received',
             ])
-            ->first();
+            ->firstOrFail();
 
         $folder = Folder::where('id', $entry->folder_id)->first();
 
@@ -266,6 +278,9 @@ class EntryController extends Controller
 
     public function update(StoreEntryRequest $request, $file_id, Entry $entry)
     {
+        $routeFileId = $request->route('file');                         // read the {file} route segment directly (param name independent)
+        abort_unless((int) $routeFileId === (int) $entry->file_id, 404);    // the route's file must match the entry's file
+
         $hold_from_id = $entry->from_contact_id;
         $hold_to_id = $entry->to_contact_id;
 
@@ -296,51 +311,50 @@ class EntryController extends Controller
             $entry->amount = empty($request->amount) ? null : $request->amount;
         }
 
-        if ($entry->firm_id === $request->user()->firm_id) {            // only update this record if the firm_id matches the user firm_id
-            $entry->save();
+        // Firm ownership is enforced upstream by StoreEntryRequest::authorize() (EntryPolicy::update),
+        // so any request reaching this point already belongs to the entry's firm.
+        $entry->save();
 
-            // // Check if from_contact changed and cleanup old contact role
-            // if ($entry->wasChanged('from_contact_id') && $entry->getOriginal('from_contact_id')) {
-            //     $this->cleanupContactRole($entry->file_id, $entry->getOriginal('from_contact_id'));
-            // }
-            // // Check if to_contact changed and cleanup old contact role
-            // if ($entry->wasChanged('to_contact_id') && $entry->getOriginal('to_contact_id')) {
-            //     $this->cleanupContactRole($entry->file_id, $entry->getOriginal('to_contact_id'));
-            // }
+        // // Check if from_contact changed and cleanup old contact role
+        // if ($entry->wasChanged('from_contact_id') && $entry->getOriginal('from_contact_id')) {
+        //     $this->cleanupContactRole($entry->file_id, $entry->getOriginal('from_contact_id'));
+        // }
+        // // Check if to_contact changed and cleanup old contact role
+        // if ($entry->wasChanged('to_contact_id') && $entry->getOriginal('to_contact_id')) {
+        //     $this->cleanupContactRole($entry->file_id, $entry->getOriginal('to_contact_id'));
+        // }
 
-            // Handle pending contact roles
-            $this->savePendingContactRoles($request, $entry->file_id);
+        // Handle pending contact roles
+        $this->savePendingContactRoles($request, $entry->file_id);
 
-            // if the initial from or to contact is no longer in this entry, check if they're still in the file
-            if ($hold_from_id !== $entry->from_contact_id && $hold_from_id !== $entry->to_contact_id) {
-                $this->checkInFile($hold_from_id, $entry->file_id);
-            }
-            if ($hold_to_id !== $entry->from_contact_id && $hold_to_id !== $entry->to_contact_id) {
-                $this->checkInFile($hold_to_id, $entry->file_id);
-            }
+        // if the initial from or to contact is no longer in this entry, check if they're still in the file
+        if ($hold_from_id !== $entry->from_contact_id && $hold_from_id !== $entry->to_contact_id) {
+            $this->checkInFile($hold_from_id, $entry->file_id);
+        }
+        if ($hold_to_id !== $entry->from_contact_id && $hold_to_id !== $entry->to_contact_id) {
+            $this->checkInFile($hold_to_id, $entry->file_id);
+        }
 
-            if ($request->is_a_response == 'N') {
-                $this->handleIsNoResponse($entry->id);
-            } elseif ($request->is_a_response != 'N' && ! empty($request->is_response_to)) {
-                $this->handleThisResponse($request->is_a_response, $entry->id, $request->is_response_to, $entry->date1, $create = false);
-            }
+        if ($request->is_a_response == 'N') {
+            $this->handleIsNoResponse($entry->id);
+        } elseif ($request->is_a_response != 'N' && ! empty($request->is_response_to)) {
+            $this->handleThisResponse($request->is_a_response, $entry->id, $request->is_response_to, $entry->date1, $create = false);
+        }
 
-            if ($request->comeback == true) {
-                return to_route('entries.index', ['file' => $entry->file_id,
-                    'page' => $request->current_page,
-                    'show' => $request->show,
-                    'filepart' => $request->filepart,
-                ]);
+        if ($request->comeback == true) {
+            return to_route('entries.index', ['file' => $entry->file_id,
+                'page' => $request->current_page,
+                'show' => $request->show,
+                'filepart' => $request->filepart,
+            ]);
 
-                // return redirect('/files/' . $entry->file_id . '/entries?page=' . $request->current_page . '&show=' . $request->show . '&filepart=' . $request->filepart);
-            }
-
+            // return redirect('/files/' . $entry->file_id . '/entries?page=' . $request->current_page . '&show=' . $request->show . '&filepart=' . $request->filepart);
         }
     }
 
     public function destroy(Request $request, $file_id, Entry $entry)
     {
-        // dd($request);
+        $this->authorize('delete', $entry);
 
         $verified = $request->validate(
             ['entry_id' => 'numeric|integer|required',
@@ -400,11 +414,9 @@ class EntryController extends Controller
         if ($what === 'id') {                           // if what we want back is the folder id
             if ($var_in === 'info') {                       // if 'info', sendback is -1
                 $sendback = -1;
-            }
-            elseif ($var_in === 'file_contacts') {          // if 'file_contacts', sendback is -2
+            } elseif ($var_in === 'file_contacts') {          // if 'file_contacts', sendback is -2
                 $sendback = -2;
-            }
-            else {                                          // else, sendback is the position in array
+            } else {                                          // else, sendback is the position in array
                 $sendback = array_search($var_in, $folder_list);
             }
         } elseif ($what === 'name') {                   // else if we want the folder name
@@ -678,11 +690,13 @@ class EntryController extends Controller
             return redirect()->back()->with('error', 'Your firm has no document storage path configured.');
         }
 
-        // 4. Resolve the firm base path; fail if it does not exist on the server
-        $resolvedBasePath = realpath($firm->document_base_path);
+        // 4. Resolve the firm base path via the shared safety check; rejects paths
+        //    that are missing, inside the application directory, or outside the
+        //    configured allow-list (defense in depth against a mis-set base).
+        $resolvedBasePath = Firm::safeDocumentBasePath($firm->document_base_path);
 
-        if ($resolvedBasePath === false) {
-            return redirect()->back()->with('error', 'The firm document storage path does not exist or is not accessible.');
+        if ($resolvedBasePath === null) {
+            return redirect()->back()->with('error', 'The firm document storage path is not configured to an allowed location.');
         }
 
         // 5. Build the full path using the model helper, then resolve it
@@ -841,11 +855,11 @@ class EntryController extends Controller
     } // end handleThisResponse function
 
     // Get all contacts for a file, only if full refresh or new contact added
-    public function getFileContacts($file_id, $refresh = 'full', $new_contact_added = false)
+    public function getFileContacts($file_id, $firmId, $refresh = 'full', $new_contact_added = false)
     {
         if ($refresh === 'full' || $new_contact_added === true) {
-            $from_contacts = DB::table('entries')->select('from_contact_id')->where('file_id', $file_id)->distinct();       // get all "from" contact ids for this file
-            $to_contacts = DB::table('entries')->select('to_contact_id')->where('file_id', $file_id)->distinct();           // get all "to" contact ids for this file
+            $from_contacts = DB::table('entries')->select('from_contact_id')->where('file_id', $file_id)->where('firm_id', $firmId)->distinct();       // get all "from" contact ids for this firm's entries on the file (firm filter is reserved-file safety; no-op for normal files)
+            $to_contacts = DB::table('entries')->select('to_contact_id')->where('file_id', $file_id)->where('firm_id', $firmId)->distinct();           // get all "to" contact ids for this firm's entries on the file
 
             $file_contacts = DB::table('contacts')->select('id', 'display_last_first', 'faux_deleted')
                 ->where(function ($query) use ($from_contacts, $to_contacts) {
@@ -868,8 +882,8 @@ class EntryController extends Controller
                 ->where('id', '>', '0')                                                                     // get all the folders with their entrytypes for this firm
                 ->with(['entrytypes' => function ($query) use ($thefirmid) {
                     $query->select('id', 'folder_id', 'name')
-                    ->where('firm_id', $thefirmid)
-                    ->orderBy('name');
+                        ->where('firm_id', $thefirmid)
+                        ->orderBy('name');
                 }])
                 ->get();
         } else {
@@ -932,13 +946,14 @@ class EntryController extends Controller
     }
 
     // Get all entries for a file that are expecting a response - Note: What about when not viewing a file?
-    public function getExpectingResponse($file_id)
+    public function getExpectingResponse($file_id, $firmId)
     {
         $expecting_entries = Entry::query()
             ->select('id', 'date1', 'from_contact_id', 'folder_id', 'entrytype_id', 'file_id')
             ->with('contact_from:id,display_last_first')                                                        // include from contact name
             ->where('file_id', $file_id)                                                                // viewing a file, so filter on case_id
             ->where('expecting_response', true)
+            ->where('firm_id', $firmId)                                                                  // reserved-file safety: only this firm's entries (no-op for normal files)
             ->orderBy('file_id')
             ->orderBy('date1')
             ->get();
@@ -983,10 +998,11 @@ class EntryController extends Controller
         }
     }
 
-    public function getFileContactRoles($file_id, $refresh = 'full')
+    public function getFileContactRoles($file_id, $firmId, $refresh = 'full')
     {
         if ($refresh === 'full' || $refresh === 'ContactRoles') {
             return ContactRole::where('file_id', $file_id)
+                ->whereHas('contact', fn ($q) => $q->where('firm_id', $firmId))    // reserved-file safety: only roles whose contact is in the caller's firm (no-op for normal files)
                 ->with(['contact:id,display_last_first'])
                 ->get()
                 ->map(fn ($cr) => [
@@ -1003,9 +1019,11 @@ class EntryController extends Controller
         return [];
     }
 
-    public function getContactRoleIds($file_id)
+    public function getContactRoleIds($file_id, $firmId)
     {
-        return ContactRole::where('file_id', $file_id)->pluck('contact_id')->unique()->values()->toArray();
+        return ContactRole::where('file_id', $file_id)
+            ->whereHas('contact', fn ($q) => $q->where('firm_id', $firmId))    // reserved-file safety: only roles whose contact is in the caller's firm (no-op for normal files)
+            ->pluck('contact_id')->unique()->values()->toArray();
     }
 
     private function cleanupContactRole($file_id, $contact_id)
@@ -1041,7 +1059,7 @@ class EntryController extends Controller
         $verified = $request->validate(
             ['name' => 'required|string|max:255',
                 'id' => 'nullable|numeric|integer',
-                'folder_id' => 'required|numeric|integer',
+                'folder_id' => ['required', 'numeric', 'integer', Rule::exists('folders', 'id')],
                 'isChosen' => 'boolean|nullable',
                 'chosen_name' => 'nullable|string|max:255',
                 'lookup' => 'boolean|nullable',

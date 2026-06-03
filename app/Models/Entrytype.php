@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\Entry;
-use App\Models\Folder;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\BelongsToFirm;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Entrytype extends Model
 {
-    use HasFactory;
+    use BelongsToFirm, HasFactory;
 
     protected $guarded = [];
 

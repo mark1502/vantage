@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreFileRequest;
+use App\Http\Requests\UpdateFileRequest;
 use App\Models\Contact;
 use App\Models\ContactRole;
 use App\Models\File;
@@ -19,7 +21,7 @@ class FileController extends Controller
      */
     public function index(Request $request)
     {
-        $show = $request->query('show');
+        $show = min((int) $request->query('show', 10) ?: 10, 50);
         $status = $request->query('status', 'open');
 
         $files = File::with([
@@ -38,7 +40,7 @@ class FileController extends Controller
                 }
             })
             ->orderBy('name')
-            ->paginate($show ? $show : 10)
+            ->paginate($show)
             ->withQueryString();
 
         $fileOpenTo = $request->user()->preferences()
@@ -91,7 +93,7 @@ class FileController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreFileRequest $request)
     {
         $firm = $request->user()->firm;
 
@@ -100,31 +102,6 @@ class FileController extends Controller
                 'file_limit' => 'Your firm has reached the free plan limit of 10 files. Please upgrade to a paid subscription to create more files.',
             ]);
         }
-
-        $verified = $request->validate(
-            ['name' => 'required|max:255',
-                'summary' => 'nullable|max:5000',
-                'date_sol' => 'nullable|date_format:Y-m-d',
-                'date_opened' => 'nullable|date_format:Y-m-d',
-                'date_filed' => 'nullable|date_format:Y-m-d',
-                'date_closed' => 'nullable|date_format:Y-m-d',
-                'date_archived' => 'nullable|date_format:Y-m-d',
-                'court_filed' => 'nullable|max:255',
-                'docket_number' => 'nullable|max:255',
-                'file_number' => 'nullable|max:255',
-                'referred_by' => 'nullable|max:255',
-                'referral_amount' => 'nullable|max:255',
-                'fee_arrangement' => 'nullable|max:255',
-                'fee_amount' => 'nullable|max:255',
-                'final_disposition' => 'nullable|max:255',
-                'filetype_id' => 'nullable|integer',
-                'attorney_id' => 'required|integer',
-                'client_contact_id' => 'required|integer',
-            ],
-            ['name' => 'File name is required.',
-                'attorney_id' => 'Assigned attorney is required.',
-                'client_contact_id' => 'Client is required.',
-            ]);
 
         $newCase = new File;
         $newCase->name = $request->name;
@@ -193,6 +170,8 @@ class FileController extends Controller
      */
     public function edit(File $file)
     {
+        $this->authorize('view', $file);
+
         $filetypes = Filetype::select('id', 'name')
             ->where('firm_id', $file->firm_id)
             ->orderBy('name')
@@ -227,33 +206,8 @@ class FileController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, File $file)
+    public function update(UpdateFileRequest $request, File $file)
     {
-        // dd($request);
-
-        $verified = $request->validate(
-            [
-                'name' => 'required|max:255',
-                'summary' => 'nullable|max:5000',
-                'date_sol' => 'nullable|date_format:Y-m-d',
-                'date_opened' => 'nullable|date_format:Y-m-d',
-                'date_filed' => 'nullable|date_format:Y-m-d',
-                'date_closed' => 'nullable|date_format:Y-m-d',
-                'date_archived' => 'nullable|date_format:Y-m-d',
-                'court_filed' => 'nullable|max:255',
-                'docket_number' => 'nullable|max:255',
-                'file_number' => 'nullable|max:255',
-                'referred_by' => 'nullable|max:255',
-                'referral_amount' => 'nullable|max:255',
-                'fee_arrangement' => 'nullable|max:255',
-                'fee_amount' => 'nullable|max:255',
-                'final_disposition' => 'nullable|max:255',
-                'filetype_id' => 'nullable|integer',
-                'attorney_id' => 'required|integer',
-            ]);
-
-        // dd($request);
-
         $file->name = $request->name;
         $file->summary = $request->summary ?? '';
         $file->date_sol = $request->date_sol;
@@ -307,13 +261,9 @@ class FileController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(File $file)
     {
-        $file = File::find($id);
-
-        if (! $file) {
-            return redirect()->back()->with('error', 'Unable to delete this file. If the problem persists, contact support.');
-        }
+        $this->authorize('delete', $file);
 
         $file->date_closed = now();
         $file->summary = trim($file->summary."\nFile Closed as DELETED");

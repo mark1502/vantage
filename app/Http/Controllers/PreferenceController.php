@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Entrytype;
 use App\Models\Pref_default;
 use App\Models\Preference;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class PreferenceController extends Controller
@@ -146,25 +144,5 @@ class PreferenceController extends Controller
                 ->where('name', 'theme')
                 ->update(['setting' => $request->theme]);
         }
-    }
-
-    // just used this to update entrytypes of the firm to be sure it has all of the defaults
-    public function update_entrytypes(Request $request)
-    {
-        $user = auth::user();
-        $defaultTypes = Entrytype::where('firm_id', 1)->get();
-
-        foreach ($defaultTypes as $defaultType) {
-            $firmtype = Entrytype::where('firm_id', $user->firm_id)->where('name', $defaultType->name)->first();
-            if (! $firmtype) {
-                $newtype = new Entrytype;
-                $newtype->firm_id = $user->firm_id;
-                $newtype->folder_id = $defaultType->folder_id;
-                $newtype->name = $defaultType->name;
-                $newtype->save();
-            }
-        }
-
-        dd('Done!');
     }
 } // end class

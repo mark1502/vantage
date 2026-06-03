@@ -8,6 +8,7 @@ use App\Models\Entrytype;
 use App\Models\File;
 use App\Models\Preference;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class CalendarController extends Controller
@@ -64,14 +65,20 @@ class CalendarController extends Controller
     public function store(Request $request)
     {
 
+        $firmId = $request->user()->firm_id;
+        $reservedFileId = config('documents.reserved_file_id');
+
         $verified = $request->validate(
             ['formtype' => 'string|max:20|nullable',
                 'action' => 'string|max:10|nullable',
-                'file_id' => 'numeric|integer|required',
-                'folder_id' => 'numeric|integer|required',
-                'entry_id' => 'numeric|integer|nullable',
-                'entrytype_id' => 'numeric|integer|required',
-                'from_contact_id' => 'numeric|integer|required',
+                'file_id' => ['numeric', 'integer', 'required', Rule::exists('files', 'id')->where(function ($query) use ($firmId, $reservedFileId) {
+                    $query->where('firm_id', $firmId)           // the caller's own file, or
+                        ->orWhere('id', $reservedFileId);       // the shared reserved (non-file-specific) file
+                })],
+                'folder_id' => ['numeric', 'integer', 'required', Rule::exists('folders', 'id')],
+                'entry_id' => ['numeric', 'integer', 'nullable', Rule::exists('entries', 'id')->where('firm_id', $firmId)],
+                'entrytype_id' => ['numeric', 'integer', 'required', Rule::exists('entrytypes', 'id')->where('firm_id', $firmId)],
+                'from_contact_id' => ['numeric', 'integer', 'required', Rule::exists('contacts', 'id')->where('firm_id', $firmId)],
                 'note' => 'string|max:5000|nullable',
                 'all_day' => 'boolean',
                 // 'fileSpecific' => 'boolean',
@@ -113,7 +120,8 @@ class CalendarController extends Controller
             $event->save();
 
         } elseif ($request->action === 'edit' && $request->entry_id) {
-            $event = Entry::where('id', $request->entry_id)->first();
+            $event = Entry::findOrFail($request->entry_id);
+            $this->authorize('update', $event);             // 403 if the entry belongs to another firm
             $event->file_id = $request->file_id;            // the file id
             $event->entrytype_id = $request->entrytype_id;
             $event->from_contact_id = $request->from_contact_id;
@@ -129,7 +137,8 @@ class CalendarController extends Controller
             $event->save();
 
         } elseif ($request->action === 'delete' && $request->entry_id) {
-            $event = Entry::where('id', $request->entry_id)->first();
+            $event = Entry::findOrFail($request->entry_id);
+            $this->authorize('delete', $event);             // 403 if the entry belongs to another firm
             $event->delete();
         }
 

@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToFirm;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 
 class Preference extends Model
 {
+    use BelongsToFirm;
+
     protected $guarded = [];
 
     protected $hidden = ['firm_id'];
@@ -15,5 +17,4 @@ class Preference extends Model
     {
         return $this->belongsTo(User::class);
     }
-
 }

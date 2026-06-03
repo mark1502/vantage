@@ -16,7 +16,7 @@ class ContactController extends Controller
      */
     public function index(Request $request)
     {
-        $show = $request->show ?? 10;
+        $show = min((int) $request->query('show', 10) ?: 10, 50);
         $filter = $request->query('filter', 'current');
 
         $contacts = Contact::query()
@@ -97,6 +97,8 @@ class ContactController extends Controller
 
     public function edit(Contact $contact)
     {
+        $this->authorize('view', $contact);
+
         return Inertia::render('Contacts/Edit', [
             'contact' => [
                 'id' => $contact->id,
@@ -133,6 +135,8 @@ class ContactController extends Controller
      */
     public function update(Request $request, Contact $contact)
     {
+        $this->authorize('update', $contact);
+
         $checkvals = [];
         $checkvals['title'] = ['required', Rule::in(['Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Hon.', 'Co.'])];
 
@@ -182,6 +186,8 @@ class ContactController extends Controller
      */
     public function destroy(Request $request, Contact $contact)
     {
+        $this->authorize('delete', $contact);
+
         $contact->update(['faux_deleted' => true]);
 
         return redirect(route('contacts.index', ['page' => $request->page, 'show' => $request->show, 'filter' => $request->filter]))
@@ -190,6 +196,8 @@ class ContactController extends Controller
 
     public function restore(Request $request, Contact $contact)
     {
+        $this->authorize('update', $contact);
+
         $contact->update(['faux_deleted' => false]);
 
         return redirect(route('contacts.index', [

@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\File;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\BelongsToFirm;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Filetype extends Model
 {
-    use HasFactory;
+    use BelongsToFirm, HasFactory;
 
     protected $hidden = ['firm_id'];
 
@@ -16,5 +16,4 @@ class Filetype extends Model
     {
         return $this->hasMany(File::class);
     }
-
 }
