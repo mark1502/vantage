@@ -30,6 +30,8 @@ class WelcomeController extends Controller
     {
         $user = $request->user();
 
+        abort_unless($user->isAdmin(), 403);  // admin-only setup actions
+
         $firm = Firm::findOrFail($user->firm_id);  // find the logged in user->firm_id or fail
 
         // if 'firm' form request, then verify and save the firm information
@@ -183,7 +185,9 @@ class WelcomeController extends Controller
                 );
             }
 
-            $foundUser = User::where('email', $verified3['email'])->firstOrFail();
+            $foundUser = User::where('email', $verified3['email'])
+                ->where('firm_id', $user->firm_id)  // restrict target to the caller's own firm
+                ->firstOrFail();
             $foundContact = Contact::where('user_id', $foundUser->id)->firstOrFail();
 
             $conflict_Initials = Contact::where('member_initials', $verified3['member_initials'])

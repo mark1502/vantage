@@ -23,13 +23,15 @@ class RecentFileController extends Controller
             ->orderByDesc('last_opened_at')
             ->with('file:id,name')
             ->get()
+            ->filter(fn ($recentFile) => $recentFile->file !== null)
             ->map(fn ($recentFile) => [
                 'id' => $recentFile->file->id,
                 'name' => $recentFile->file->name,
                 'filepart' => $fileRecentSpot ? $recentFile->filepart : $fileOpenTo,
                 'page' => $fileRecentSpot ? $recentFile->page : 1,
                 'show' => $recentFile->show,
-            ]);
+            ])
+            ->values();
 
         return response()->json($recentFiles);
     }

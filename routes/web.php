@@ -54,14 +54,15 @@ Route::middleware('auth', 'welcomed')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::resource('users', UserController::class)->names('users');
+    Route::resource('users', UserController::class)->names('users')->middleware('admin');
     Route::resource('contacts', ContactController::class)->names('contacts');
     Route::patch('/contacts/{contact}/restore', [ContactController::class, 'restore'])->name('contacts.restore');
     Route::resource('files', FileController::class)->names('files');
     Route::resource('files.entries', EntryController::class)->names('entries');
     Route::resource('filetypes', FiletypeController::class)->names('filetypes');
     Route::resource('views', ViewController::class)->names('views');
-    Route::resource('folders', FolderController::class)->names('folders');
+    // Folders are a global/shared table: read-only for all firms (no create/edit/update/delete by any user).
+    Route::resource('folders', FolderController::class)->names('folders')->only(['index']);
     Route::get('/entrytypes', [EntrytypeController::class, 'index'])->name('entrytypes.index');
     Route::post('/entrytypes', [EntrytypeController::class, 'store'])->name('entrytypes.store');
     Route::put('/entrytypes/{entrytype}', [EntrytypeController::class, 'update'])->name('entrytypes.update');
@@ -107,7 +108,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
     Route::get('/get_events', [CalendarController::class, 'get_events']);
     Route::post('/event_placement', [CalendarController::class, 'event_placement'])->name('calendar.event_placement');
 
-    Route::get('/adminmenu', [AdminController::class, 'menu'])->name('adminmenu');
+    Route::get('/adminmenu', [AdminController::class, 'menu'])->name('adminmenu')->middleware('admin');
 
     Route::get('/firm/edit', [FirmController::class, 'edit'])->name('firm.edit');
     Route::put('/firm/update', [FirmController::class, 'update'])->name('firm.update');

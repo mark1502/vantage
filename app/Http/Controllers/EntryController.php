@@ -651,24 +651,17 @@ class EntryController extends Controller
 
     public function toggle_read(Request $request, Entry $entry)
     {
-        // dd($request);
-        $sendback = '';
+        $this->authorize('update', $entry);
 
-        if ($entry) {
-            if ($entry->firm_id === $request->user()->firm_id) {
-                if ($entry->date2) {
-                    $entry->date2 = null;
-                } else {
-                    $entry->date2 = date('Y-m-d');
-                }
-
-                $entry->save();
-
-                $sendback = $entry->date2;
-            }
+        if ($entry->date2) {
+            $entry->date2 = null;
+        } else {
+            $entry->date2 = date('Y-m-d');
         }
 
-        return $sendback;
+        $entry->save();
+
+        return $entry->date2;
     }
 
     public function serve_document(Request $request, Entry $entry, ?string $filename = null): BinaryFileResponse|RedirectResponse

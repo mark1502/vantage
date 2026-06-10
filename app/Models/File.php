@@ -3,18 +3,32 @@
 namespace App\Models;
 
 // use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\BelongsToFirm;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class File extends Model
 {
-    use HasFactory;
+    use BelongsToFirm, HasFactory;
 
     // protected $dates = ['deleted_at'];  No more softDeletes
 
     protected $guarded = [];
 
     protected $hidden = ['firm_id'];
+
+    /**
+     * Scope to the caller's firm, but always keep the shared reserved
+     * (non-file-specific) file visible so every firm can attach entries to it.
+     */
+    protected static function applyFirmScope(Builder $builder, int $firmId): void
+    {
+        $builder->where(function (Builder $query) use ($firmId): void {
+            $query->where('files.firm_id', $firmId)
+                ->orWhere('files.id', config('documents.reserved_file_id'));
+        });
+    }
 
     public function firm()
     {

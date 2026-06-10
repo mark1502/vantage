@@ -76,6 +76,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if the user is a firm administrator.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->user_type === 'Admin';
+    }
+
+    /**
      * Scope query to only include active users.
      * Uses the contact's 'account_status' field to determine status.
      *

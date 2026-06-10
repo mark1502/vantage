@@ -16,6 +16,8 @@ class PreferenceController extends Controller
      */
     public function index(Request $request, User $user)
     {
+        abort_unless($this->canManagePreferencesFor($request->user(), $user->id, $user->firm_id), 403);
+
         $user_initials = $user->contact->member_initials;
 
         $defaults = Pref_default::all();    // get all default preferences
@@ -68,7 +70,7 @@ class PreferenceController extends Controller
             'event_bg' => 'string|max:25|required',
             'event_text' => 'string|max:25|required',
         ]);
-        if ($request->user()->id == $request->user_id || $request->user()->user_type == 'Admin') { // NOTE: admin needs further test for correct firm
+        if ($this->canManagePreferencesFor($request->user(), (int) $request->user_id)) {
 
             // get the background color pref and update it
             $thepref = Preference::where('user_id', $request->user_id)
@@ -99,7 +101,7 @@ class PreferenceController extends Controller
             'event_hover_placement' => 'required|string|in:upper_right,near_cursor',
         ]);
 
-        if ($request->user()->id == $request->user_id || $request->user()->user_type == 'Admin') {
+        if ($this->canManagePreferencesFor($request->user(), (int) $request->user_id)) {
             $thepref = Preference::where('user_id', $request->user_id)
                 ->where('name', 'event_hover_placement')
                 ->first();
@@ -119,7 +121,7 @@ class PreferenceController extends Controller
             'file_recent_spot' => 'string|required|in:true,false',
         ]);
 
-        if ($request->user()->id == $request->user_id || $request->user()->user_type == 'Admin') {
+        if ($this->canManagePreferencesFor($request->user(), (int) $request->user_id)) {
             Preference::where('user_id', $request->user_id)
                 ->where('name', 'file_open_to')
                 ->update(['setting' => $request->file_open_to]);
@@ -139,10 +141,29 @@ class PreferenceController extends Controller
             'theme' => 'required|string|max:50',
         ]);
 
-        if ($request->user()->id == $request->user_id || $request->user()->user_type == 'Admin') {
+        if ($this->canManagePreferencesFor($request->user(), (int) $request->user_id)) {
             Preference::where('user_id', $request->user_id)
                 ->where('name', 'theme')
                 ->update(['setting' => $request->theme]);
         }
+    }
+
+    /**
+     * Determine whether the actor may view/manage the target user's preferences:
+     * either it is their own account, or they are an Admin in the same firm.
+     */
+    private function canManagePreferencesFor(User $actor, int $targetUserId, ?int $targetFirmId = null): bool
+    {
+        if ($actor->id === $targetUserId) {
+            return true;
+        }
+
+        if (! $actor->isAdmin()) {
+            return false;
+        }
+
+        $targetFirmId ??= User::where('id', $targetUserId)->value('firm_id');
+
+        return $targetFirmId !== null && $targetFirmId === $actor->firm_id;
     }
 } // end class

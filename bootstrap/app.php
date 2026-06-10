@@ -16,9 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-            // my addition for the welcome middleware
+        // my addition for the welcome middleware
         $middleware->alias([
             'welcomed' => \App\Http\Middleware\EnsureUserWelcomed::class,
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
 
         //

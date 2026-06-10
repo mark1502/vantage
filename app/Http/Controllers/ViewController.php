@@ -61,7 +61,7 @@ class ViewController extends Controller
             ->withQueryString();
 
         return Inertia::render('Views/Index',
-            [   'view' => $view,
+            ['view' => $view,
                 'entries' => $entries,
                 'view_folder_id' => $viewfolder_id,
                 'initials' => $view_for,
@@ -167,55 +167,56 @@ class ViewController extends Controller
      */
     public function update(StoreViewRequest $request, Entry $view)
     {
+        // Authorization (the caller's firm owns the entry) is enforced upstream by
+        // StoreViewRequest::authorize() and the Entry firm global scope on route binding.
         $entry = $view;
-        if ($entry->firm_id === $request->user()->firm_id) {                                                // if user firm_id matches the entry firm_id
-            // $entry->file_id = $request->file_id;                                                 // the file id (not on update)
-            // $entry->folder_id = $request->folder_id;                                                     // the folder id (not on update)
-            $entry->entrytype_id = $request->entrytype_id;                                                  // the entrytype id
 
-            $entry->date1 = $request->date1;                                                                // date1
-            $entry->date2 = empty($request->date2) ? null : $request->date2;                                // date2 - if empty, use null
+        // $entry->file_id = $request->file_id;                                                 // the file id (not on update)
+        // $entry->folder_id = $request->folder_id;                                                     // the folder id (not on update)
+        $entry->entrytype_id = $request->entrytype_id;                                                  // the entrytype id
 
-            $entry->from_contact_id = $request->from_contact_id;                                            // from_contact_id
+        $entry->date1 = $request->date1;                                                                // date1
+        $entry->date2 = empty($request->date2) ? null : $request->date2;                                // date2 - if empty, use null
 
-            if ($entry->folder_id === 6) {                                                                 // if this is an event folder entry
-                $entry->to_contact_id = $entry->from_contact_id;                                            // - copy from_contact_id to the to_contact_id
+        $entry->from_contact_id = $request->from_contact_id;                                            // from_contact_id
 
-                $entry->date_response_expected = $entry->date1;                                             // - copy the date into date_response_expected
-                $entry->on_calendar = true;                                                                 // - mark it as on_calendar
-                $entry->all_day = $request->boolean('all_day');                                             // - set all_day from request
-            } else {                                                                                        // ELSE, this is not an events folder entry
-                $entry->to_contact_id = empty($request->to_contact_id) ? null : $request->to_contact_id;    // to_contact_id - if empty, use null
-                // NOTE: change later to put FILE for empty to contact (To: FILE) - actually, maybe use a system id
+        if ($entry->folder_id === 6) {                                                                 // if this is an event folder entry
+            $entry->to_contact_id = $entry->from_contact_id;                                            // - copy from_contact_id to the to_contact_id
 
-                $entry->date_response_expected = $request->date_response_expected;
-                if (! empty($request->date_response_expected)) {
-                    $entry->expecting_response = true;
-                }         // if date_response_expected, expecting_response is true
+            $entry->date_response_expected = $entry->date1;                                             // - copy the date into date_response_expected
+            $entry->on_calendar = true;                                                                 // - mark it as on_calendar
+            $entry->all_day = $request->boolean('all_day');                                             // - set all_day from request
+        } else {                                                                                        // ELSE, this is not an events folder entry
+            $entry->to_contact_id = empty($request->to_contact_id) ? null : $request->to_contact_id;    // to_contact_id - if empty, use null
+            // NOTE: change later to put FILE for empty to contact (To: FILE) - actually, maybe use a system id
 
-                $entry->on_calendar = false;
-                $entry->all_day = false;
-            }
+            $entry->date_response_expected = $request->date_response_expected;
+            if (! empty($request->date_response_expected)) {
+                $entry->expecting_response = true;
+            }         // if date_response_expected, expecting_response is true
 
-            $entry->note = $request->note;                                                                  // the note
+            $entry->on_calendar = false;
+            $entry->all_day = false;
+        }
 
-            if (isset($request->amount)) {                                                                 // if there's an amount
-                $entry->amount = empty($request->amount) ? null : $request->amount;                         // the amount - or null if empty
-            }
+        $entry->note = $request->note;                                                                  // the note
 
-            $entry->save();                                                                                 // save the entry
+        if (isset($request->amount)) {                                                                 // if there's an amount
+            $entry->amount = empty($request->amount) ? null : $request->amount;                         // the amount - or null if empty
+        }
 
-            // Handle pending contact roles
-            if ($entry->file_id !== 1) {
-                $this->savePendingContactRoles($request, $entry->file_id);
-            }
+        $entry->save();                                                                                 // save the entry
 
-            if ($request->is_a_response === 'N') {
-                $this->handleIsNoResponse($entry->id);
-            } elseif ($request->is_a_response !== 'N' && ! empty($request->is_response_to)) {
-                $this->handleThisResponse($request->is_a_response, $entry->id, $request->is_response_to, $entry->date1, $create = true);
-            }
-        } // end if entry_>firm_id === $request->user()->firm_id
+        // Handle pending contact roles
+        if ($entry->file_id !== 1) {
+            $this->savePendingContactRoles($request, $entry->file_id);
+        }
+
+        if ($request->is_a_response === 'N') {
+            $this->handleIsNoResponse($entry->id);
+        } elseif ($request->is_a_response !== 'N' && ! empty($request->is_response_to)) {
+            $this->handleThisResponse($request->is_a_response, $entry->id, $request->is_response_to, $entry->date1, $create = false);
+        }
     }
 
     /**
@@ -252,7 +253,7 @@ class ViewController extends Controller
                 ->where('id', '>', '0')                        // get all the folders with their entrytypes
                 ->with(['entrytypes' => function ($query) use ($thefirmid) {
                     $query->where('firm_id', $thefirmid)
-                    ->orderBy('name');
+                        ->orderBy('name');
                 }])
                 ->get();
         }

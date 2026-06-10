@@ -82,6 +82,8 @@ class EntrytypeController extends Controller
 
     public function update(Request $request, Entrytype $entrytype): \Illuminate\Http\RedirectResponse
     {
+        $this->authorize('update', $entrytype);
+
         if ($entrytype->name === self::SOL_ENTRYTYPE_NAME
             && $entrytype->folder_id === self::SOL_FOLDER_ID) {
             return back();
@@ -103,6 +105,8 @@ class EntrytypeController extends Controller
 
     public function destroy(Request $request, Entrytype $entrytype): \Illuminate\Http\RedirectResponse
     {
+        $this->authorize('delete', $entrytype);
+
         if ($entrytype->name === self::SOL_ENTRYTYPE_NAME
             && $entrytype->folder_id === self::SOL_FOLDER_ID) {
             return back();
@@ -130,6 +134,8 @@ class EntrytypeController extends Controller
 
     public function restore(Request $request, Entrytype $entrytype): \Illuminate\Http\RedirectResponse
     {
+        $this->authorize('update', $entrytype);
+
         $entrytype->update(['faux_deleted' => false]);
 
         return redirect(route('entrytypes.index', [

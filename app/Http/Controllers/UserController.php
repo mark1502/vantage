@@ -105,6 +105,8 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $this->authorize('update', $user);
+
         $contact = Contact::where('user_id', $user->id)->first();
 
         return Inertia::render('Users/Edit', [
@@ -131,6 +133,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', $user);
+
         $contact = Contact::where('user_id', $user->id)
             ->where('firm_id', $user->firm_id)
             ->firstOrFail();
