@@ -1466,10 +1466,10 @@ update_disp();
 
     <!-- SOL Entry Modal — blocks add/edit/delete of Statute of Limitations entries -->
     <dialog id="sol_event_modal" class="modal">
-        <div class="modal-box w-11/12 max-w-xl">
+        <div class="modal-box w-11/12 max-w-lg">
             <h3 class="font-bold text-2xl text-center">Statute of Limitations</h3>
                 <p class="text-lg mt-4 text-center">The Statute of Limitations cannot be added, edited, or deleted here.</p>
-                <p class="text-lg mt-2 text-center">Changes to the statute of limitations must be made in the file details.</p>
+                <p class="text-lg mt-3 text-center">Changes to the statute of limitations must be made in the details section of the file.</p>
                 <div class="modal-action justify-center mt-8">
                     <button type="button" class="btn btn-primary mr-10" @click="save_clicked = true; router.get(route('entries.index', { file: solEventFileId, filepart: 'info', page: 1, show: 10 } ))">
                         Edit File Details

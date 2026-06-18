@@ -486,7 +486,7 @@ function determine_response_expectation( date_expected ) {                      
 
 
 function SwitchFile() {                                                       // if switchfile is activated, show the lookup control and set focus to it
-    if( state.mode === 'browse' || state.mode === 'info' ) {
+    if( state.mode === 'browse' || state.mode === 'file_show' ) {
         state.switch_file = true;
         nextTick(() => { document.getElementById('file_lookup').focus(); });
     }
@@ -548,10 +548,7 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                             {{ props.file.name }}
                             <!-- Show Button if mode is Browse or file_show -->
                             <button v-if="state.mode === 'browse' || state.mode === 'file_show'" type="button" class="btn btn-xs border-0 bg-base-300 float-end">
-                                <!-- <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                                </svg> -->
-                            <MagnifyingGlassIcon class="w-4 h-4" />
+                                <MagnifyingGlassIcon class="w-4 h-4" />
                             </button>
                         </div>
                     </div>
