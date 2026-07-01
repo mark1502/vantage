@@ -58,7 +58,10 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                // PHP 8.5 deprecated the flat PDO::MYSQL_ATTR_* constants in favor of the
+                // namespaced Pdo\Mysql::ATTR_* form. Use the new constant on 8.5+ and fall
+                // back to the old one on earlier PHP versions for backward compatibility.
+                (PHP_VERSION_ID >= 80500 ? Pdo\Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -78,7 +81,10 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                // PHP 8.5 deprecated the flat PDO::MYSQL_ATTR_* constants in favor of the
+                // namespaced Pdo\Mysql::ATTR_* form. Use the new constant on 8.5+ and fall
+                // back to the old one on earlier PHP versions for backward compatibility.
+                (PHP_VERSION_ID >= 80500 ? Pdo\Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
