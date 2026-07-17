@@ -257,7 +257,7 @@ Contact::firmMembers()->active()->get();     // active firm members
 ## Environment Setup
 
 ### Required Environment Variables (.env)
-- `DB_DATABASE=boxtoo` (or your database name)
+- `DB_DATABASE=vantage` (or your database name)
 - `DB_CONNECTION=mysql`
 - `QUEUE_CONNECTION=database`
 - `SESSION_DRIVER=database`

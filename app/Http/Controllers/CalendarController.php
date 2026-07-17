@@ -8,6 +8,8 @@ use App\Models\Entrytype;
 use App\Models\File;
 use App\Models\Preference;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -149,6 +151,24 @@ class CalendarController extends Controller
 
     public function get_events(Request $request)
     {
+        $validator = Validator::make($request->query(), [
+            'start' => 'required|date',
+            'end' => 'required|date',
+            'user1' => 'required|integer|min:1',
+            'include_due' => 'nullable|in:true,false,1,0',
+            'due_to' => 'nullable|in:true,false,1,0',
+            'due_from' => 'nullable|in:true,false,1,0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user_filter = (int) $request->query('user1');          // 1 = everyone, else a firm-member contact id
+        $include_due = $request->boolean('include_due');
+        $due_to = $request->boolean('due_to');
+        $due_from = $request->boolean('due_from');
+
         $firm_id = $request->user()->firm_id;
 
         $firm_member_ids = Contact::where('firm_id', $firm_id)   // get a collection of active user ids
@@ -164,33 +184,33 @@ class CalendarController extends Controller
 
         $events = Entry::query()
             ->where('firm_id', $firm_id)
-            ->where(function ($q) use ($request) {
+            ->where(function ($q) use ($request, $user_filter, $include_due, $due_to, $due_from) {
 
                 // Calendar events (folder_id = 6): filter by date1 range
-                $q->where(function ($q2) use ($request) {
+                $q->where(function ($q2) use ($request, $user_filter) {
                     $q2->where('folder_id', 6)
-                        ->whereBetween('date1', [$request->start, $request->end]);
+                        ->whereBetween('date1', [$request->query('start'), $request->query('end')]);
 
-                    if ($request->user1 != '1') {
-                        $q2->where('to_contact_id', $request->user1);
+                    if ($user_filter !== 1) {
+                        $q2->where('to_contact_id', $user_filter);
                     }
                 });
 
                 // Due dates: conditionally included
-                if ($request->include_due == 'true') {
-                    $q->orWhere(function ($q2) use ($request) {
+                if ($include_due) {
+                    $q->orWhere(function ($q2) use ($request, $user_filter, $due_to, $due_from) {
                         $q2->where('expecting_response', true)
-                            ->whereBetween('date_response_expected', [$request->start, $request->end]);
+                            ->whereBetween('date_response_expected', [$request->query('start'), $request->query('end')]);
 
-                        if ($request->user1 != '1') {
-                            $q2->where(function ($q3) use ($request) {
-                                if ($request->due_to == 'true' && $request->due_from == 'true') {
-                                    $q3->where('from_contact_id', $request->user1)
-                                        ->orWhere('to_contact_id', $request->user1);
-                                } elseif ($request->due_to == 'true') {
-                                    $q3->where('from_contact_id', $request->user1);
-                                } elseif ($request->due_from == 'true') {
-                                    $q3->where('to_contact_id', $request->user1);
+                        if ($user_filter !== 1) {
+                            $q2->where(function ($q3) use ($user_filter, $due_to, $due_from) {
+                                if ($due_to && $due_from) {
+                                    $q3->where('from_contact_id', $user_filter)
+                                        ->orWhere('to_contact_id', $user_filter);
+                                } elseif ($due_to) {
+                                    $q3->where('from_contact_id', $user_filter);
+                                } elseif ($due_from) {
+                                    $q3->where('to_contact_id', $user_filter);
                                 }
                             });
                         }
@@ -208,14 +228,32 @@ class CalendarController extends Controller
         $events_back = [];
 
         foreach ($events as $event) {
+            $missing = [];
+            if ($event->to_contact_id && ! $event->contact_to) {
+                $missing[] = 'to-contact';
+            }
+            if ($event->from_contact_id && ! $event->contact_from) {
+                $missing[] = 'from-contact';
+            }
+            if (! $event->entrytype) {
+                $missing[] = 'entrytype';
+            }
+            if (! $event->file) {
+                $missing[] = 'file';
+            }
+            if ($missing !== []) {
+                Log::warning('get_events: entry '.$event->id.' (firm '.$firm_id.') has missing related records: '.implode(', ', $missing));
+            }
+
             if ($event->folder_id == 6) {
                 // Calendar event: use to_contact for color and title
                 $color_owner_id = $event->contact_to->user_id ?? null;
                 $color_bg = $all_colors->where('user_id', $color_owner_id)->where('name', 'event_bg')->first();
                 $color_text = $all_colors->where('user_id', $color_owner_id)->where('name', 'event_text')->first();
 
-                $is_sol = $event->entrytype->name === 'Deadline - Statute of Limitations';
-                $e_title = '('.$event->contact_to->member_initials.') '.$event->entrytype->name.' - '.$event->note;
+                $type_name = $event->entrytype?->name ?? '(missing event type)';
+                $is_sol = $type_name === 'Deadline - Statute of Limitations';
+                $e_title = '('.($event->contact_to?->member_initials ?? '??').') '.$type_name.' - '.$event->note;
 
                 $events_back[] = [
                     'id' => $event->id,
@@ -229,33 +267,34 @@ class CalendarController extends Controller
                     'extendedProps' => [
                         'is_due_date' => false,
                         'is_sol' => $is_sol,
-                        'file_id' => $event->file->id,
-                        'file_name' => $event->file->name.($event->file->date_closed ? ' (closed)' : ''),
-                        'entrytype_id' => $event->entrytype->id,
-                        'event_for' => $event->contact_to->id,
+                        'file_id' => $event->file_id,
+                        'file_name' => $event->file ? $event->file->name.($event->file->date_closed ? ' (closed)' : '') : '(missing file)',
+                        'entrytype_id' => $event->entrytype_id,
+                        'event_for' => $event->to_contact_id,
                         'note' => $event->note,
                     ],
                 ];
             } else {
                 // it's a 'due date'
                 // Due date colors: red background with white text for all users
+                $type_name = $event->entrytype?->name ?? '(missing event type)';
 
-                if ($request->user1 != '1') {                                           // if the calendar is for a particular user
-                    if ($request->due_to == 'true' && $request->due_from == 'true') {       // calendar for a user, determine due to or from that user
-                        $e_title = $event->contact_from->id == $request->user1 ? 'Response to' : 'Response from';
+                if ($user_filter !== 1) {                                           // if the calendar is for a particular user
+                    if ($due_to && $due_from) {       // calendar for a user, determine due to or from that user
+                        $e_title = $event->from_contact_id == $user_filter ? 'Response to' : 'Response from';
                     } else {                                                                // else, determine based on the filter
-                        $e_title = $request->due_to == 'true' ? 'Response to' : 'Response from';
+                        $e_title = $due_to ? 'Response to' : 'Response from';
                     }
 
-                    $e_title .= ' ('.$event->contact_from->member_initials.') due concerning: '.date('m/d/Y', strtotime($event->date1)).' - '.$event->entrytype->name.' - '.$event->note;
+                    $e_title .= ' ('.($event->contact_from?->member_initials ?? '??').') due concerning: '.date('m/d/Y', strtotime($event->date1)).' - '.$type_name.' - '.$event->note;
                 } else {                            // else, the calendar is not specific to a user
-                    if ($firm_member_ids->contains($event->contact_from->id) && $firm_member_ids->contains($event->contact_to->id)) {  // if firm members are in from and to, just say response due
-                        $e_title = 'Response due concerning: '.date('m/d/Y', strtotime($event->date1)).' - '.$event->entrytype->name.' - '.$event->note;
+                    if ($firm_member_ids->contains($event->from_contact_id) && $firm_member_ids->contains($event->to_contact_id)) {  // if firm members are in from and to, just say response due
+                        $e_title = 'Response due concerning: '.date('m/d/Y', strtotime($event->date1)).' - '.$type_name.' - '.$event->note;
                     } else {                                                                                                            // else, just 1 firm member so determine if it's from or to
-                        $e_title = $firm_member_ids->contains($event->contact_from->id)
-                            ? 'Response due to ('.$event->contact_from->member_initials
-                            : 'Response due from ('.$event->contact_to->member_initials;
-                        $e_title .= ') concerning: '.date('m/d/Y', strtotime($event->date1)).' - '.$event->entrytype->name.' - '.$event->note;
+                        $e_title = $firm_member_ids->contains($event->from_contact_id)
+                            ? 'Response due to ('.($event->contact_from?->member_initials ?? '??')
+                            : 'Response due from ('.($event->contact_to?->member_initials ?? '??');
+                        $e_title .= ') concerning: '.date('m/d/Y', strtotime($event->date1)).' - '.$type_name.' - '.$event->note;
                     }
                 }
 
@@ -270,10 +309,10 @@ class CalendarController extends Controller
                     'textColor' => '#ffffff',
                     'extendedProps' => [
                         'is_due_date' => true,
-                        'file_id' => $event->file->id,
-                        'file_name' => $event->file->name.($event->file->date_closed ? ' (closed)' : ''),
-                        'entrytype_id' => $event->entrytype->id,
-                        'event_for' => $event->contact_to->id,
+                        'file_id' => $event->file_id,
+                        'file_name' => $event->file ? $event->file->name.($event->file->date_closed ? ' (closed)' : '') : '(missing file)',
+                        'entrytype_id' => $event->entrytype_id,
+                        'event_for' => $event->to_contact_id,
                         'note' => $event->note,
                     ],
                 ];

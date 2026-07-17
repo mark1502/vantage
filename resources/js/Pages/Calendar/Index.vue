@@ -57,6 +57,9 @@ const props = defineProps({
     'initial_user': { type: Number, default: null },
 });
 
+// Default event type for new events: the firm's "Meeting" type, else the first type in the list
+const default_event_type_id = (props.event_types.find(t => t.name === 'Meeting') ?? props.event_types[0])?.id ?? null;
+
 const matching = reactive({ event_types: Object });
 
 const calendarform_title = ref('Add New Event');
@@ -68,7 +71,7 @@ const calendar_form = useForm({
     file_id: null,
     folder_id: 6,
     entry_id: null,
-    entrytype_id: 33, // meeting, for now
+    entrytype_id: default_event_type_id,
     from_contact_id: null,
     date1: "",
     date2: "",
@@ -411,7 +414,7 @@ function clear_calendarform() {
     calendar_form.action = "";
     calendar_form.file_id = null;
     calendar_form.entry_id = null;
-    calendar_form.entrytype_id = null;
+    calendar_form.entrytype_id = default_event_type_id;
     calendar_form.from_contact_id = null;
     calendar_form.date1 = "";
     calendar_form.date2 = "";

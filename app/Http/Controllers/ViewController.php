@@ -36,6 +36,10 @@ class ViewController extends Controller
         $view = $request->query('view') ?? 'memos';                                             // which view, else 'memos'
         $view_for = $request->query('view_for') ?? $user->contact->member_initials;             // view_for initials, else authenticated user initials
 
+        if ($view_for !== '****' && ! $this->getContactFor($view_for, $firm_id)) {
+            $view_for = '****';                                                                 // unmatched initials - fall back to showing everyone
+        }
+
         $from_to = $request->query('from_to') ?? 'to';                                          // from or to, else 'to'
         $read = $request->query('read') ?? 'unread';                                            // read, unread or both, else 'unread'
 
