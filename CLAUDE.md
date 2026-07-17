@@ -289,6 +289,15 @@ Contact::firmMembers()->active()->get();     // active firm members
 - 'welcomed' middleware must come after 'auth'
 - Welcome routes must NOT include 'welcomed' middleware
 
+### Route Caching / Deploy Gotcha
+- Production deploy runs `php artisan optimize`, which runs `route:cache`. Unlike dev, route caching
+  **rejects duplicate route names** with a `LogicException`. Two routes may never share a `->name()`.
+- For the GET/POST "modal error-passback" pattern, only the POST route gets a `->name(...)`; leave
+  the GET error-passback twin unnamed (see the `get_events` routes in `routes/web.php` for the
+  correct pattern).
+- Before pushing route changes, run `php artisan optimize` locally (then `php artisan optimize:clear`)
+  to confirm the route table serializes cleanly.
+
 ===
 
 <laravel-boost-guidelines>

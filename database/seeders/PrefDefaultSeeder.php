@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\Pref_default;
 use Illuminate\Database\Seeder;
 
-class pref_defaultSeeder extends Seeder
+class PrefDefaultSeeder extends Seeder
 {
     /**
      * Run the database seeds.
