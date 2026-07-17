@@ -238,7 +238,7 @@ watch(selectedTheme, saveTheme);
                                     </div>
                                     <div class="flex items-center ml-2">
                                         <input type="checkbox" id="file-recent-spot" v-model="user_prefs.file_recent_spot"
-                                            class="checkbox checkbox-sm mr-2" />
+                                            class="checkbox checkbox-sm checkbox-primary mr-2" />
                                         <label for="file-recent-spot" class="font-semibold text-base-content">Open recent files where I left off</label>
                                     </div>
                                     <p class="text-sm ml-8 mt-1 text-base-content opacity-70">(overrides above setting when opening from the recent files menu)</p>

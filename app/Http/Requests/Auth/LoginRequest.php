@@ -49,6 +49,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if (! Auth::user()->isActive()) {
+            Auth::guard('web')->logout();
+            $this->session()->invalidate();
+            $this->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'This account has been deactivated. Please contact your firm administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

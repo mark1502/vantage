@@ -171,12 +171,13 @@ onUnmounted(() => document.removeEventListener('keydown', handleEsc));
                         </table>
                         <div class="ml-10 mt-6 border border-base-content/30 p-4 rounded">
                             <input v-model="form.enable_file_SOL" type="checkbox" id="enable_file_SOL" value="1" />
-                            <label for="enable_file_SOL" class="ml-2">
-                                This file type may have a Statue of Limitations.
+                            <label for="enable_file_SOL" class="ml-3">
+                                This file type may have a Statue of Limitations. &nbsp;<b>(default: enabled)</b>
                             </label>
-                            <p class="text-sm mt-1">Note: &nbsp;When enabled (default), a file of this type can record and track a statute of limitations.
-                                  &nbsp;Enable for any file type which may involve litigation.
-                                &nbsp;However, it can be disabled for file types which do not involve litigation, such as some transactional types of matters.</p>
+                            <p class="text-sm mt-2 ml-3">When this setting is enabled, each file of this type can record and track a statute of limitations.</p>
+                            <p class="text-sm mt-1 ml-3">
+                                This can be disabled for file types which do not involve statutes of limitations.
+                            </p>
                         </div>
                     </form>
 

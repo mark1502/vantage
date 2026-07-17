@@ -355,6 +355,11 @@ class CalendarController extends Controller
             $new_entrytype->folder_id = 6;  // 6 for Events folder
             $new_entrytype->name = $request->name;
             $new_entrytype->save();
+        } else {
+            $new_entrytype = Entrytype::where('firm_id', $request->user()->firm_id)
+                ->where('folder_id', 6)
+                ->where('name', $request->name)
+                ->first();
         }
 
         $event_types = Entrytype::select('id', 'name')

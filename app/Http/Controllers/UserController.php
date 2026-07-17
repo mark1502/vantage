@@ -219,6 +219,12 @@ class UserController extends Controller
 
         $contact->save();
 
+        if ($request->account_status === 'I') {
+            DB::table(config('session.table', 'sessions'))
+                ->where('user_id', $user->id)
+                ->delete();
+        }
+
         $user->firm->syncSubscriptionQuantity();
 
         return redirect('/users?page='.$request->current_page.'&show='.$request->show);

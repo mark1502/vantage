@@ -10,7 +10,7 @@ import { reactive, computed } from "vue";
 
 // import Pagination from '@/Components/Pagination.vue'
 
-const state = reactive({ 
+const state = reactive({
     count: 0,
     addingAttorney: 0,
     attorneyAdded: false,
@@ -43,7 +43,7 @@ function decrement() {
 }
 
 function isActive() {                       // determines the active step and sets the others to inactive
-    for ( let i = 0; i < 5; i++ ) {
+    for (let i = 0; i < 5; i++) {
         steps[i].active = state.count === i ? true : false;
     }
 }
@@ -166,7 +166,7 @@ function submitForm4() {
 }
 
 function initialsFocus() {
-    if( form2.member_initials.trim().length < 2 ) {     // if initials length is less than 2, redo the initials
+    if (form2.member_initials.trim().length < 2) {     // if initials length is less than 2, redo the initials
         let fi = form2.first_name.trim().length ? form2.first_name.charAt(0) : "";
         let mi = form2.middle_name.trim().length ? form2.middle_name.charAt(0) : "";
         let li = form2.last_name.trim().length ? form2.last_name.charAt(0) : "";
@@ -176,7 +176,7 @@ function initialsFocus() {
 }
 
 function initials_form3() {
-    if( form3.member_initials.trim().length < 2 ) {     // if initials length is less than 2, redo the initials
+    if (form3.member_initials.trim().length < 2) {     // if initials length is less than 2, redo the initials
         let fi = form3.first_name.trim().length ? form3.first_name.charAt(0) : "";
         let mi = form3.middle_name.trim().length ? form3.middle_name.charAt(0) : "";
         let li = form3.last_name.trim().length ? form3.last_name.charAt(0) : "";
@@ -273,13 +273,13 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                     in, so let's start by entering your law
                                     firm information.
                                 </p>
-<!-- 
+                                <!-- 
                                 <p class="py-4">
                                     This initial setup is done just once, but can be
                                     modified later, as needed.
                                 </p>
  -->
-                                 <p class="pt-10 pb-6 text-3xl">Click 'Next' to continue ...</p>
+                                <p class="pt-10 pb-6 text-3xl">Click 'Next' to continue ...</p>
                             </div>
                         </div>
 
@@ -300,7 +300,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                 <label for="address" class="label_sm-700 block ml-2 mt-6">
                                     <span class="red_star-700-2">*</span>Address:
                                 </label>
-                                <textarea v-model="form.address" id="address" class="textarea textarea-bordered p-2 h-24 w-full" required></textarea>
+                                <textarea v-model="form.address" id="address"
+                                    class="textarea textarea-bordered p-2 h-24 w-full" required></textarea>
                                 <InputError class="mt-2" :message="form.errors.address" />
 
                                 <label for="phone" class="label_sm-700 block ml-2 mt-6">
@@ -318,7 +319,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                 My User Information
                             </p>
                             <!-- <p class="mt-2 ml-24 font-semibold">Enter your information:</p> -->
-                        <!-- Form 2 starts here-->
+                            <!-- Form 2 starts here-->
                             <form @submit.prevent="submitUserInfo" autocomplete="off" class="max-w-5xl mx-auto mt-0">
                                 <p class="text-error text-sm text-right">( * ) - required fields</p>
                                 <!-- Form2 - Name Line -->
@@ -328,7 +329,7 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.title" class="label_sm-700">
                                             <span class="red_star-700-2">*</span>Title:
                                         </label>
-                                        <select v-model="form2.title" id="form2.title" class="select select-bordered" >
+                                        <select v-model="form2.title" id="form2.title" class="select select-bordered">
                                             <option value="" disabled selected>Pick one</option>
                                             <option>Mr.</option>
                                             <option>Ms.</option>
@@ -344,7 +345,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.first_name" class="label_sm-700">
                                             <span class="red_star-700-2">*</span>First Name:
                                         </label>
-                                        <input v-model="form2.first_name" id="form2.first_name" class="input w-full max-w-xs" required />
+                                        <input v-model="form2.first_name" id="form2.first_name"
+                                            class="input w-full max-w-xs" required />
                                         <InputError class="mt-2" :message="form2.errors.first_name" />
                                     </div>
 
@@ -352,7 +354,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.middle_name" class="label_sm-700">
                                             Middle:
                                         </label>
-                                        <input v-model="form2.middle_name" id="form2.middle_name" class="input w-full max-w-xs" />
+                                        <input v-model="form2.middle_name" id="form2.middle_name"
+                                            class="input w-full max-w-xs" />
                                         <InputError class="mt-2" :message="form2.errors.middle_name" />
                                     </div>
 
@@ -360,7 +363,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.last_name" class="label_sm-700">
                                             <span class="red_star-700-2">*</span>Last Name:
                                         </label>
-                                        <input v-model="form2.last_name" id="form2.last_name" class="input w-full max-w-xs" @blur="initialsFocus" required />
+                                        <input v-model="form2.last_name" id="form2.last_name"
+                                            class="input w-full max-w-xs" @blur="initialsFocus" required />
                                         <InputError class="mt-2" :message="form2.errors.last_name" />
                                     </div>
 
@@ -368,7 +372,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                         <label for="form2.srjr" class="label_sm-700">
                                             Sr/Jr:
                                         </label>
-                                        <input v-model="form2.srjr" id="form2.srjr" class="input w-full max-w-xs" @focus="initialsFocus" />
+                                        <input v-model="form2.srjr" id="form2.srjr" class="input w-full max-w-xs"
+                                            @focus="initialsFocus" />
                                         <InputError class="mt-2" :message="form2.errors.srjr" />
                                     </div>
                                 </div>
@@ -381,7 +386,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <span class="red_star-700-2">*</span>Initials:
                                         </label>
                                         <div>
-                                            <input v-model="form2.member_initials" id="form2.member_initials" class="input w-36 max-w-xs" @focus="initialsFocus" />
+                                            <input v-model="form2.member_initials" id="form2.member_initials"
+                                                class="input w-36 max-w-xs" @focus="initialsFocus" />
                                         </div>
                                     </div>
 
@@ -393,7 +399,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <tbody>
                                                 <tr>
                                                     <td>
-                                                        <select v-model="form2.firm_role" id="form2.firm_role" class="select select-bordered w-40">
+                                                        <select v-model="form2.firm_role" id="form2.firm_role"
+                                                            class="select select-bordered w-40">
                                                             <option value="" disabled selected>
                                                                 Pick One
                                                             </option>
@@ -421,17 +428,20 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                     <div class="mt-12 mr-6 items-baseline">
                                         <div class="flex items-baseline">
                                             <label for="form2.work_phone" class="label_sm-700 mr-4">Work:</label>
-                                            <input v-model="form2.work_phone" id="form2.work_phone" class="input w-36 max-w-xs" />
+                                            <input v-model="form2.work_phone" id="form2.work_phone"
+                                                class="input w-36 max-w-xs" />
                                             <InputError class="mt-2" :message="form2.errors.work_phone" />
                                         </div>
                                         <div class="flex items-baseline mt-3">
                                             <label for="form2.home_phone" class="label_sm-700 mr-2">Home:</label>
-                                            <input v-model="form2.home_phone" id="form2.home_phone" class="input w-36 max-w-xs" />
+                                            <input v-model="form2.home_phone" id="form2.home_phone"
+                                                class="input w-36 max-w-xs" />
                                             <InputError class="mt-2" :message="form2.errors.home_phone" />
                                         </div>
                                         <div class="flex items-baseline mt-3">
                                             <label for="form2.cell_phone" class="label_sm-700 mr-6.5">Cell:</label>
-                                            <input v-model="form2.cell_phone" id="form2.cell_phone" class="input w-36 max-w-xs"/>
+                                            <input v-model="form2.cell_phone" id="form2.cell_phone"
+                                                class="input w-36 max-w-xs" />
                                             <InputError class="mt-2" :message="form2.errors.cell_phone" />
                                         </div>
                                     </div>
@@ -443,7 +453,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
 
                         <!-- DIV count == 3 -->
                         <div v-if="state.count == 3">
-                            <p v-if="state.addingAttorney != 1" class="mt-3 text-3xl font-bold text-center text-blue-800">
+                            <p v-if="state.addingAttorney != 1"
+                                class="mt-3 text-3xl font-bold text-center text-blue-800">
                                 Additional Users
                             </p>
                             <p v-if="state.addingAttorney == 1 && form3.formtype != 'editUser'"
@@ -457,22 +468,32 @@ function addingAttorney_Cancel() {     // closes the attorney form
 
                             <div v-if="state.addingAttorney == 0">
                                 <p class="pt-4 mx-24">
-                                    Each person in your firm who will use this application should be added as a user. &nbsp;Administrative users are responsible for managing who can log into the application.
+                                    Each person using this application for your firm should be added as a separate user.
+                                </p>
+                                <!-- <p class="pt-4 mx-24">
+                                    Administrative users are responsible for deciding who can log in and use the application.
+                                </p> -->
+                                <p class="pt-4 mx-24">
+                                    You are currently an <b>Administrative User</b>, so
+                                    you can add, edit and remove users of the application for your firm. &nbsp;Additional users
+                                    must be added to the system
+                                    and assigned a temporary password before they can login and use the
+                                    application.
                                 </p>
                                 <p class="pt-4 mx-24">
-                                    Because you are currently an <b>Administrative User</b>,
-                                    you can add, edit and remove the users of the application. &nbsp;Additional users must first be added to the system
-                                     by an adminstrator and assigned a temporary passwords before they can use the application.
+                                    User management and all other administrative features are accessible from
+                                    the
+                                    <b>'Admin Menu'</b> which is found on the upper right of the main application screen.
                                 </p>
-                                <p class="pt-4 mx-24">
-                                    The management of users, and all other administrative features, are accessible from the  
-                                    <b>'Admin Menu'</b> which is found on the upper right of the main screen.
+                                <p v-if="form2.firm_role != 'Attorney' && state.attorneyAdded !== true"
+                                    class="pt-6 mx-24">
+                                    NOTE: Each law firm must have at least one attorney. &nbsp;Please click the button
+                                    below to add an attorney for your law firm.
                                 </p>
-                                <p v-if="form2.firm_role != 'Attorney' && state.attorneyAdded !== true" class="pt-6 mx-24">
-                                    NOTE: Each law firm must have at least one attorney. &nbsp;Please click the button below to add an attorney for your law firm.
-                                </p>
-                                <button v-if="form2.firm_role != 'Attorney' && state.attorneyAdded !== true" @click="addingAttorneyClicked"
-                                    class="btn bg-emerald-600 hover:bg-emerald-500 mt-5 mb-4 text-center ml-48 w-40">Add Attorney
+                                <button v-if="form2.firm_role != 'Attorney' && state.attorneyAdded !== true"
+                                    @click="addingAttorneyClicked"
+                                    class="btn bg-emerald-600 hover:bg-emerald-500 mt-5 mb-4 text-center ml-48 w-40">Add
+                                    Attorney
                                 </button>
                             </div>
 
@@ -482,14 +503,16 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                 <form v-if="state.addingAttorney == 1" @submit.prevent="submitaddingAttorney"
                                     class="max-w-5xl mx-auto mt-4">
 
-                                <p v-if="state.count == 3 && state.addingAttorney == 1" class="text-error text-sm text-right">( * ) - required fields</p>
+                                    <p v-if="state.count == 3 && state.addingAttorney == 1"
+                                        class="text-error text-sm text-right">( * ) - required fields</p>
                                     <!-- Form 3 - Name Line starts-->
                                     <div class="flex mt-8">
                                         <div class="form-control w-40 max-w-xs mr-4">
                                             <label for="form3.title" class="label_sm-700">
                                                 <span class="red_star-700-2">*</span>Title:
                                             </label>
-                                            <select v-model="form3.title" id="form3.title" class="select select-bordered">
+                                            <select v-model="form3.title" id="form3.title"
+                                                class="select select-bordered">
                                                 <option value="" disabled selected>Pick one</option>
                                                 <option>Mr.</option>
                                                 <option>Ms.</option>
@@ -505,7 +528,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <label for="form3.first_name" class="label_sm-700">
                                                 <span class="red_star-700-2">*</span>First Name:
                                             </label>
-                                            <input v-model="form3.first_name" id="form3.first_name" class="input w-full max-w-xs" required />
+                                            <input v-model="form3.first_name" id="form3.first_name"
+                                                class="input w-full max-w-xs" required />
                                             <InputError class="mt-2" :message="form3.errors.first_name" />
                                         </div>
 
@@ -513,7 +537,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <label for="form3.middle_name" class="label_sm-700">
                                                 Middle:
                                             </label>
-                                            <input v-model="form3.middle_name" id="form3.middle_name" class="input w-full max-w-xs" />
+                                            <input v-model="form3.middle_name" id="form3.middle_name"
+                                                class="input w-full max-w-xs" />
                                             <InputError class="mt-2" :message="form3.errors.middle_name" />
                                         </div>
 
@@ -521,7 +546,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <label for="form3.last_name" class="label_sm-700">
                                                 <span class="red_star-700-2">*</span>Last Name:
                                             </label>
-                                            <input v-model="form3.last_name" id="form3.last_name" class="input w-full max-w-xs" required @blur="initials_form3"/>
+                                            <input v-model="form3.last_name" id="form3.last_name"
+                                                class="input w-full max-w-xs" required @blur="initials_form3" />
                                             <InputError class="mt-2" :message="form3.errors.last_name" />
                                         </div>
 
@@ -542,7 +568,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                 <span class="red_star-700-2">*</span>Initials:
                                             </label>
                                             <div>
-                                                <input v-model="form3.member_initials" id="form3.member_initials" class="input w-36 max-w-xs" required @focus="initials_form3"/>
+                                                <input v-model="form3.member_initials" id="form3.member_initials"
+                                                    class="input w-36 max-w-xs" required @focus="initials_form3" />
                                             </div>
                                         </div>
 
@@ -567,7 +594,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                 <span class="red_star-700-2">*</span>User type:
                                             </label>
                                             <div>
-                                                <select v-model="form3.user_type" id="form3.user_type" class="select select-bordered w-48">
+                                                <select v-model="form3.user_type" id="form3.user_type"
+                                                    class="select select-bordered w-48">
                                                     <option value="" disabled selected>
                                                         Pick One
                                                     </option>
@@ -592,7 +620,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                 <span class="red_star-700-2">*</span>Email:
                                             </label>
                                             <div>
-                                                <input v-model="form3.email" id="form3.email" class="input w-80 max-w-xs"
+                                                <input v-model="form3.email" id="form3.email"
+                                                    class="input w-80 max-w-xs"
                                                     :disabled="form3.formtype == 'editUser'" />
                                                 <InputError class="mt-2" :message="form3.errors.email" />
                                             </div>
@@ -601,13 +630,15 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                             <button class="btn btn-outline btn-primary normal-case mr-16"
                                                 @click="form3.change_password = true">Edit User Password</button>
                                         </div>
-                                        <div v-else-if="form3.formtype == 'addingAttorney' || form3.change_password == true">
+                                        <div
+                                            v-else-if="form3.formtype == 'addingAttorney' || form3.change_password == true">
                                             <div class="flex items-baseline mr-16">
                                                 <label for="form3.password" class="label_sm-700 mr-2">
                                                     <span class="red_star-700-2">*</span>Temporary Password:
                                                 </label>
                                                 <div>
-                                                    <input v-model="form3.password" id="form3.password" class="input w-48 max-w-xs" />
+                                                    <input v-model="form3.password" id="form3.password"
+                                                        class="input w-48 max-w-xs" />
                                                     <InputError class="mt-2" :message="form3.errors.password" />
                                                 </div>
                                             </div>
@@ -620,7 +651,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                                                 <label for="form3.password_confirmation" class="label_sm-700 mr-2">
                                                     <span class="red_star-700-2">*</span>Confirmation:
                                                 </label>
-                                                <input v-model="form3.password_confirmation" id="form3.password_confirmation" class="input w-48 max-w-xs" />
+                                                <input v-model="form3.password_confirmation"
+                                                    id="form3.password_confirmation" class="input w-48 max-w-xs" />
                                             </div>
                                             <InputError class="mt-2" :message="form3.errors.password_confirmation" />
                                         </div>
@@ -653,7 +685,8 @@ function addingAttorney_Cancel() {     // closes the attorney form
                         <!-- <p v-if="state.count == 1 || state.count == 2 || (state.count == 3 && state.addingAttorney == 1)"
                             class="absolute top-[266px] right-[340px] text-red-800">( * ) - required fields</p> -->
                         <div class="pb-12 mt-2 flex justify-center">
-                            <button v-if="state.addingAttorney !== 1" class="btn btn-primary mr-24" @click="decrement" :disabled="state.count === 0">
+                            <button v-if="state.addingAttorney !== 1" class="btn btn-primary mr-24" @click="decrement"
+                                :disabled="state.count === 0">
                                 Previous
                             </button>
                             <button v-if="state.count == 0" class="btn btn-primary" @click="increment"

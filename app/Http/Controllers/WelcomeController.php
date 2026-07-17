@@ -252,7 +252,7 @@ class WelcomeController extends Controller
         $user->welcomed = true;
         $user->save();
 
-        return Inertia::render('Dashboard');
+        return redirect()->route('dashboard');
     }
 
     public function getWelcomeVals()

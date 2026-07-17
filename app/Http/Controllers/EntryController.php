@@ -745,7 +745,10 @@ class EntryController extends Controller
         $fileAtty = ContactRole::where('file_id', $file_id)->where('is_file_attorney', true)->first();
         $fileClient = ContactRole::where('file_id', $file_id)->where('is_file_client', true)->first();
 
-        if ($contact_id !== $fileAtty && $contact_id !== $fileClient) {
+        $fileAttyContactId = $fileAtty?->contact_id;
+        $fileClientContactId = $fileClient?->contact_id;
+
+        if ((int) $contact_id !== (int) $fileAttyContactId && (int) $contact_id !== (int) $fileClientContactId) {
             $exists_from = Entry::where('file_id', $file_id)->where('from_contact_id', $contact_id)->exists();
             $exists_to = Entry::where('file_id', $file_id)->where('to_contact_id', $contact_id)->exists();
 
@@ -1067,10 +1070,15 @@ class EntryController extends Controller
             $new_entrytype->folder_id = $request->folder_id;
             $new_entrytype->name = $request->name;
             $new_entrytype->save();
+        } else {
+            $new_entrytype = Entrytype::where('firm_id', $request->user()->firm_id)
+                ->where('folder_id', $request->folder_id)
+                ->where('name', $request->name)
+                ->first();
         }
 
         return Inertia::render('Entries/Index', [
-            'folders' => fn () => $this->getFirmFolders($new_entrytype->firm_id),      // no 2nd parameter forces a new query
+            'folders' => fn () => $this->getFirmFolders($request->user()->firm_id),      // no 2nd parameter forces a new query
             'new_entrytype' => $new_entrytype,
         ]);
 
