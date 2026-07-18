@@ -31,7 +31,7 @@ class ViewController extends Controller
 
         $refresh = $request->header('X-Custom-Refresh') ?? 'full';                              // if refresh flag is set in the header, otherwise full
 
-        $show = $request->query('show') ?? 15;                                                  // how many rows to show, else 15
+        $show = min((int) $request->query('show', 15) ?: 15, 50);                               // how many rows to show, else 15, capped at 50
 
         $view = $request->query('view') ?? 'memos';                                             // which view, else 'memos'
         $view_for = $request->query('view_for') ?? $user->contact->member_initials;             // view_for initials, else authenticated user initials

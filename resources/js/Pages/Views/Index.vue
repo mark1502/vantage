@@ -296,9 +296,6 @@ function viewList_click( what, index = null ) {                                 
             list_actions('edit')
         }
         break;
-    case 'right':
-        alert('right!');
-        break;
     case 'add_button':
         if( props.view_folder_id == 0 ) {
             document.getElementById('timeline_add_modal').showModal();       // if clicked while in timeline, then display modal to select folder
@@ -784,7 +781,6 @@ onUnmounted( () => document.removeEventListener('keydown', keypress_handler) );
                                                     class="border-b"
                                                     :class="[setViewClass(index), index === entries.data.length - 1 && emptyRows === 0 ? 'border-base-content' : 'border-primary/20']"
                                                     @click.left="viewList_click( 'list', index)"
-                                                    @click.right.prevent="viewList_click( 'right', index)"
                                                     @dblclick="viewList_click( 'list_double', index)">
                                                     <!-- Each cell calls col.value(entry) to get its display text -->
                                                     <td v-for="col in viewColumns" :key="col.label"

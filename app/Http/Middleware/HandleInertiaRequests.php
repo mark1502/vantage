@@ -34,20 +34,14 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $user,
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'email_verified_at' => $user->email_verified_at,
+                    'user_type' => $user->user_type,
+                ] : null,
             ],
-            'subscription' => $user ? (function () use ($user) {
-                $firm = $user->firm;
-                $fileCount = $firm?->fileCount() ?? 0;
-                $fileLimit = $firm?->fileLimit();
-
-                return [
-                    'is_subscribed' => $firm?->subscribed('default') ?? false,
-                    'file_count' => $fileCount,
-                    'file_limit' => $fileLimit,
-                    'can_create_files' => $fileLimit === null || $fileCount < $fileLimit,
-                ];
-            })() : null,
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
             ],

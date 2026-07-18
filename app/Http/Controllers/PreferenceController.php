@@ -64,53 +64,55 @@ class PreferenceController extends Controller
         ]);
     }
 
-    public function eventcolor_update(Request $request)
+    public function eventcolor_update(Request $request): RedirectResponse
     {   // dd($request);
         $validated = $request->validate(['user_id' => 'numeric|integer|required',
             'event_bg' => 'string|max:25|required',
             'event_text' => 'string|max:25|required',
         ]);
-        if ($this->canManagePreferencesFor($request->user(), (int) $request->user_id)) {
 
-            // get the background color pref and update it
-            $thepref = Preference::where('user_id', $request->user_id)
-                ->where('name', 'event_bg')
-                ->first();
-            if ($thepref) {
-                $thepref->setting = $request->event_bg;
-                $thepref->save();
-            } else {
+        abort_unless($this->canManagePreferencesFor($request->user(), (int) $request->user_id), 403);
 
-            }
+        // get the background color pref and update it
+        $thepref = Preference::where('user_id', $request->user_id)
+            ->where('name', 'event_bg')
+            ->first();
+        if ($thepref) {
+            $thepref->setting = $request->event_bg;
+            $thepref->save();
+        }
 
-            // get the text color pref and update it
-            $thepref = Preference::where('user_id', $request->user_id)
-                ->where('name', 'event_text')
-                ->first();
-            if ($thepref) {
-                $thepref->setting = $request->event_text;
-                $thepref->save();
-            } // end if thepref
-        } // end if user
+        // get the text color pref and update it
+        $thepref = Preference::where('user_id', $request->user_id)
+            ->where('name', 'event_text')
+            ->first();
+        if ($thepref) {
+            $thepref->setting = $request->event_text;
+            $thepref->save();
+        } // end if thepref
+
+        return redirect()->back();
     }
 
-    public function hover_placement_update(Request $request): void
+    public function hover_placement_update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'user_id' => 'numeric|integer|required',
             'event_hover_placement' => 'required|string|in:upper_right,near_cursor',
         ]);
 
-        if ($this->canManagePreferencesFor($request->user(), (int) $request->user_id)) {
-            $thepref = Preference::where('user_id', $request->user_id)
-                ->where('name', 'event_hover_placement')
-                ->first();
+        abort_unless($this->canManagePreferencesFor($request->user(), (int) $request->user_id), 403);
 
-            if ($thepref) {
-                $thepref->setting = $request->event_hover_placement;
-                $thepref->save();
-            }
+        $thepref = Preference::where('user_id', $request->user_id)
+            ->where('name', 'event_hover_placement')
+            ->first();
+
+        if ($thepref) {
+            $thepref->setting = $request->event_hover_placement;
+            $thepref->save();
         }
+
+        return redirect()->back();
     }
 
     public function file_open_update(Request $request): RedirectResponse
@@ -121,31 +123,33 @@ class PreferenceController extends Controller
             'file_recent_spot' => 'string|required|in:true,false',
         ]);
 
-        if ($this->canManagePreferencesFor($request->user(), (int) $request->user_id)) {
-            Preference::where('user_id', $request->user_id)
-                ->where('name', 'file_open_to')
-                ->update(['setting' => $request->file_open_to]);
+        abort_unless($this->canManagePreferencesFor($request->user(), (int) $request->user_id), 403);
 
-            Preference::where('user_id', $request->user_id)
-                ->where('name', 'file_recent_spot')
-                ->update(['setting' => $request->file_recent_spot]);
-        }
+        Preference::where('user_id', $request->user_id)
+            ->where('name', 'file_open_to')
+            ->update(['setting' => $request->file_open_to]);
+
+        Preference::where('user_id', $request->user_id)
+            ->where('name', 'file_recent_spot')
+            ->update(['setting' => $request->file_recent_spot]);
 
         return redirect()->back();
     }
 
-    public function theme_update(Request $request): void
+    public function theme_update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'user_id' => 'numeric|integer|required',
             'theme' => 'required|string|max:50',
         ]);
 
-        if ($this->canManagePreferencesFor($request->user(), (int) $request->user_id)) {
-            Preference::where('user_id', $request->user_id)
-                ->where('name', 'theme')
-                ->update(['setting' => $request->theme]);
-        }
+        abort_unless($this->canManagePreferencesFor($request->user(), (int) $request->user_id), 403);
+
+        Preference::where('user_id', $request->user_id)
+            ->where('name', 'theme')
+            ->update(['setting' => $request->theme]);
+
+        return redirect()->back();
     }
 
     /**

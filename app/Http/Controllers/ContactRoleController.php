@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ContactRole;
 use App\Models\File;
-use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ContactRoleController extends Controller
 {
@@ -28,25 +28,16 @@ class ContactRoleController extends Controller
      */
     public function store(Request $request)
     {
-        $file = File::findOrFail($request->file_id);
-
-        // Ensure user has access to this file
-        if ($file->firm_id !== $request->user()->firm_id) {
-            abort(403, 'Unauthorized');
-        }
+        $firmId = $request->user()->firm_id;
 
         $validated = $request->validate([
-            'file_id' => 'required|integer',
-            'contact_id' => 'required|integer',
-            'role' => 'required|string|in:' . implode(',', array_keys(ContactRole::ROLE_LABELS)),
+            'file_id' => ['required', 'integer', Rule::exists('files', 'id')->where('firm_id', $firmId)],
+            'contact_id' => ['required', 'integer', Rule::exists('contacts', 'id')->where('firm_id', $firmId)],
+            'role' => 'required|string|in:'.implode(',', array_keys(ContactRole::ROLE_LABELS)),
             'role_label' => 'nullable|string|max:255',
+        ], [
+            'contact_id.exists' => 'You can only select contacts from your firm.',
         ]);
-
-        // Ensure contact belongs to the user's firm
-        $contact = Contact::find($request->contact_id);
-        if ($contact->firm_id !== $request->user()->firm_id) {
-            return back()->withErrors(['contact_id' => 'You can only select contacts from your firm.']);
-        }
 
         ContactRole::firstOrCreate(
             [
@@ -75,7 +66,7 @@ class ContactRoleController extends Controller
         }
 
         $validated = $request->validate([
-            'role' => 'required|string|in:' . implode(',', array_keys(ContactRole::ROLE_LABELS)),
+            'role' => 'required|string|in:'.implode(',', array_keys(ContactRole::ROLE_LABELS)),
             'role_label' => 'nullable|string|max:255',
         ]);
 

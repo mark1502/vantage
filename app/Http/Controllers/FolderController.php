@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
 use App\Models\Folder;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class FolderController extends Controller
 {
@@ -15,16 +15,15 @@ class FolderController extends Controller
      */
     public function index(Request $request)
     {
-        $show = $request->query('show');
+        $show = min((int) $request->query('show', 10) ?: 10, 50);
 
         $folders = Folder::query()
-        ->when($request->query('search'), function($query, $search) {
-            $query->where('name', 'like', $search . '%');
-        })
-        ->orderBy('name')
-
-        ->paginate($show ? $show : 10)
-        ->withQueryString();
+            ->when($request->query('search'), function ($query, $search) {
+                $query->where('name', 'like', $search.'%');
+            })
+            ->orderBy('name')
+            ->paginate($show)
+            ->withQueryString();
 
         return Inertia::render('Folders/Index', compact('folders'));
     }
@@ -42,13 +41,12 @@ class FolderController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
         $verified = $request->validate(
-            [   'name' => 'required|max:255',
+            ['name' => 'required|max:255',
                 'input_time' => 'boolean',
                 'date1_prompt' => 'nullable|max:20',
                 'date2_prompt' => 'nullable|max:20',
@@ -64,9 +62,9 @@ class FolderController extends Controller
                 'hide_amount_prompt' => 'boolean',
             ]);
 
-            $contact = Folder::create($verified);
+        $contact = Folder::create($verified);
 
-            return redirect('/folders?page=' . $request->current_page . '&show=' . $request->show);
+        return redirect('/folders?page='.$request->current_page.'&show='.$request->show);
 
     }
 
@@ -113,14 +111,13 @@ class FolderController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Folder $folder)
     {
         $verified = $request->validate(
-            [   'name' => 'required|max:255',
+            ['name' => 'required|max:255',
                 'input_time' => 'boolean',
                 'date1_prompt' => 'nullable|max:20',
                 'date2_prompt' => 'nullable|max:20',
@@ -153,7 +150,7 @@ class FolderController extends Controller
 
         $folder->save();
 
-        return redirect('/folders?page=' . $request->current_page . '&show=' . $request->show);
+        return redirect('/folders?page='.$request->current_page.'&show='.$request->show);
     }
 
     /**

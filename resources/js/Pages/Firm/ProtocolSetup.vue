@@ -7,7 +7,7 @@ const testResult = ref(null);
 
 function testProtocol() {
     testResult.value = 'pending';
-    window.location.href = 'vantage://open?path=C:\\Windows\\notepad.exe';
+    window.location.href = 'vantage://open?path=' + encodeURIComponent('C:\\Windows\\notepad.exe');
     setTimeout(() => {
         testResult.value = 'sent';
     }, 1000);

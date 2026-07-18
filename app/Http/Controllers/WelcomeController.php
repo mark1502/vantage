@@ -7,6 +7,7 @@ use App\Models\Firm;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -125,30 +126,32 @@ class WelcomeController extends Controller
                 ]
             );
 
-            $aUser = new User;
-            $aUser->name = $verified3['display_name'];
-            $aUser->email = $verified3['email'];
-            $aUser->firm_id = $user->firm_id;
-            $aUser->user_type = $verified3['user_type'];
-            $aUser->password = Hash::make($verified3['password']);
-            $aUser->save();
+            DB::transaction(function () use ($verified3, $user) {
+                $aUser = new User;
+                $aUser->name = $verified3['display_name'];
+                $aUser->email = $verified3['email'];
+                $aUser->firm_id = $user->firm_id;
+                $aUser->user_type = $verified3['user_type'];
+                $aUser->password = Hash::make($verified3['password']);
+                $aUser->save();
 
-            $aContact = new Contact;
-            $aContact->title = $verified3['title'];
-            $aContact->first_name = $verified3['first_name'];
-            $aContact->middle_name = array_key_exists('middle_name', $verified3) && $verified3['middle_name'] ? $verified3['middle_name'] : '';
-            $aContact->last_name = $verified3['last_name'];
-            $aContact->srjr = array_key_exists('srjr', $verified3) && $verified3['srjr'] ? ' '.$verified3['srjr'] : '';
-            $aContact->member_initials = $verified3['member_initials'];
-            $aContact->email = $verified3['email'];
-            $aContact->is_firm_member = true;
-            $aContact->account_status = 'A';  // Active account for new firm member
-            $aContact->firm_id = $user->firm_id;
-            $aContact->user_id = $aUser->id;
-            $aContact->firm_role = $verified3['firm_role'];
-            $aContact->display_name = $verified3['display_name'];
-            $aContact->display_last_first = $verified3['display_last_first'];
-            $aContact->save();
+                $aContact = new Contact;
+                $aContact->title = $verified3['title'];
+                $aContact->first_name = $verified3['first_name'];
+                $aContact->middle_name = array_key_exists('middle_name', $verified3) && $verified3['middle_name'] ? $verified3['middle_name'] : '';
+                $aContact->last_name = $verified3['last_name'];
+                $aContact->srjr = array_key_exists('srjr', $verified3) && $verified3['srjr'] ? ' '.$verified3['srjr'] : '';
+                $aContact->member_initials = $verified3['member_initials'];
+                $aContact->email = $verified3['email'];
+                $aContact->is_firm_member = true;
+                $aContact->account_status = 'A';  // Active account for new firm member
+                $aContact->firm_id = $user->firm_id;
+                $aContact->user_id = $aUser->id;
+                $aContact->firm_role = $verified3['firm_role'];
+                $aContact->display_name = $verified3['display_name'];
+                $aContact->display_last_first = $verified3['display_last_first'];
+                $aContact->save();
+            });
 
             $firm->syncSubscriptionQuantity();      // added a user, so update the subscription quantity with stripe
         } elseif ($request['formtype'] == 'editUser') {

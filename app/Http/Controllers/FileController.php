@@ -47,7 +47,17 @@ class FileController extends Controller
             ->where('name', 'file_open_to')
             ->value('setting') ?? 'correspondence';
 
-        return Inertia::render('Files/Index', compact('files', 'fileOpenTo', 'status'));
+        $firm = $request->user()->firm;
+        $fileCount = $firm?->fileCount() ?? 0;
+        $fileLimit = $firm?->fileLimit();
+
+        $subscription = [
+            'file_count' => $fileCount,
+            'file_limit' => $fileLimit,
+            'can_create_files' => $fileLimit === null || $fileCount < $fileLimit,
+        ];
+
+        return Inertia::render('Files/Index', compact('files', 'fileOpenTo', 'status', 'subscription'));
     }
 
     /**

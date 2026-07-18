@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ContactRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -67,7 +68,7 @@ class StoreEntryRequest extends FormRequest
             'amount' => 'numeric|nullable',
             'pending_contact_roles' => 'array|nullable',
             'pending_contact_roles.*.contact_id' => ['required', 'integer', $firmContact],
-            'pending_contact_roles.*.role' => 'required|string',
+            'pending_contact_roles.*.role' => ['required', 'string', 'max:50', Rule::in(array_keys(ContactRole::ROLE_LABELS))],
             'pending_contact_roles.*.role_label' => 'nullable|string|max:255',
             'linked_document_path' => ['nullable', 'string', 'max:500', 'not_regex:/\.\./'],
         ];

@@ -144,9 +144,7 @@ class CalendarController extends Controller
             $event->delete();
         }
 
-        // return to_route('calendar.index');
-        // return Inertia::render('Calendar/Index');
-
+        return response()->json(['status' => 'ok']);
     } // end function
 
     public function get_events(Request $request)
@@ -343,24 +341,29 @@ class CalendarController extends Controller
             ]);
         }
 
-        $event = Entry::where('id', $request->entry_id)->first();
+        $event = Entry::query()
+            ->where('id', $request->entry_id)
+            ->where('firm_id', $request->user()->firm_id)
+            ->first();
 
-        if ($event && $event->id == $request->entry_id && $event->firm_id == $request->user()->firm_id) {    // if retrieved the correct event, and it's for the correct law firm, then make the changes
-            $event->all_day = $request->all_day;
-            $event->date1 = $request->date1;
+        abort_unless($event, 404);
 
-            if ($request->action == 'move') {
-                $event->date2 = $request->date2 != null ? $request->date2 : null;
+        $event->all_day = $request->all_day;
+        $event->date1 = $request->date1;
 
-                if ($request->all_day == false && $event->date2 == null) {    // if not allDay and end time is NULL, then set end time to 1 hour after start time
-                    $event->date2 = date('Y-m-d H:i:s', strtotime('+1 hour', strtotime($event->date1)));
-                }
-            } elseif ($request->action == 'resize') {
-                $event->date2 = $request->date2;
+        if ($request->action == 'move') {
+            $event->date2 = $request->date2 != null ? $request->date2 : null;
+
+            if ($request->all_day == false && $event->date2 == null) {    // if not allDay and end time is NULL, then set end time to 1 hour after start time
+                $event->date2 = date('Y-m-d H:i:s', strtotime('+1 hour', strtotime($event->date1)));
             }
-
-            $event->save();
+        } elseif ($request->action == 'resize') {
+            $event->date2 = $request->date2;
         }
+
+        $event->save();
+
+        return response()->json(['status' => 'ok']);
     } // end function
 
     public function lookup_file(Request $request)

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Contact;
+use App\Models\Entry;
 use App\Models\Entrytype;
 use App\Models\File;
 use App\Models\Firm;
@@ -97,10 +98,16 @@ class CalendarEventStoreTest extends TestCase
         $response = $this->actingAs($userA)->postJson('/calendar', $payload);
 
         $response->assertStatus(200);
+        $response->assertJson(['status' => 'ok']);
         $this->assertDatabaseHas('entries', [
             'firm_id' => $firmA->id,
             'entrytype_id' => $entrytypeA->id,
             'note' => 'Same-firm entrytype',
         ]);
+
+        $entry = Entry::where('note', 'Same-firm entrytype')->firstOrFail();
+        $this->assertInstanceOf(Firm::class, $entry->firm);
+        $this->assertSame($firmA->id, $entry->firm->id);
+        $this->assertNotNull(Entry::with('firm')->find($entry->id)->firm);
     }
 }

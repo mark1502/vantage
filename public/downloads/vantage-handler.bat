@@ -2,7 +2,8 @@
 setlocal EnableDelayedExpansion
 
 set "url=%~1"
-set "filepath=!url:~21!"
-set "filepath=!filepath:%%5C=\!"
+set "encodedpath=!url:~20!"
+
+for /f "usebackq delims=" %%D in (`powershell -NoProfile -Command "[uri]::UnescapeDataString('!encodedpath!')"`) do set "filepath=%%D"
 
 start "" "!filepath!"

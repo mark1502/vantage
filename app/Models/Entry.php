@@ -6,6 +6,7 @@ use App\Models\Concerns\BelongsToFirm;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Entry extends Model
 {
@@ -53,9 +54,9 @@ class Entry extends Model
         return $this->hasMany(Response::class, 'response_to');
     }
 
-    public function firm(): Firm
+    public function firm(): BelongsTo
     {
-        return Firm::find($this->firm_id);
+        return $this->belongsTo(Firm::class);
     }
 
     protected function hasLinkedDocument(): Attribute
@@ -75,7 +76,7 @@ class Entry extends Model
             return null;
         }
 
-        $firm = $this->firm();
+        $firm = $this->firm;
 
         if (! $firm || empty($firm->document_base_path)) {
             return null;

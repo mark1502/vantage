@@ -247,10 +247,12 @@ class EntryController extends Controller
         if ($entry->response) {                    // if this entry is a response, expecting entries are all the expecting, plus the one this is a response to
             $expecting_entries = Entry::query()
                 ->select('id', 'date1', 'from_contact_id', 'entrytype_id')
-                ->with(['contact_from:id,display_name', 'entrytype:id,name', 'responses'])
+                ->with(['contact_from:id,display_name', 'entrytype:id,name', 'responses_received'])
                 ->where('file_id', $file->id)
-                ->where('expecting_response', true)
-                ->orWhere('id', $entry->response->response_to)
+                ->where(function ($query) use ($entry) {
+                    $query->where('expecting_response', true)
+                        ->orWhere('id', $entry->response->response_to);
+                })
                 ->orderBy('date1')
                 ->get();
         } else {                                      // else, a list of all entries expecting a response
@@ -676,7 +678,7 @@ class EntryController extends Controller
             return redirect()->back()->with('error', 'This entry has no linked document.');
         }
 
-        $firm = $entry->firm();
+        $firm = $entry->firm;
 
         // 3. Validate firm has a document base path configured
         if (! $firm || empty($firm->document_base_path)) {

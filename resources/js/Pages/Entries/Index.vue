@@ -126,13 +126,10 @@ function entryList_click(what, index = null) {                            // the
                 const entry = props.entries.data[state.row];
                 const sep = props.firm_document_base_path.includes('/') ? '/' : '\\';
                 const fullPath = props.firm_document_base_path.replace(/[\\/]+$/, '') + sep + entry.linked_document_path;
-                window.location.href = 'vantage://open?path=' + fullPath;
+                window.location.href = 'vantage://open?path=' + encodeURIComponent(fullPath);
             } else {
                 list_actions('edit');
             }
-            break;
-        case 'right':
-            alert('right!');
             break;
         case 'add_button':                                                      // clicked the add button
             if( props.view_folder_id === 0 ) {                                   // if viewing the file timeleine
@@ -678,7 +675,6 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                                 <tr v-for="(entry, index) in entries.data" :key="entry.id"
                                                     :class="setEntryClass(index)"
                                                     @click.left="entryList_click('list', index)"
-                                                    @click.right.prevent="entryList_click('right', index)"
                                                     @dblclick="entryList_click('list_double', index)"
                                                 >
                                                     <td v-for="col in activeColumns" :key="col.key"

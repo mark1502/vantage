@@ -14,7 +14,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $show = $request->query('show');
+        $show = min((int) $request->query('show', 10) ?: 10, 50);
         $status = $request->query('status', 'A');
 
         $query = DB::table('users')
@@ -27,7 +27,7 @@ class UserController extends Controller
             $query->where('contacts.account_status', $status);
         }
 
-        $users = $query->paginate($show ? $show : 10);
+        $users = $query->paginate($show);
 
         return Inertia::render('Users/Index', compact('users', 'status'));
     }
@@ -65,38 +65,40 @@ class UserController extends Controller
                 'member_initials' => 'These initials are taken by another user in your firm.',
             ]);
 
-        $aUser = new User;
-        $aUser->name = $verified['display_name'];
-        $aUser->email = $verified['email'];
-        $aUser->firm_id = $user->firm_id;       // this user's firm id (from the user making the request)
-        $aUser->user_type = $verified['user_type'];
-        $aUser->password = Hash::make($verified['password']);
-        $aUser->welcomed = true;
-        $aUser->save();
+        DB::transaction(function () use ($verified, $request, $user) {
+            $aUser = new User;
+            $aUser->name = $verified['display_name'];
+            $aUser->email = $verified['email'];
+            $aUser->firm_id = $user->firm_id;       // this user's firm id (from the user making the request)
+            $aUser->user_type = $verified['user_type'];
+            $aUser->password = Hash::make($verified['password']);
+            $aUser->welcomed = true;
+            $aUser->save();
 
-        $contact = new Contact;
+            $contact = new Contact;
 
-        $contact->is_firm_member = true;
-        $contact->user_id = $aUser->id;         // this contact's user id
-        $contact->firm_id = $user->firm_id;     // this contact's firm id (from the user making the request)
-        $contact->member_initials = $verified['member_initials'];
-        $contact->firm_role = $verified['firm_role'];
-        $contact->email = $verified['email'];
+            $contact->is_firm_member = true;
+            $contact->user_id = $aUser->id;         // this contact's user id
+            $contact->firm_id = $user->firm_id;     // this contact's firm id (from the user making the request)
+            $contact->member_initials = $verified['member_initials'];
+            $contact->firm_role = $verified['firm_role'];
+            $contact->email = $verified['email'];
 
-        $contact->title = $request->title;
-        $contact->first_name = $request->first_name;
-        $contact->middle_name = $request->middle_name;
-        $contact->last_name = $request->last_name;
-        $contact->srjr = $request->srjr;
-        $contact->work_phone = $request->work_phone;
-        $contact->cell_phone = $request->cell_phone;
-        $contact->home_phone = $request->home_phone;
+            $contact->title = $request->title;
+            $contact->first_name = $request->first_name;
+            $contact->middle_name = $request->middle_name;
+            $contact->last_name = $request->last_name;
+            $contact->srjr = $request->srjr;
+            $contact->work_phone = $request->work_phone;
+            $contact->cell_phone = $request->cell_phone;
+            $contact->home_phone = $request->home_phone;
 
-        $contact->display_name = $request->display_name;
-        $contact->display_last_first = $request->display_last_first;
+            $contact->display_name = $request->display_name;
+            $contact->display_last_first = $request->display_last_first;
 
-        $contact->account_status = 'A';
-        $contact->save();
+            $contact->account_status = 'A';
+            $contact->save();
+        });
 
         $user->firm->syncSubscriptionQuantity();
 

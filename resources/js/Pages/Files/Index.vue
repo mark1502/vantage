@@ -15,10 +15,11 @@ const props = defineProps({
     files: Object,
     fileOpenTo: { type: String, default: 'correspondence' },
     status: { type: String, default: 'open' },
+    subscription: Object,
 });
 
 const page = usePage();
-const subscription = computed(() => page.props.subscription);
+const subscription = computed(() => props.subscription);
 const isAdmin = computed(() => page.props.auth.user.user_type === 'Admin');
 const atFileLimit = computed(() => !subscription.value?.can_create_files);
 const addDisabled = computed(() => atFileLimit.value || state.status === 'closed');

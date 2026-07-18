@@ -568,12 +568,11 @@ function event_placement(eventInfo, ptype) {
         calendar_form.date2 = eventInfo.event.endStr ? eventInfo.event.endStr.slice(0, 19).replace('T', ' ') : ""; // if endStr, do the same with date2, otherwise ""
     }
 
-    calendar_form.post('/event_placement', {
-        preserveState: true,
-        onSuccess: () => {
-            calApi.refetchEvents();
-        }
-    });
+    axios.post('/event_placement', calendar_form.data())          // background save; FullCalendar already moved the event optimistically
+        .catch(() => {
+            eventInfo.revert();                                    // move/resize could not be saved - revert to the saved position
+            alert('This event could not be moved. The calendar has been refreshed.');
+        });
 }
 
 

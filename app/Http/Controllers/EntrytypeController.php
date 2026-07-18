@@ -17,7 +17,7 @@ class EntrytypeController extends Controller
     {
         $firmId = $request->user()->firm_id;
         $folderId = $request->query('folder_id');
-        $show = $request->query('show', 10);
+        $show = min((int) $request->query('show', 10) ?: 10, 50);
         $filter = $request->query('filter', 'current');
 
         $folders = Folder::query()
