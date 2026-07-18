@@ -20,6 +20,8 @@
         contact_list: { data: [] },
     });
 
+    let lookupTimeout = null;
+
     const showLookupList = computed(() =>                                                    // #4: computed to replace repeated template conditions
         local.name.length > 0 && local.name !== local.starting_name
     );
@@ -70,10 +72,16 @@
         if( is_firm_only ) results = filter_contacts( props.firm_members );                  // #2: unified filter function with data source param
         else if( props.file_contacts.length !== 0 ) results = filter_contacts( props.file_contacts );
 
-        if( results.length ) lookup.contact_list = { data: results };                        // found matching contacts, so show those
+        if( results.length ) {                                                               // found matching contacts, so show those
+            clearTimeout(lookupTimeout);                                                     // cancel any pending server call
+            lookup.contact_list = { data: results };
+        }
         else {                                                                               // else, no matching contacts, so lookup contact from server
-            axios.post('/lookup_contact', { search: local.name, firm_only: is_firm_only })
-                .then( function (response) { lookup.contact_list = response.data; });
+            clearTimeout(lookupTimeout);
+            lookupTimeout = setTimeout(() => {
+                axios.post('/lookup_contact', { search: local.name, firm_only: is_firm_only })
+                    .then( function (response) { lookup.contact_list = response.data; });
+            }, 300);                                                                         // 300ms debounce, matches Files/Index.vue
         }
     }
 

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, nextTick, watch, onBeforeUnmount, computed, inject } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
+import { useForm, router, usePage } from '@inertiajs/vue3';
 import InputError from "@/Components/InputError.vue";
 import ContactLookup from "@/Components/ContactLookup.vue";
 import AddContactForm from "@/Components/AddContactForm.vue";
@@ -8,6 +8,8 @@ import FileLookup_form from '@/Pages/Files/FileLookup_form.vue';
 import DocumentPicker from "@/Components/DocumentPicker.vue";
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import axios from 'axios';
+
+const reservedFileId = usePage().props.reserved_file_id;
 
 // Inject the theme ref and the setTheme function
 const currentTheme = inject('currentTheme');
@@ -289,7 +291,7 @@ watch(fileSpecific, (newVal) => {
 // Watch file_id changes in view mode to fetch contact role IDs
 watch(() => entry_form.file_id, (newVal, oldVal) => {
     if (suppress_role_check || !newVal) return;
-    if (newVal === 1) return;
+    if (newVal === reservedFileId) return;
     if (props.file_view === 'view' && (props.state.mode === 'entry_add' || props.state.mode === 'entry_edit')) {
         axios.get('/contact-role-ids/' + newVal)
             .then(response => {
@@ -445,7 +447,6 @@ function clicked_entrytypeModal_button(clicked_button) {
                         entry_form.new_entrytype_added = true;
                         // document.getElementById('entrytype_modal').close();          // close the entrytype form modal
                         display_modal('entrytype', false);
-                        console.log('back from new entrytype');
                     });
                 } // onSuccess
             }); // post
@@ -659,7 +660,7 @@ function isNewFileContact() {
 
 function checkContactRole(contact_id, contact_name, field = '') {
     if (!contact_id) return;
-    if (entry_form.file_id === 1) return;
+    if (entry_form.file_id === reservedFileId) return;
     // Contact unchanged from what was loaded — skip (handles blur-reset in firm-only lookups)
     const savedKey = field === 'from' ? 'from_contact_id' : field === 'to' ? 'to_contact_id' : '';
     if (savedKey && saved_entry_form[savedKey] === contact_id) return;
@@ -709,8 +710,8 @@ function update_disp() {
         let theEntry = props.p1.entries.data[props.state.row];                                      // shortcut to the highlighted entry for cleaner code
 
         entry_form.file_id = theEntry.file_id;                                              // set the file id in the form
-        fileSpecific.value = (theEntry.file_id !== 1) ? "true" : "false";
-        display_name.file = (theEntry.file_id === 1) ? 'Not File Related' : getFileName(); // set the display file name for the form
+        fileSpecific.value = (theEntry.file_id !== reservedFileId) ? "true" : "false";
+        display_name.file = (theEntry.file_id === reservedFileId) ? 'Not File Related' : getFileName(); // set the display file name for the form
 
         entry_form.folder_id = theEntry.folder_id;                                                  // folder_id
         entry_form.entry_id = theEntry.id;                                                          // entry_id
@@ -878,7 +879,7 @@ function findEntryTypeID( find_folder_id = 0, find_entrytype_name = "" ) {
 }
 
 function getFileName() {                                                    // note: this function avoids an error if looking for undefined 'file' in 'file' entries
-    if (props.p1.entries.data[props.state.row]?.file_id === 1) return 'Not File Related';
+    if (props.p1.entries.data[props.state.row]?.file_id === reservedFileId) return 'Not File Related';
     if( 'file' in props.p1.entries.data[props.state.row] ) {                // if the prop 'file' is in the entries object, return the name
             return props.p1.entries.data[props.state.row].file.name;
     } else return '';                                                           // else, return empty string
@@ -1104,7 +1105,7 @@ update_disp();
             <div v-else-if="props.file_view === 'view'">
                 <div class="flex items-baseline mb-4">
                     <label for="display_filename" class="text-sm font-semibold w-28">File:</label>
-                    <input :value="entry_form.file_id === 1 ? 'Not File Related' : display_name.file"
+                    <input :value="entry_form.file_id === reservedFileId ? 'Not File Related' : display_name.file"
                         id="display_filename" disabled class="input input-sm text-sm rounded-sm w-64 disabled:border-base-300 disabled:text-base-content"
                     />
                     <span v-if="props.p1.entries.data[props.state.row].file.date_closed" class="text-sm text-base-content ml-2">(closed file)</span>

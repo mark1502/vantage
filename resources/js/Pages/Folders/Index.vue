@@ -1,19 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { reactive, ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
 const props = defineProps({ folders: Object });
-
-let form = useForm({
-    formtype: "folder_short",
-    current_page: urlParams.get('page'),
-    show: urlParams.get('show'),
-});
-
 
 let search = ref('');
 
@@ -26,7 +19,7 @@ const state = reactive({
     sort_order: 'asc'
 });
 
-const disp = reactive({ id: 0, folder_name: '', prompts: '', email: '', editurl: '', createurl: '', typesurl: '', note: '' });
+const disp = reactive({ id: 0, folder_name: '', prompts: '', email: '', typesurl: '', note: '' });
 
 function update_disp() {
 
@@ -53,7 +46,6 @@ function update_disp() {
         disp.prompts += 'Response expected prompt: ' + props.folders.data[state.current_row].responseexpected_prompt + "\n";
 
         disp.id = props.folders.data[state.current_row].id;
-        disp.editurl = '/folders/' + disp.id + '/edit?page=' + props.folders.current_page + '&show=' + state.show;
         disp.typesurl = '/entrytypes?folder_id=' + disp.id;
     }
     else {
@@ -61,11 +53,8 @@ function update_disp() {
         disp.prompts = '';
         disp.email = '';
         disp.id = '';
-        disp.editurl = '';
         disp.typesurl = '';
     } // end if
-
-    disp.createurl = '/folders/create?page=' + props.folders.current_page + '&show=' + state.show;
 }
 
 function folder_clicked(index) {
@@ -74,22 +63,8 @@ function folder_clicked(index) {
     update_disp();
 }
 
-function folder_dblclick(index) {
-    state.current_row = index;
-    update_disp();
-    router.visit(disp.editurl, { method: 'get' });
-}
-
 function showChanged() {
     router.visit('/folders?page=' + props.folders.current_page + '&show=' + state.show, { method: 'get' });
-}
-
-function deleteClicked() {
-    let r = confirm("Do you want to delete this folder?\n\nName: " + props.folders.data[state.current_row].display_name + "\n\nClick Ok to delete");
-    if (r == true) {
-       form.delete("/folders/" + props.folders.data[state.current_row].id + "?page=" + props.folders.current_page + "&show=" + state.show, {
-        });
-    }
 }
 
 function typesClicked()
@@ -99,15 +74,7 @@ function typesClicked()
 
 const handleTheKepress = (e) => {
     let changeit = false;
-    if(e.altKey && e.key==='a') { 
-        e.preventDefault();
-        router.get(disp.createurl);
-     }
-     else if(e.altKey && e.key==='c') { 
-        e.preventDefault();
-        router.get(disp.editurl);
-     }
-     else if(e.altKey && e.key==='t') { 
+    if(e.altKey && e.key==='t') {
         e.preventDefault();
         typesClicked();
      }
@@ -131,10 +98,6 @@ const handleTheKepress = (e) => {
                     state.current_row--;
                     changeit = true;
                 }
-                break;
-            case 'Enter':
-                e.preventDefault();
-                router.visit(disp.editurl, { method: 'get' });
                 break;
             case 'PageUp':
                 e.preventDefault();
@@ -170,7 +133,6 @@ watch(search, value => {
         disp.prompts = '';
         disp.email = '';
         disp.id = '';
-        disp.editurl = '';
     }
     router.get('/folders', { search: value }, { preserveState: true, replace: true });
     state.current_row = 0;
@@ -227,7 +189,7 @@ update_disp();
                                         <tr v-for="folder, index in folders.data" :key="folder.id"
                                             :class="(index == state.current_row ? 'text-primary-content bg-primary' : 'text-base-content bg-base-100')"
                                             class="border-b border-base-content"
-                                            @click="folder_clicked(index)" @dblclick="folder_dblclick(index)">
+                                            @click="folder_clicked(index)">
                                             <td class="px-6 py-2 whitespace-nowrap">
                                                 <div class="flex items-center">
                                                     <div class="text-base font-sans font-normal">
@@ -246,15 +208,6 @@ update_disp();
                                     </div>
                                 </div>
                                 <div v-else class="border p-4 text-xl text-center">No Data Found!
-                                </div>
-                                <div name="control_buttons" class="flex mt-8 justify-around">
-                                    <Link :href='disp.createurl' class="btn btn-outline btn-primary">+ &nbsp;<u>A</u>dd</Link>
-                                    <Link id="editbutton" name="editbutton" :href='disp.editurl'
-                                        class="btn btn-outline btn-primary">△ &nbsp;<u>C</u>hange
-                                    </Link>
-                                    <Link id="deletebutton" name="deletebutton" href='' @click="deleteClicked"
-                                        class="btn btn-outline btn-error">- &nbsp;Delete
-                                    </Link>
                                 </div>
                                 <div class="mt-6 text-center">
                                     <Link id="openbutton" href="" name="openbutton" @click="typesClicked" class="btn btn-outline btn-primary w-96">Folder Entry&nbsp;<u>T</u>ypes</Link>

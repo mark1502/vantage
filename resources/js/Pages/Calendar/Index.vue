@@ -2,8 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from "@/Components/InputError.vue";
 import { reactive, ref, computed, watch, onMounted, onUnmounted, nextTick, inject } from "vue";
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
-// import  _debounce  from 'lodash/debounce';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -15,6 +14,8 @@ import '@/../../resources/css/fullcalendar-theme.css';
 // import VueDatePicker from '@vuepic/vue-datepicker';
 // import '@vuepic/vue-datepicker/dist/main.css'
 import axios from 'axios';
+
+const reservedFileId = usePage().props.reserved_file_id;
 
 const lookup = reactive({
     file: false,
@@ -322,7 +323,7 @@ function submit_calendarform() {
 
 
     if( calendar_form.fileSpecific != "true" ) {    // if not file specific, set id to 1 and clear the related file values
-        calendar_form.file_id = 1;
+        calendar_form.file_id = reservedFileId;
         related_file.id = null;
         related_file.name = '';
         related_file.initial_id = null;
@@ -438,18 +439,22 @@ function clear_cal_errors() {
 }
 
 
+let relatedFileLookupTimeout = null;
+
 function lookup_related_file() {
     if (lookup.file_isChosen == false || lookup.file_chosen_name != related_file.name) {       // name isn't chosen or display doesn't match chosen name
         lookup.file = true;
     }
 
+    clearTimeout(relatedFileLookupTimeout);
     if( related_file.name.length > 0 ) {                                                        // if something is entered in related_file.name, then lookup and list the response data
-        axios.post('/lookup_file4cal', { search: related_file.name })       
-        .then(function (response) {
-            lookup.file_list = response.data;
-        });
+        relatedFileLookupTimeout = setTimeout(() => {
+            axios.post('/lookup_file4cal', { search: related_file.name })
+            .then(function (response) {
+                lookup.file_list = response.data;
+            });
+        }, 300);                                                                                 // 300ms debounce, matches Files/Index.vue
     }
-    // debouncedLookup();
 }
 
 function clicked_file_list(index) {                             // the user clicked on a file in the lookup list
@@ -517,11 +522,11 @@ function click_event(eventInfo) {
 
     calendar_form.file_id = eventInfo.event.extendedProps.file_id;
 
-    if( calendar_form.file_id == 1 ) {
+    if( calendar_form.file_id == reservedFileId ) {
         calendar_form.fileSpecific = "false";
-        related_file.id = 1;
+        related_file.id = reservedFileId;
         related_file.name = '';
-        related_file.initial_id = 1;
+        related_file.initial_id = reservedFileId;
         related_file.initial_name = '';
     }
     else {

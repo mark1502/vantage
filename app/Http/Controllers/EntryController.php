@@ -1085,14 +1085,4 @@ class EntryController extends Controller
         ]);
 
     }
-
-    public function testparts()
-    {
-        return inertia::render('Entries/Testparts');
-    }
-
-    public function testtwo()
-    {
-        return inertia::render('Entries/Testtwo');
-    }
 }

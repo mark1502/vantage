@@ -82,11 +82,11 @@ Route::middleware('auth', 'welcomed')->group(function () {
     Route::post('/preferences/theme', [PreferenceController::class, 'theme_update'])->name('preferences.theme');
 
     Route::get('/recent-files', [RecentFileController::class, 'index'])->name('recent-files.index');
-    Route::post('/lookup_file', [FileController::class, 'lookup_file'])->name('files.lookup_file');
+    Route::post('/lookup_file', [FileController::class, 'lookup_file'])->name('files.lookup_file')->middleware('throttle:120,1');
     Route::post('setDefaultFileType', [FiletypeController::class, 'set_default_type']);
     Route::put('/toggle_read/{entry}', [EntryController::class, 'toggle_read']);
 
-    Route::post('/lookup_contact', [EntryController::class, 'lookup_contact'])->name('entries.lookup_contact');
+    Route::post('/lookup_contact', [EntryController::class, 'lookup_contact'])->name('entries.lookup_contact')->middleware('throttle:120,1');
     Route::post('/contact_add_modal', [EntryController::class, 'contact_add_modal'])->name('entries.add_modal');
     Route::get('/contact_add_modal', [EntryController::class, 'contact_add_modal']);  // for error passback
     Route::post('/contact_add_modal2', [EntryController::class, 'contact_add_modal2'])->name('entries.add_modal2');
@@ -102,7 +102,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
 
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
     Route::post('/calendar', [CalendarController::class, 'store'])->name('calendar.store');
-    Route::post('/lookup_file4cal', [CalendarController::class, 'lookup_file'])->name('calendar.lookup_file');
+    Route::post('/lookup_file4cal', [CalendarController::class, 'lookup_file'])->name('calendar.lookup_file')->middleware('throttle:120,1');
 
     Route::post('/get_events', [CalendarController::class, 'get_events'])->name('calendar.get_events');
     Route::get('/get_events', [CalendarController::class, 'get_events']);

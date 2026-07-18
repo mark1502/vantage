@@ -135,7 +135,7 @@ class ViewController extends Controller
         $entry->save();                                                                                 // save the entry
 
         // Handle pending contact roles
-        if ($entry->file_id !== 1) {
+        if ($entry->file_id !== (int) config('documents.reserved_file_id')) {
             $this->savePendingContactRoles($request, $entry->file_id);
         }
 
@@ -212,7 +212,7 @@ class ViewController extends Controller
         $entry->save();                                                                                 // save the entry
 
         // Handle pending contact roles
-        if ($entry->file_id !== 1) {
+        if ($entry->file_id !== (int) config('documents.reserved_file_id')) {
             $this->savePendingContactRoles($request, $entry->file_id);
         }
 

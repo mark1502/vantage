@@ -58,6 +58,17 @@ class FirmController extends Controller
         return Inertia::render('Firm/ProtocolSetup');
     }
 
+    /**
+     * Browse the firm's document directory tree.
+     *
+     * INTENTIONALLY not admin-gated, unlike the rest of this controller:
+     * regular users reach this through DocumentPicker when attaching
+     * documents to entries. Safety comes from firm scoping (the path is
+     * always resolved from the caller's own firm's document_base_path),
+     * the Firm::safeDocumentBasePath() allow-list, and the realpath
+     * traversal check below — not from a role check. Do not add an admin
+     * check here without reworking DocumentPicker.
+     */
     public function browseDirectory(Request $request): JsonResponse
     {
         $request->validate([

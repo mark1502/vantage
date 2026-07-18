@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
             ],
+            'reserved_file_id' => (int) config('documents.reserved_file_id'),
         ];
     }
 }

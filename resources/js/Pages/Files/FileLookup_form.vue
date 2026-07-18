@@ -26,17 +26,22 @@ const display_file = reactive({
 });
 
 
+let lookupTimeout = null;
+
 function lookup_file() {
     if (lookup.file_isChosen == false || lookup.file_chosen_name !== display_file.name) {       // name isn't chosen or display doesn't match chosen name
         display_file.id = 0;
+        clearTimeout(lookupTimeout);
         if( display_file.name.length ) {                                // if something is entered into display_file.name
             lookup.file = false;                                            // clear the lookup flag and the list of matching files
             lookup.matching_files = [];
-            axios.post('/lookup_file', { search: display_file.name })       // lookup search and list the response data
-            .then(function (response) { 
-                lookup.matching_files = response.data; 
-                lookup.file = true;
-            });
+            lookupTimeout = setTimeout(() => {
+                axios.post('/lookup_file', { search: display_file.name })       // lookup search and list the response data
+                .then(function (response) {
+                    lookup.matching_files = response.data;
+                    lookup.file = true;
+                });
+            }, 300);                                                       // 300ms debounce, matches Files/Index.vue
         } // end if name.length
     } // end if not chosen or no match
 }
