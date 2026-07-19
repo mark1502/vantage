@@ -12,14 +12,14 @@
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="overflow-hidden">
-                    <form autocomplete="off" class="max-w-5xl mx-auto mt-4">
+                    <form autocomplete="off" class="max-w-7xl mx-auto mt-4">
                     <div class="bg-base-200 shadow-sm sm:rounded-lg p-6">
                     <!-- Name Line starts-->
                         <div class="flex mt-2">
-                            <div class="flex-col w-36 max-w-xs mr-4">
+                            <div class="flex-col w-24 mr-4">
                                 <div class="flex ml-2"><InputLabel for="form.title" value="Title" /><span class="text-sm text-error ml-2">*</span></div>
-                                <select v-model="form.title" class="select select-bordered select-sm text-base" id="form.title">
-                                    <option value="" disabled selected>Pick one</option>
+                                <select v-model="form.title" class="select select-bordered select-sm text-base w-full" id="form.title">
+                                    <option value="" disabled selected>Select</option>
                                     <option>Mr.</option>
                                     <option>Ms.</option>
                                     <option>Mrs.</option>

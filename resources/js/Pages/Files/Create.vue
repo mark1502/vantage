@@ -108,7 +108,6 @@ function fileform_click(what) {
         if( solEnabled.value == true && form.date_sol === '' || form.date_sol === null) {    // if SOL is enabled and SOL is not set, display the modal to ask if they want to set it
             show_modal('sol', true);
         } else {                                                                                        // else, clicked ok so submit
-            ok_clicked = true;      
             fileform_actions('submit');
         }
     } else if( what === 'cancel' ) {                                                                    // clicked cancel, show modal
@@ -119,6 +118,7 @@ function fileform_click(what) {
 
 function fileform_actions( action ) {
     if( action === 'submit' ) {             // submitting the form
+        ok_clicked = true;                      // ensure the unsaved-changes guard allows this submit (e.g. SOL modal "No")
         show_modal('sol', false);               // close the modals, in case called from a modal
         show_modal('cancelcreate', false);
 
