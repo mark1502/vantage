@@ -13,6 +13,7 @@ import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import { useTheme } from '@/Composables/useTheme';
 import Pagination from '@/Components/Pagination.vue'
 import { getAvailableFormats, getColumns } from '@/Config/entryViewFormats.js'
+import { statusTextClass } from '@/Utils/entryStatus.js'
 import { MagnifyingGlassMinusIcon } from '@heroicons/vue/20/solid';
 
 // Get access to theme management
@@ -429,16 +430,16 @@ function setEntryClass( index ) {                                               
         textcolor = 'text-base-300';
         bgcolor = 'bg-base-100';
      } else if( entry.expecting_response ) {                                            // else if entry expects a response, set the color
-        textcolor = determine_response_expectation( entry.date_response_expected ) === 'Awaiting response' ? 'text-success' : 'text-error';
+        textcolor = statusTextClass( entry );
     }
 
     if( index === state.row ) {                                                        // if this row is the highlighted row
         textcolor = 'text-base-content';
         if( entry.expecting_response ) {
-            textcolor = determine_response_expectation( entry.date_response_expected ) === 'Awaiting response' ? 'text-success' : 'text-error';
+            textcolor = statusTextClass( entry );
         }
-        bgcolor = 'bg-primary/30';
-        border = 'border-l-4 border-l-blue-600 ' + borderBottom;
+        bgcolor = 'bg-base-300';                                                       // opaque so status text sits on a known token
+        border = 'border-l-4 border-l-primary ' + borderBottom;
     }
 
     return textcolor + ' ' + bgcolor + ' ' + border;
@@ -470,15 +471,6 @@ function reformat_date(dt, input_time = false, all_day = false) {               
             return dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
         } // end if input_time or all
     }
-}
-
-
-function determine_response_expectation( date_expected ) {                              // determines if an expected response is overdue
-    let date1 = new Date(date_expected);
-    let date2 = new Date();
-    let sendback = date2 > date1 ? "Awaiting response (overdue)" : "Awaiting response";
-
-    return sendback;
 }
 
 
@@ -597,14 +589,14 @@ if( props.view_folder_id == -1 || state.folder_name === 'info' ) {              
                                     Case Costs
                                 </option>
                             </optgroup>
-                            <optgroup label="Timeline:">
-                                <option value="all">File Timeline</option>
+                            <optgroup label="File Timeline:">
+                                <option value="all">Timeline</option>
                             </optgroup>
-                            <optgroup label="Contacts:">
-                                <option value="file_contacts">File Contacts</option>
+                            <optgroup label="File Contacts:">
+                                <option value="file_contacts">Contacts</option>
                             </optgroup>
                             <optgroup label="File Details:" class="my-2">
-                                <option value="info">File Details</option>
+                                <option value="info">Details</option>
                             </optgroup>
                         </select>
                     </div>

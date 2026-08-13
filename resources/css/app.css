@@ -342,6 +342,7 @@
 /* I added the next 2 lines based on the earlier app */
 @source '../../resources/views/**/*.blade.php';
 @source '../../resources/js/**/*.vue';
+@source '../../resources/js/**/*.js';
 
 
 @theme {
@@ -396,6 +397,55 @@
   width: 200px;
 }
 
+
+/* ============================================================
+   Entry status colors (overdue / pending)
+   ============================================================
+
+   daisyUI's --color-error and --color-success are tuned as *fill* colors,
+   where the paired -content token supplies the contrast. Used raw as text on
+   base-100 they are too light on light themes (error is L=71% on white in
+   "light", L=70% on L=98% in "caramellatte").
+
+   Each theme block declares color-scheme, so light-dark() picks the direction
+   automatically: darken toward black on light themes, brighten toward white on
+   dark ones. The theme's hue is preserved, only lightness is pushed toward the
+   readable pole.
+
+   The keep-percentages are the highest that hold WCAG AA (4.5:1) against both
+   base-100 and base-300 (the highlighted row) across every enabled theme. The
+   binding constraint is almost always the highlighted row.
+
+   Two themes need a lower value than the rest: "retro", whose base-300 is an
+   unusually dark L=79% for a light theme, and "business", whose --color-error
+   is an unusually dark L=51% sitting on an L=31% base. */
+
+:root {
+  --status-mix-light: 63%;
+  --status-mix-dark: 75%;
+}
+
+[data-theme="retro"] {
+  --status-mix-light: 60%;
+}
+
+[data-theme="business"] {
+  --status-mix-dark: 55%;
+}
+
+@utility text-overdue {
+  color: light-dark(
+    color-mix(in oklab, var(--color-error) var(--status-mix-light), black),
+    color-mix(in oklab, var(--color-error) var(--status-mix-dark), white)
+  );
+}
+
+@utility text-pending {
+  color: light-dark(
+    color-mix(in oklab, var(--color-success) var(--status-mix-light), black),
+    color-mix(in oklab, var(--color-success) var(--status-mix-dark), white)
+  );
+}
 
 @layer base {
   *,

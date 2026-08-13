@@ -39,8 +39,9 @@ const submit = () => {
             {{ status }}
         </div>
 
-        <div class="text-2xl font-bold text-center text-gray-800 bg-gray-200 border border-black rounded-lg p-2 mb-5">
-            Vantage
+        <div class="mb-6 text-center">
+            <h1 class="text-xl font-bold tracking-tight text-slate-900">Sign in to your firm</h1>
+            <p class="mt-1 text-sm text-slate-500">Welcome back. Enter your credentials to continue.</p>
         </div>
         <form @submit.prevent="submit">
             <div>

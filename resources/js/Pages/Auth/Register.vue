@@ -30,7 +30,10 @@ const submit = () => {
 <template>
     <GuestLayout>
         <Head title="Register" />
-        <p class="text-xl text-center text-gray-800 font-bold my-3">Law Firm Registration</p>
+        <div class="mb-6 text-center">
+            <h1 class="text-xl font-bold tracking-tight text-slate-900">Law firm registration</h1>
+            <p class="mt-1 text-sm text-slate-500">Set up your firm and create the first account.</p>
+        </div>
 
         <form @submit.prevent="submit">
 

@@ -7,6 +7,7 @@ import AddContactForm from "@/Components/AddContactForm.vue";
 import FileLookup_form from '@/Pages/Files/FileLookup_form.vue';
 import DocumentPicker from "@/Components/DocumentPicker.vue";
 import { VueDatePicker } from '@vuepic/vue-datepicker';
+import { isResponseOverdue, responseLateClass, responseStatusLabel } from '@/Utils/entryStatus.js';
 import axios from 'axios';
 
 const reservedFileId = usePage().props.reserved_file_id;
@@ -96,8 +97,8 @@ const entrytype_form = useForm({                        // form for entrytype lo
 const disp = reactive({
     listFormat: 1,                                      // the format of the main listbox
     response_status: "",                                // displays the status of a response (i.e., late, ontime)
-    response_color: 'text-error',
-    entry_responses_received: Object,                   // display object of responses received to this entry
+    response_color: 'text-overdue',
+    entry_responses_received: [],                       // display array of responses received to this entry
     show_entry_form: false,                             // shows or hides the entry form
     show_file_contacts: "off",                          // show file contacts modal - 'from', 'to' or 'off'
     show_contact_id: null,                              // used for file contacts modal
@@ -758,23 +759,17 @@ function update_disp() {
         entry_form.date_response_expected = theEntry.date_response_expected;                        // date_response_expected
         entry_form.amount = theEntry.amount;                                                        // amount
 
-        disp.entry_responses_received = theEntry.responses_received;                                // display responses received to this entry
+        disp.entry_responses_received = theEntry.responses_received ?? [];                          // display responses received to this entry
 
         nextTick(() => {
             if (theEntry.expecting_response) {                                                      // if entry is/was expecting a response, determine status of the expectation
-                disp.response_status = determine_response_expectation(theEntry.date_response_expected);
-            } else disp.response_status = "";                                                       // else, clear response status
-
-            // now set the response status color
-            switch (disp.response_status) {
-                case '(Full response was received on time)':
-                case 'Awaiting response':
-                case '':
-                    disp.response_color = 'text-success';                                         // display green for on time or awaiting or empty status
-                    break;
-                default:
-                    disp.response_color = 'text-error';                                           // otherwise display as red
-                    break;
+                disp.response_status = responseStatusLabel(theEntry.date_response_expected);
+                disp.response_color = isResponseOverdue(theEntry.date_response_expected)
+                    ? 'text-overdue'                                                              // red for overdue
+                    : 'text-pending';                                                             // green while still awaiting
+            } else {                                                                               // else, clear response status
+                disp.response_status = "";
+                disp.response_color = 'text-pending';
             }
 
             if( theEntry.response ) {                                                               // if this entry is a response to another, set response type and id of related entry
@@ -926,24 +921,6 @@ function format_response_li(response) {                                         
     stringback = '- Received a ' + resptype + ' on ' + dateof;
 
     return stringback;
-}
-
-function determine_response_status(date_expected, date_received, fullYN) {
-    let date1 = new Date(date_expected);
-    let date2 = new Date(date_received);
-    let lateYN = date2 > date1 ? "late" : "on time";
-
-    let sendback = fullYN == 'F' ? '(Full response was received' : '(Partial response was received';
-    sendback += ' ' + lateYN + ')';
-    return sendback;
-}
-
-function determine_response_expectation(date_expected) {
-    let date1 = new Date(date_expected);
-    let date2 = new Date();
-    let sendback = date2 > date1 ? "Awaiting response (overdue)" : "Awaiting response";
-
-    return sendback;
 }
 
 function selectFileContact( var_in = "from" ){
@@ -1294,8 +1271,9 @@ update_disp();
             </div>
 
             <!-- list of any responses recieved to this entry -->
-            <ul v-if="disp.entry_responses_received.length" class="text-xs text-error ml-44 mt-1">
-                <li v-for="response in disp.entry_responses_received">
+            <ul v-if="disp.entry_responses_received.length" class="text-xs ml-44 mt-1">
+                <li v-for="response in disp.entry_responses_received"
+                    :class="responseLateClass(entry_form.date_response_expected, response.response_date)">
                     {{ format_response_li(response) }}
                 </li>
             </ul>

@@ -6,6 +6,7 @@ import FileLookup  from  "@/Pages/Files/FileLookup.vue";
 import EntryForm from "@/Pages/Entries/EntryForm.vue";
 
 import Pagination from '@/Components/Pagination.vue'
+import { statusTextClass } from '@/Utils/entryStatus.js'
 
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { reactive, ref, computed, onMounted, onUnmounted, onUpdated, nextTick } from "vue";
@@ -265,17 +266,16 @@ function setViewClass(index) {
         textcolor = 'text-base-300';
         bgcolor = 'bg-base-100';
     } else if (entry.expecting_response == true) {                            // else if entry expects a response, set the color
-        let thestat = determine_response_expectation(entry.date_response_expected);
-        textcolor = thestat === 'Awaiting response' ? 'text-success' : 'text-error';
+        textcolor = statusTextClass(entry);
     }
 
     if (index === state.row) {                                                // if it is the highlighted row
         textcolor = 'text-base-content';
         if (entry.expecting_response) {
-            textcolor = determine_response_expectation(entry.date_response_expected) === 'Awaiting response' ? 'text-success' : 'text-error';
+            textcolor = statusTextClass(entry);
         }
-        bgcolor = 'bg-primary/20';
-        border = 'border-l-4 border-l-blue-600';
+        bgcolor = 'bg-base-300';                                              // opaque so status text sits on a known token
+        border = 'border-l-4 border-l-primary';
     }
 
     return textcolor + ' ' + bgcolor + ' ' + border;
@@ -490,15 +490,6 @@ function getFolderData( whichData, singular = null ) {                          
 
     return dataBack;
 }
-
-function determine_response_expectation(date_expected) {
-    let date1 = new Date(date_expected);
-    let date2 = new Date();
-    let sendback = date2 > date1 ? "Awaiting response (overdue)" : "Awaiting response";
-
-    return sendback;
-}
-
 
 function isFromToDisabled() {                                                           // determines whether to disable to from,to, from/to filter select
     let disable_it = false;
