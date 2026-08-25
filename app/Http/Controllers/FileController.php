@@ -23,14 +23,15 @@ class FileController extends Controller
     {
         $show = min((int) $request->query('show', 10) ?: 10, 50);
         $status = $request->query('status', 'open');
+        $searchMode = $this->normalizeSearchMode($request->query('search_mode'));
 
         $files = File::with([
             'filetype',
             'assignedAttorney.contact:id,display_name',
         ])
             ->where('firm_id', $request->user()->firm_id)
-            ->when($request->query('search'), function ($query, $search) {
-                $query->where('name', 'like', '%'.$search.'%');
+            ->when($request->query('search'), function ($query, $search) use ($searchMode) {
+                $query->where('name', 'like', $this->searchPattern($search, $searchMode));
             })
             ->when($status !== 'all', function ($query) use ($status) {
                 if ($status === 'open') {
@@ -57,7 +58,28 @@ class FileController extends Controller
             'can_create_files' => $fileLimit === null || $fileCount < $fileLimit,
         ];
 
-        return Inertia::render('Files/Index', compact('files', 'fileOpenTo', 'status', 'subscription'));
+        return Inertia::render('Files/Index', compact('files', 'fileOpenTo', 'status', 'subscription', 'searchMode'));
+    }
+
+    /**
+     * Constrain the requested search mode to a known value.
+     *
+     * "starts" keeps the LIKE pattern anchored so the firm_id/name index can be
+     * used; "includes" falls back to a full scan of the firm's files.
+     */
+    protected function normalizeSearchMode(?string $mode): string
+    {
+        return $mode === 'includes' ? 'includes' : 'starts';
+    }
+
+    /**
+     * Build the LIKE pattern for a file name search.
+     */
+    protected function searchPattern(string $search, string $mode): string
+    {
+        $escaped = addcslashes($search, '%_\\');
+
+        return $mode === 'includes' ? '%'.$escaped.'%' : $escaped.'%';
     }
 
     /**
@@ -286,12 +308,15 @@ class FileController extends Controller
     {
         $verified = $request->validate(
             ['search' => 'string|max:255',
+                'search_mode' => 'nullable|in:starts,includes',
             ]);
+
+        $searchMode = $this->normalizeSearchMode($request->input('search_mode'));
 
         $files_found = File::query()
             ->select('id', 'name')
             ->where('firm_id', $request->user()->firm_id)
-            ->where('name', 'like', '%'.$request->search.'%')
+            ->where('name', 'like', $this->searchPattern((string) $request->search, $searchMode))
             ->whereNull('date_closed')   // exclude closed files from lookup
             ->orderBy('name')
 

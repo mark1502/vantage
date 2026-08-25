@@ -16,6 +16,7 @@ const props = defineProps({
     fileOpenTo: { type: String, default: 'correspondence' },
     status: { type: String, default: 'open' },
     subscription: Object,
+    searchMode: { type: String, default: 'starts' },
 });
 
 const page = usePage();
@@ -25,6 +26,7 @@ const atFileLimit = computed(() => !subscription.value?.can_create_files);
 const addDisabled = computed(() => atFileLimit.value || state.status === 'closed');
 
 const search = ref(urlParams.get('search') || '');      // search field, set to the search parameter in the URL, or empty if not present
+const searchMode = ref(props.searchMode);               // 'starts' (indexed, default) or 'includes' (slower, full scan)
 let searchTimeout = null;
 const file1 = ref(null);                                // ref used for code shortcut to the file
 
@@ -44,14 +46,9 @@ const disp = reactive({
     openurl: '',
  });
 
-watch( search, (value) => {                                                                                // watch function on the search field
-    if (value) {                                                                                        // if there's a value, then clear the file display
-        disp.editurl = '';
-    }
-
-    clearTimeout(searchTimeout);                                                                        // debounce: clear any pending search request
-    searchTimeout = setTimeout(() => {
-        router.get('/files', { search: value, page: 1, show: state.show, status: state.status }, { preserveState: true, replace: true,
+function runSearch() {                                                                                  // fire the search request for the current field + mode
+    router.get('/files', { search: search.value, search_mode: searchMode.value, page: 1, show: state.show, status: state.status },
+        { preserveState: true, replace: true,
             onSuccess: () => {
                 state.current_row = 0;
             },
@@ -59,7 +56,21 @@ watch( search, (value) => {                                                     
                 update_disp();
             },
         });
-    }, 300);                                                                                            // 300ms debounce delay
+}
+
+watch( search, (value) => {                                                                                // watch function on the search field
+    if (value) {                                                                                        // if there's a value, then clear the file display
+        disp.editurl = '';
+    }
+
+    clearTimeout(searchTimeout);                                                                        // debounce: clear any pending search request
+    searchTimeout = setTimeout(runSearch, 300);                                                         // 300ms debounce delay
+});
+
+watch( searchMode, () => {                                                                              // switching mode is a deliberate click, so no debounce
+    if (! search.value) return;
+    clearTimeout(searchTimeout);
+    runSearch();
 });
 
 function getValidFilepart(file) {                                                                               // returns the valid filepart for the given file based on user preference
@@ -106,11 +117,11 @@ function file_dblclick(index) {                                                 
 }
 
 function showChanged() {
-    router.get( route('files.index'), { page: 1, show: state.show, status: state.status } );
+    router.get( route('files.index'), { search: search.value, search_mode: searchMode.value, page: 1, show: state.show, status: state.status } );
 }
 
 function statusChanged() {
-    router.get( route('files.index'), { page: 1, show: state.show, status: state.status } );
+    router.get( route('files.index'), { search: search.value, search_mode: searchMode.value, page: 1, show: state.show, status: state.status } );
 }
 
 
@@ -215,8 +226,18 @@ update_disp();                                                                  
                         <div name="left-side" class="w-1/2 ml-2">
 
                         <!-- Search input here -->
-                            <div v-if="files.data.length" class="flex justify-end pb-2">
-                                <div v-show="search" class="mr-2">Searching: </div>
+                            <div class="flex justify-end items-center pb-2">
+                                <div v-show="search" class="mr-3 self-start h-4 flex items-center leading-none text-sm font-semibold">Searching: </div>
+                                <div v-show="search" class="flex flex-col gap-0.5 mr-3 text-xs leading-tight">
+                                    <label class="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" value="starts" v-model="searchMode" class="radio radio-xs radio-primary" />
+                                        <span>Starts with</span>
+                                    </label>
+                                    <label class="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" value="includes" v-model="searchMode" class="radio radio-xs radio-primary" />
+                                        <span>Includes <span class="opacity-60">(slower)</span></span>
+                                    </label>
+                                </div>
                                 <input v-model="search" id="searchInput" placeholder="Search ..." class="border border-base-content/30 px-2 mr-2 rounded" autocomplete="off"/>
                             </div>
 

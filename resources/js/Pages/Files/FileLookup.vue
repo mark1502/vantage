@@ -30,20 +30,30 @@ const display_file = reactive({
     id: 0,
 });
 
+const searchMode = ref('starts');                                           // 'starts' uses the firm_id/name index; 'includes' is a full scan
+
 function lookup_file() {
     if (lookup.file_isChosen == false || lookup.file_chosen_name !== display_file.name) {       // name isn't chosen or display doesn't match chosen name
         display_file.id = 0;
         if( display_file.name.length) {
             lookup.file = false;
             lookup.matching_files = [];
-            axios.post('/lookup_file', { search: display_file.name })       // lookup search and list the response data
-            .then(function (response) { 
-                lookup.matching_files = response.data; 
+            axios.post('/lookup_file', { search: display_file.name, search_mode: searchMode.value })       // lookup search and list the response data
+            .then(function (response) {
+                lookup.matching_files = response.data;
                 lookup.file = true;
             });
+        } else {
+            searchMode.value = 'starts';                                    // field cleared, so go back to the fast default
         }
     }
 
+}
+
+function searchAnywhere() {                                                 // widen the current lookup to match anywhere in the name
+    searchMode.value = 'includes';
+    lookup.file_isChosen = false;
+    lookup_file();
 }
 
 function clicked_file_list( index ) {
@@ -88,6 +98,13 @@ function handleKeyDown( event ) {
             <tr v-if="display_file.name.length > 0 && lookup.matching_files.from == null && lookup.file == true">
                 <td class="text-sm bg-base-100 text-base-content text-center border-4 border-amber-500">
                     <p class="my-2">No Matching Files Found</p>
+                </td>
+            </tr>
+            <tr v-if="searchMode === 'starts'">
+                <td class="text-xs bg-base-100 text-center py-3">
+                    <button type="button" @click="searchAnywhere" class="link link-primary">
+                        Search anywhere in name (slower)
+                    </button>
                 </td>
             </tr>
         </table>
