@@ -28,7 +28,7 @@ class FiletypePolicy
      */
     public function delete(User $user, Filetype $filetype): bool
     {
-        return $this->belongsToSameFirm($user, $filetype);
+        return $user->isAdmin() && $this->belongsToSameFirm($user, $filetype);
     }
 
     /**

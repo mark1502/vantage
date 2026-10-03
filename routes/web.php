@@ -59,7 +59,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
     Route::patch('/contacts/{contact}/restore', [ContactController::class, 'restore'])->name('contacts.restore');
     Route::resource('files', FileController::class)->names('files');
     Route::resource('files.entries', EntryController::class)->names('entries');
-    Route::resource('filetypes', FiletypeController::class)->names('filetypes');
+    Route::resource('filetypes', FiletypeController::class)->names('filetypes')->middleware('admin');
     Route::resource('views', ViewController::class)->names('views');
     // Folders are a global/shared table: read-only for all firms (no create/edit/update/delete by any user).
     Route::resource('folders', FolderController::class)->names('folders')->only(['index']);
@@ -83,7 +83,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
 
     Route::get('/recent-files', [RecentFileController::class, 'index'])->name('recent-files.index');
     Route::post('/lookup_file', [FileController::class, 'lookup_file'])->name('files.lookup_file')->middleware('throttle:120,1');
-    Route::post('setDefaultFileType', [FiletypeController::class, 'set_default_type']);
+    Route::post('setDefaultFileType', [FiletypeController::class, 'set_default_type'])->middleware('admin');
     Route::put('/toggle_read/{entry}', [EntryController::class, 'toggle_read']);
 
     Route::post('/lookup_contact', [EntryController::class, 'lookup_contact'])->name('entries.lookup_contact')->middleware('throttle:120,1');

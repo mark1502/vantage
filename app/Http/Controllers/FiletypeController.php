@@ -13,7 +13,7 @@ class FiletypeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): \Inertia\Response|\Illuminate\Http\RedirectResponse
     {
         $show = min((int) $request->query('show', 10) ?: 10, 50);
 
@@ -47,15 +47,31 @@ class FiletypeController extends Controller
             }
         }
 
-        $filetypes = Filetype::query();
-        $filetypes = $filetypes->where('firm_id', $request->user()->firm_id)
+        $search = trim((string) $request->query('search', ''));
+
+        $filetypes = Filetype::query()
+            ->where('firm_id', $this_firm_id)
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
+            ->withCount(['files' => fn ($query) => $query->withoutGlobalScope('firm')])
             ->orderBy('name')
-            ->paginate($show ? $show : 10)
+            ->paginate($show)
             ->withQueryString();
 
-        // dd($filetypes);
-        return Inertia::render('Filetypes/Index', compact('filetypes'));
+        if ($filetypes->isEmpty() && $filetypes->currentPage() > 1) {
+            return redirect(route('filetypes.index', [
+                'page' => $filetypes->lastPage(),
+                'show' => $show,
+                'search' => $search ?: null,
+            ]));
+        }
 
+        $filetypeCount = Filetype::query()->where('firm_id', $this_firm_id)->count();
+
+        return Inertia::render('Filetypes/Index', [
+            'filetypes' => $filetypes,
+            'filetypeCount' => $filetypeCount,
+            'search' => $search,
+        ]);
     }
 
     /**
@@ -200,9 +216,31 @@ class FiletypeController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, Filetype $filetype): \Illuminate\Http\RedirectResponse
     {
-        //
+        $this->authorize('delete', $filetype);
+
+        $redirectParams = [
+            'page' => $request->input('page'),
+            'show' => $request->input('show'),
+            'search' => $request->input('search') ?: null,
+        ];
+
+        if ($filetype->isInUse()) {
+            return back()->withErrors(['delete' => 'This file type cannot be deleted because one or more files (open or closed) use it.']);
+        }
+
+        if ($filetype->set_as_default) {
+            return back()->withErrors(['delete' => 'The default file type cannot be deleted. Set another file type as the default first.']);
+        }
+
+        if (Filetype::query()->where('firm_id', $filetype->firm_id)->count() <= 1) {
+            return back()->withErrors(['delete' => 'The last remaining file type cannot be deleted.']);
+        }
+
+        $filetype->delete();
+
+        return redirect(route('filetypes.index', $redirectParams));
     }
 
     public function check4RemovedFolder($request, $filetype)

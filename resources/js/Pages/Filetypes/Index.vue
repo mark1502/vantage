@@ -7,16 +7,9 @@ import { Head, Link, useForm, router } from '@inertiajs/vue3';
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 
-const props = defineProps({ filetypes: Object });
+const props = defineProps({ filetypes: Object, filetypeCount: Number, search: String });
 
-let form = useForm({
-    formtype: "filetype_short",
-    current_page: urlParams.get('page'),
-    show: urlParams.get('show'),
-});
-
-
-let search = ref('');
+let search = ref(props.search ?? '');
 
 const state = reactive({
     hover: false,
@@ -75,9 +68,7 @@ function update_disp() {
         checks.has_costs = thetype.has_costs === 1 ? true : false;
         checks.enable_file_SOL = thetype.enable_file_SOL === 1 ? true : false;
     } else {
-        disp.display_name = '';
-        disp.address = '';
-        disp.email = '';
+        disp.name = '';
         disp.id = '';
         disp.set_as_default = false;
         disp.editurl = '';
@@ -91,28 +82,61 @@ async function doTick() {
     await nextTick();
 }
 
-function contact_clicked(index) {
+function row_clicked(index) {
     state.current_row = index;
-    // document.getElementById('disp_card').style.visibility = 'visible';
     update_disp();
 }
 
-function contact_dblclick(index) {
+function row_dblclick(index) {
     state.current_row = index;
     update_disp();
     router.visit(disp.editurl, { method: 'get' });
 }
 
 function showChanged() {
-    router.visit('/filetypes?page=' + props.filetypes.current_page + '&show=' + state.show, { method: 'get' });
+    router.get('/filetypes', { page: props.filetypes.current_page, show: state.show, search: search.value || undefined });
 }
 
-function deleteClicked() {
-    let r = confirm("Do you want to delete this contact?\n\nName: " + props.filetypes.data[state.current_row].display_name + "\n\nClick Ok to delete");
-    if (r == true) {
-       form.delete("/contacts/" + props.filetypes.data[state.current_row].id + "?page=" + props.filetypes.current_page + "&show=" + state.show, {
-        });
+const deleteBlockReason = ref('');
+
+function openDeleteModal() {
+    document.activeElement?.blur();
+    const selected = props.filetypes.data[state.current_row];
+    if (!selected) {
+        return;
     }
+    if (selected.files_count > 0) {
+        deleteBlockReason.value = 'This file type cannot be deleted because one or more files (open or closed) use it.';
+    } else if (selected.set_as_default) {
+        deleteBlockReason.value = 'The default file type cannot be deleted. Set another file type as the default first.';
+    } else if (props.filetypeCount <= 1) {
+        deleteBlockReason.value = 'The last remaining file type cannot be deleted.';
+    } else {
+        deleteBlockReason.value = '';
+        document.getElementById('delete_modal').showModal();
+        return;
+    }
+    document.getElementById('cannot_delete_modal').showModal();
+}
+
+function submitDelete() {
+    const selected = props.filetypes.data[state.current_row];
+    if (!selected) {
+        return;
+    }
+    router.delete(route('filetypes.destroy', selected.id), {
+        data: { page: props.filetypes.current_page, show: state.show, search: search.value || undefined },
+        onSuccess: () => {
+            state.current_row = 0;
+            update_disp();
+        },
+        onError: (errors) => {
+            if (errors.delete) {
+                deleteBlockReason.value = errors.delete;
+                document.getElementById('cannot_delete_modal').showModal();
+            }
+        },
+    });
 }
 
 function setDefaultFileType() {
@@ -125,38 +149,24 @@ function setDefaultFileType() {
 }
 
 
-function format_name( name_in ) {
-    let len_search = search.value.length;
-
-    if( len_search == 0 ) {
-        return name_in;
+function nameParts(name) {
+    const term = search.value.trim();
+    const start = term ? name.toLowerCase().indexOf(term.toLowerCase()) : -1;
+    if (start === -1) {
+        return { before: name, match: '', after: '' };
     }
-
-    let name_i = name_in.toLowerCase();
-    let search_i = search.value.toLowerCase();
-    let startat = name_i.indexOf(search_i);
-
-    if( startat == -1 ) {
-        return name_in;
-    }
-
-    let name_out = "";
-
-    for( let x = 0; x < name_in.length ; x++){
-        if( x == startat ) {
-            name_out += "<b>";
-        }
-        name_out += name_in.charAt(x);
-        if( x == startat + len_search - 1) {
-            name_out += "</b>";
-        }
-    }
-    return name_out;
-
+    return {
+        before: name.slice(0, start),
+        match: name.slice(start, start + term.length),
+        after: name.slice(start + term.length),
+    };
 }
 
 
 const handleTheKepress = (e) => {
+    if (document.querySelector('dialog[open]')) {
+        return;
+    }
     let changeit = false;
     if(e.altKey && e.key==='a') { 
         e.preventDefault();
@@ -241,24 +251,11 @@ onUnmounted(() => document.removeEventListener('keydown', handleTheKepress));
 
 
 watch(search, value => {
-    if (value) {
-        // document.getElementById('disp_card').style.visibility= 'hidden';
-        disp.display_name = '';
-        disp.address = '';
-        disp.email = '';
-        disp.id = '';
-        disp.editurl = '';
-    }
-
-    router.get('/contacts', { search: value }, { preserveState: true, replace: true,
-        onSuccess: () => {
-            return Promise.all([
-                doTick()
-            ])
-        },
-        onFinish: visit => {
-            update_disp();
-        },
+    router.get('/filetypes', { search: value || undefined, show: state.show }, {
+        preserveState: true,
+        replace: true,
+        onSuccess: () => doTick(),
+        onFinish: () => update_disp(),
     });
 });
 
@@ -281,7 +278,7 @@ update_disp();
 
         <div class="py-3">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-base-300 overflow-hidden sm:rounded-lg min-h-dvh" id="ContactScreen" name="ContactScreen">
+                <div class="bg-base-300 overflow-hidden sm:rounded-lg min-h-dvh" id="FiletypeScreen" name="FiletypeScreen">
                     <div class="p-4 flex min-h-[680px] justify-center ">
                         <div class="p-2 flex items-start ">
                             <div name="left-side" class="w-[460px]">
@@ -290,7 +287,7 @@ update_disp();
                                         placeholder="Search ..." class="input input-sm w-56 px-2" autocomplete="off" />
                                 </div>
                                 <div v-if="filetypes.data.length">
-                                    <table class="w-full border border-base-content text-base font-sans font-normal" id="contactlist">
+                                    <table class="w-full border border-base-content text-base font-sans font-normal" id="filetypelist">
                                         <thead class="text-left bg-base-300">
                                             <tr>
                                             <th class="text-base font-semibold pl-2 text-base-content border-b-2 border-base-content">File Type:</th>
@@ -300,11 +297,13 @@ update_disp();
                                             <tr v-for="filetype, index in filetypes.data" :key="filetype.id"
                                                 :class="setEntryClass(index)"
                                                 class="border-b border-base-content"
-                                                @click="contact_clicked(index)" @dblclick="contact_dblclick(index)">
+                                                @click="row_clicked(index)" @dblclick="row_dblclick(index)">
                                                 <td class="px-6 py-2 whitespace-nowrap">
                                                     <div class="flex items-center">
                                                         <div class="text-base font-sans font-normal">
-                                                              {{ filetype.name }}{{ filetype.set_as_default === 1 ? ' >> ( Default )' : '' }}
+                                                            <template v-for="parts in [nameParts(filetype.name)]" :key="'p' + filetype.id">
+                                                                {{ parts.before }}<b>{{ parts.match }}</b>{{ parts.after }}
+                                                            </template>{{ filetype.set_as_default === 1 ? ' >> ( Default )' : '' }}
                                                         </div>
                                                     </div>
                                                 </td>
@@ -343,9 +342,10 @@ update_disp();
                                     <Link id="editbutton" name="editbutton" :href='disp.editurl'
                                         class="btn btn-outline btn-primary gap-0">△ &nbsp;<u>C</u>hange
                                     </Link>
-                                    <Link id="deletebutton" name="deletebutton" href='' @click="deleteClicked"
-                                        class="btn btn-outline btn-error">- &nbsp;Delete
-                                    </Link>
+                                    <button type="button" id="deletebutton" name="deletebutton"
+                                        class="btn btn-outline btn-error"
+                                        :disabled="!filetypes.data.length" @click="openDeleteModal">- &nbsp;Delete
+                                    </button>
                                 </div>
                             </div>
                             <div name="right.side" class="ml-16">
@@ -410,5 +410,33 @@ update_disp();
                 </div>
             </div>
         </div>
+
+        <dialog id="delete_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="text-xl font-bold text-center">Confirm Delete</h3>
+                <p class="py-4 text-lg">Permanently delete the "{{ disp.name }}" file type?</p>
+                <p>This cannot be undone. Are you sure?</p>
+                <form method="dialog">
+                    <div class="mt-8 flex justify-center gap-10">
+                        <button class="btn btn-error" @click="submitDelete()">Delete</button>
+                        <button class="btn btn-primary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
+
+        <dialog id="cannot_delete_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="text-xl font-bold text-center">Cannot Delete File Type</h3>
+                <p class="py-4 text-lg text-center">{{ deleteBlockReason }}</p>
+                <form method="dialog">
+                    <div class="mt-4 flex justify-center">
+                        <button class="btn btn-primary">OK</button>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
     </AuthenticatedLayout>
 </template>

@@ -53,25 +53,9 @@ function submitForm() {
     });
 }
 
-function buildDisplayNames() {
-    if (form.middle_name === null || form.middle_name === undefined) { form.middle_name = ''; }
-    if (form.srjr === null || form.srjr === undefined) { form.srjr = ''; }
-
-    form.display_name = form.first_name.trim();
-    form.display_name += form.middle_name.trim().length != 0 ? ' ' + form.middle_name.trim() : "";
-    form.display_name += ' ' + form.last_name.trim();
-    form.display_name += form.srjr.trim().length != 0 ? ', ' + form.srjr.trim() : "";
-    form.display_name += form.esqphd.trim().length != 0 ? ', ' + form.esqphd.trim() : "";
-
-    form.display_last_first = form.last_name.trim() + ', ' + form.first_name.trim();
-    form.display_last_first += form.middle_name.trim().length != 0 ? ' ' + form.middle_name.trim() : "";
-    form.display_last_first += form.srjr.trim().length != 0 ? ', ' + form.srjr.trim() : "";
-    form.display_last_first += form.esqphd.trim().length != 0 ? ', ' + form.esqphd.trim() : "";
-}
-
 function handleEsc(e) {
     if(e.key === 'Escape') {
-        router.get('/contacts?page=' + form.current_page + '&show=' + form.show)
+        router.get('/filetypes?page=' + form.current_page + '&show=' + form.show)
     }
 }
 
