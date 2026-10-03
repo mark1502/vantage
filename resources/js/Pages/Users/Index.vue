@@ -1,19 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { reactive, ref, computed, watch, onMounted, onUnmounted } from "vue";
 import Pagination from '@/Components/Pagination.vue';
 
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
+const props = defineProps({ users: Object, status: String, activeAdminCount: Number });
 
-const props = defineProps({ users: Object, status: String });
-
-let form = useForm({
-    formtype: "contact_short",
-    current_page: urlParams.get('page'),
-    show: urlParams.get('show'),
-});
+const page = usePage();
 
 
 // let search = ref('');
@@ -83,12 +76,55 @@ function showAllUsers() {
     router.get( route('users.index', { page: 1, show: state.show, status: 'both' }) );
 }
 
-function deleteClicked() {
-    let r = confirm("Do you want to delete this contact?\n\nName: " + props.users.data[state.current_row].display_name + "\n\nClick Ok to delete");
-    if (r == true) {
-        form.delete("/users/" + props.users.data[state.current_row].id + "?page=" + props.users.current_page + "&show=" + state.show, {
-        });
+const selectedUser = computed(() => props.users.data[state.current_row]);
+const selectedIsActive = computed(() => selectedUser.value?.account_status === 'A');
+const statusBlockReason = ref('');
+
+function openStatusModal() {
+    document.activeElement?.blur();
+    const selected = selectedUser.value;
+    if (!selected) {
+        return;
     }
+    if (selected.account_status === 'A') {
+        if (selected.id === page.props.auth.user.id) {
+            statusBlockReason.value = "Administrators can't deactivate their own account. Another administrator can deactivate it for you.";
+            document.getElementById('cannot_deactivate_modal').showModal();
+            return;
+        }
+        if (selected.user_type === 'Admin' && props.activeAdminCount <= 1) {
+            statusBlockReason.value = 'This is the last active administrator. Another administrator must be active before this user can be deactivated.';
+            document.getElementById('cannot_deactivate_modal').showModal();
+            return;
+        }
+    }
+    document.getElementById('status_modal').showModal();
+}
+
+function submitStatus() {
+    const selected = selectedUser.value;
+    if (!selected) {
+        return;
+    }
+    router.patch(route('users.status', selected.id), {
+        account_status: selected.account_status === 'A' ? 'I' : 'A',
+        page: props.users.current_page,
+        show: state.show,
+        status: state.status,
+    }, {
+        onSuccess: () => {
+            if (state.current_row >= props.users.data.length) {
+                state.current_row = Math.max(0, props.users.data.length - 1);
+            }
+            update_disp();
+        },
+        onError: (errors) => {
+            if (errors.status) {
+                statusBlockReason.value = errors.status;
+                document.getElementById('cannot_deactivate_modal').showModal();
+            }
+        },
+    });
 }
 
 const emptyRows = computed(() => {
@@ -104,6 +140,9 @@ function setEntryClass( index ) {
 }
 
 const handleTheKeypress = (e) => {
+    if (document.querySelector('dialog[open]')) {
+        return;
+    }
     let changeit = false;
     if (e.altKey && e.key === 'a') {        // Alt-A (Add button)
         e.preventDefault();
@@ -308,9 +347,10 @@ update_disp();
                                     class="btn btn-primary gap-0">△
                                     &nbsp;<u>C</u>hange
                                 </Link>
-                                <Link id="deletebutton" name="deletebutton" href='' @click="deleteClicked"
-                                    class="btn btn-outline btn-error">- &nbsp;Delete
-                                </Link>
+                                <button type="button" id="statusbutton" name="statusbutton" @click="openStatusModal"
+                                    class="btn btn-outline" :class="selectedIsActive ? 'btn-error' : 'btn-success'">
+                                    {{ selectedIsActive ? 'Deactivate' : 'Reactivate' }}
+                                </button>
                             </div>
                             <Link id="prefsbutton" :href='disp.preferencesurl'
                                 class="btn btn-primary gap-0 mr-32">⋈
@@ -325,5 +365,41 @@ update_disp();
                 </div>
             </div>
         </div>
+
+        <!-- Deactivate / Reactivate Modal -->
+        <dialog id="status_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="text-xl font-bold text-center">Confirm {{ selectedIsActive ? 'Deactivate' : 'Reactivate' }}</h3>
+                <p v-if="selectedIsActive" class="py-4 text-lg">
+                    Deactivate "{{ selectedUser?.name }}"? They will be logged out and will not be able to log in.
+                </p>
+                <p v-else class="py-4 text-lg">
+                    Reactivate "{{ selectedUser?.name }}"? They will be able to log in again.
+                </p>
+                <form method="dialog">
+                    <div class="mt-8 flex justify-center gap-10">
+                        <button class="btn" :class="selectedIsActive ? 'btn-error' : 'btn-success'" @click="submitStatus()">
+                            {{ selectedIsActive ? 'Deactivate' : 'Reactivate' }}
+                        </button>
+                        <button class="btn btn-primary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
+
+        <!-- Cannot Deactivate Modal -->
+        <dialog id="cannot_deactivate_modal" class="modal">
+            <div class="modal-box">
+                <h3 class="text-xl font-bold text-center">Cannot Deactivate User</h3>
+                <p class="py-4 text-lg text-center">{{ statusBlockReason }}</p>
+                <form method="dialog">
+                    <div class="mt-4 flex justify-center">
+                        <button class="btn btn-primary">OK</button>
+                    </div>
+                </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
     </AuthenticatedLayout>
 </template>

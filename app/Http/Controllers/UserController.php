@@ -4,14 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Contact;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class UserController extends Controller
 {
+    private const SELF_DEACTIVATE_MESSAGE = "Administrators can't deactivate their own account. Another administrator can deactivate it for you.";
+
+    private const LAST_ADMIN_MESSAGE = 'This is the last active administrator. Another administrator must be active before this user can be deactivated.';
+
     public function index(Request $request)
     {
         $show = min((int) $request->query('show', 10) ?: 10, 50);
@@ -29,7 +35,17 @@ class UserController extends Controller
 
         $users = $query->paginate($show);
 
-        return Inertia::render('Users/Index', compact('users', 'status'));
+        if ($users->isEmpty() && $users->currentPage() > 1) {
+            return redirect(route('users.index', ['page' => $users->lastPage(), 'show' => $show, 'status' => $status]));
+        }
+
+        $activeAdminCount = User::query()
+            ->where('firm_id', $request->user()->firm_id)
+            ->where('user_type', 'Admin')
+            ->active()
+            ->count();
+
+        return Inertia::render('Users/Index', compact('users', 'status', 'activeAdminCount'));
     }
 
     public function create()
@@ -174,19 +190,17 @@ class UserController extends Controller
             );
         }
 
-        // Confirm there's still an admin
-        if ($user->user_type == 'Admin' && $request->user_type != 'Admin') {     // was this user and admin before, but not now requested
-            $otherAdmins = User::where('firm_id', $user->firm_id)               // are there other admins for this firm?
-                ->where('user_type', 'Admin')
-                ->where('id', '<>', $user->id)
-                ->first();
+        if ($request->user()->is($user) && $request->account_status === 'I') {
+            throw ValidationException::withMessages(['account_status' => self::SELF_DEACTIVATE_MESSAGE]);
+        }
 
-            if (! $otherAdmins) {         // no other admins, so create a validation error
-                $verify_admin = $request->validate(
-                    ['user_type' => 'max:1'],
-                    ['user_type' => 'At least 1 Admin is required for each firm']
-                );
-            }
+        $isActiveAdmin = $user->isAdmin() && $contact->account_status === 'A';
+        $staysActiveAdmin = $request->user_type === 'Admin' && $request->account_status === 'A';
+
+        if ($isActiveAdmin && ! $staysActiveAdmin && ! $this->otherActiveAdminExists($user)) {
+            throw ValidationException::withMessages($request->user_type !== 'Admin'
+                ? ['user_type' => 'At least 1 active Admin is required for each firm']
+                : ['account_status' => self::LAST_ADMIN_MESSAGE]);
         }
 
         if ($request->change_email == true) {          // did the name or email change?
@@ -222,9 +236,7 @@ class UserController extends Controller
         $contact->save();
 
         if ($request->account_status === 'I') {
-            DB::table(config('session.table', 'sessions'))
-                ->where('user_id', $user->id)
-                ->delete();
+            $this->endSessions($user);
         }
 
         $user->firm->syncSubscriptionQuantity();
@@ -233,4 +245,67 @@ class UserController extends Controller
 
     } // end function update
 
+    /**
+     * Activate or deactivate a firm user from the Users index.
+     */
+    public function updateStatus(Request $request, User $user): RedirectResponse
+    {
+        $this->authorize('update', $user);
+
+        $validated = $request->validate([
+            'account_status' => ['required', Rule::in(['A', 'I'])],
+        ]);
+
+        $contact = Contact::where('user_id', $user->id)
+            ->where('firm_id', $user->firm_id)
+            ->firstOrFail();
+
+        if ($validated['account_status'] === 'I') {
+            if ($request->user()->is($user)) {
+                return back()->withErrors(['status' => self::SELF_DEACTIVATE_MESSAGE]);
+            }
+
+            if ($user->isAdmin() && $contact->account_status === 'A' && ! $this->otherActiveAdminExists($user)) {
+                return back()->withErrors(['status' => self::LAST_ADMIN_MESSAGE]);
+            }
+        }
+
+        $contact->account_status = $validated['account_status'];
+        $contact->save();
+
+        if ($validated['account_status'] === 'I') {
+            $this->endSessions($user);
+        }
+
+        $user->firm->syncSubscriptionQuantity();
+
+        return redirect(route('users.index', [
+            'page' => $request->input('page'),
+            'show' => $request->input('show'),
+            'status' => $request->input('status'),
+        ]));
+    }
+
+    /**
+     * Whether the firm has an active administrator other than the given user.
+     */
+    private function otherActiveAdminExists(User $user): bool
+    {
+        return User::query()
+            ->where('firm_id', $user->firm_id)
+            ->where('user_type', 'Admin')
+            ->where('id', '<>', $user->id)
+            ->active()
+            ->exists();
+    }
+
+    /**
+     * Log the user out of every session.
+     */
+    private function endSessions(User $user): void
+    {
+        DB::table(config('session.table', 'sessions'))
+            ->where('user_id', $user->id)
+            ->delete();
+    }
 } // end class

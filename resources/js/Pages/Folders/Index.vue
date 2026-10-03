@@ -87,7 +87,7 @@ const handleTheKepress = (e) => {
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                if (state.current_row < state.show - 1) {
+                if (state.current_row < props.folders.data.length - 1) {
                     state.current_row++;
                     changeit = true;
                 }

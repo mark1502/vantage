@@ -50,15 +50,6 @@ function submitForm3() {
 }
 
 
-function deleteClicked() {
-    let r = confirm("Do you want to delete this contact?\n\nClick Ok to delete");
-    if (r == true) {
-        form.delete("/contacts/" + props.contact.id, {
-        });
-    }
-}
-
-
 function handleEsc(e) {
     if (e.key === 'Escape') {
         router.get('/users?page=' + form3.current_page + '&show=' + form3.show)

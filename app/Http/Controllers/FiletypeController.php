@@ -187,7 +187,7 @@ class FiletypeController extends Controller
         $removed_folders = $this->check4RemovedFolder($request, $filetype);
 
         if ($removed_folders) {
-            return back()->withErrors(['existing_entries' => $removed_folders])->withInput();
+            return back()->withErrors(['existing_entries' => implode(', ', $removed_folders)])->withInput();
         }
 
         // if( true ) {
@@ -245,55 +245,28 @@ class FiletypeController extends Controller
 
     public function check4RemovedFolder($request, $filetype)
     {
+        $folders = [
+            'has_correspondence' => [1, 'correspondence'],
+            'has_pleadings' => [2, 'pleadings'],
+            'has_discovery' => [3, 'discovery'],
+            'has_documents' => [4, 'documents'],
+            'has_memos' => [5, 'memos'],
+            'has_events' => [6, 'events'],
+            'has_todo' => [7, 'todo'],
+            'has_phone' => [8, 'phone'],
+            'has_medrecs' => [9, 'medrecs'],
+            'has_medbills' => [10, 'medbills'],
+            'has_costs' => [11, 'costs'],
+            'enable_file_SOL' => [99, 'enable_file_SOL'],
+        ];
+
         $removed_folders = [];
 
-        if ($filetype->has_correspondence === 1 && $request->has_correspondence === false) {
-            if ($this->entriesFound($request, $filetype->id, 1) === true) {
-                $removed_folders[] = 'correspondence';
-            }
-        } elseif ($filetype->has_pleadings === 1 && $request->has_pleadings === false) {
-            if ($this->entriesFound($request, $filetype->id, 2) === true) {
-                $removed_folders[] = 'pleadings';
-            }
-        } elseif ($filetype->has_discovery === 1 && $request->has_discovery === false) {
-            if ($this->entriesFound($request, $filetype->id, 3) === true) {
-                $removed_folders[] = 'discovery';
-            }
-        } elseif ($filetype->has_documents === 1 && $request->has_documents === false) {
-            if ($this->entriesFound($request, $filetype->id, 4) === true) {
-                $removed_folders[] = 'documents';
-            }
-        } elseif ($filetype->has_memos === 1 && $request->has_memos === false) {
-            if ($this->entriesFound($request, $filetype->id, 5) === true) {
-                $removed_folders[] = 'memos';
-            }
-        } elseif ($filetype->has_events === 1 && $request->has_events === false) {
-            if ($this->entriesFound($request, $filetype->id, 6) === true) {
-                $removed_folders[] = 'events';
-            }
-        } elseif ($filetype->has_todo === 1 && $request->has_todo === false) {
-            if ($this->entriesFound($request, $filetype->id, 7) === true) {
-                $removed_folders[] = 'todo';
-            }
-        } elseif ($filetype->has_phone === 1 && $request->has_phone === false) {
-            if ($this->entriesFound($request, $filetype->id, 8) === true) {
-                $removed_folders[] = 'phone';
-            }
-        } elseif ($filetype->has_medrecs === 1 && $request->has_medrecs === false) {
-            if ($this->entriesFound($request, $filetype->id, 9) === true) {
-                $removed_folders[] = 'medrecs';
-            }
-        } elseif ($filetype->has_medbills === 1 && $request->has_medbills === false) {
-            if ($this->entriesFound($request, $filetype->id, 10) === true) {
-                $removed_folders[] = 'medbills';
-            }
-        } elseif ($filetype->has_costs === 1 && $request->has_costs === false) {
-            if ($this->entriesFound($request, $filetype->id, 11) === true) {
-                $removed_folders[] = 'costs';
-            }
-        } elseif ($filetype->has_enable_file_SOL === 1 && $request->has_enable_file_SOL === false) {
-            if ($this->entriesFound($request, $filetype->id, 99) === true) {
-                $removed_folders[] = 'enable_file_SOL';
+        foreach ($folders as $field => [$folder_id, $folder_name]) {
+            if ($filetype->{$field} === 1 && $request->{$field} === false) {
+                if ($this->entriesFound($request, $filetype->id, $folder_id) === true) {
+                    $removed_folders[] = $folder_name;
+                }
             }
         }
 

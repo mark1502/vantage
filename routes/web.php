@@ -54,6 +54,7 @@ Route::middleware('auth', 'welcomed')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    Route::patch('/users/{user}/status', [UserController::class, 'updateStatus'])->name('users.status')->middleware('admin');
     Route::resource('users', UserController::class)->names('users')->middleware('admin');
     Route::resource('contacts', ContactController::class)->names('contacts');
     Route::patch('/contacts/{contact}/restore', [ContactController::class, 'restore'])->name('contacts.restore');
