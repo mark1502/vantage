@@ -7,6 +7,7 @@ use App\Models\Entry;
 use App\Models\Entrytype;
 use App\Models\File;
 use App\Models\Preference;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -32,11 +33,7 @@ class CalendarController extends Controller
             ->orderBy('display_last_first')
             ->get();
 
-        $event_types = Entrytype::select('id', 'name')              // get all event types for the firm
-            ->where('firm_id', $firm_id)
-            ->where('folder_id', 6)
-            ->orderBy('name', 'asc')
-            ->get();
+        $event_types = $this->eventTypes($firm_id);                 // get all event types for the firm (deleted ones carry faux_deleted)
 
         $bg_colors = Preference::where('firm_id', $firm_id)         // get the bg event colors for the firm
             ->where('name', 'event_bg')
@@ -70,6 +67,10 @@ class CalendarController extends Controller
         $firmId = $request->user()->firm_id;
         $reservedFileId = config('documents.reserved_file_id');
 
+        $currentEntrytypeId = ($request->action === 'edit' && $request->entry_id)
+            ? Entry::whereKey($request->entry_id)->value('entrytype_id')
+            : null;
+
         $verified = $request->validate(
             ['formtype' => 'string|max:20|nullable',
                 'action' => 'string|max:10|nullable',
@@ -79,7 +80,10 @@ class CalendarController extends Controller
                 })],
                 'folder_id' => ['numeric', 'integer', 'required', Rule::exists('folders', 'id')],
                 'entry_id' => ['numeric', 'integer', 'nullable', Rule::exists('entries', 'id')->where('firm_id', $firmId)],
-                'entrytype_id' => ['numeric', 'integer', 'required', Rule::exists('entrytypes', 'id')->where('firm_id', $firmId)],
+                'entrytype_id' => ['numeric', 'integer', 'required', Rule::exists('entrytypes', 'id')
+                    ->where('firm_id', $firmId)
+                    ->where(fn ($query) => $query->where('faux_deleted', false)
+                        ->when($currentEntrytypeId, fn ($q, $id) => $q->orWhere('id', $id)))],
                 'from_contact_id' => ['numeric', 'integer', 'required', Rule::exists('contacts', 'id')->where('firm_id', $firmId)],
                 'note' => 'string|max:5000|nullable',
                 'all_day' => 'boolean',
@@ -88,7 +92,8 @@ class CalendarController extends Controller
             [
                 'file_id' => 'Related file is not specified',
                 'folder_id' => 'Invalid Folder ID',
-                'entrytype_id' => 'Event type is required',
+                'entrytype_id.required' => 'Event type is required',
+                'entrytype_id.exists' => 'That event type has been deleted. Please choose another.',
                 'from_contact_id' => 'This field is required',
             ]);
 
@@ -380,39 +385,17 @@ class CalendarController extends Controller
         return $files_found;
     }
 
-    public function add_new_event_type(Request $request)
+    /**
+     * All of the firm's event types (folder 6), including faux-deleted ones, flag included.
+     *
+     * @return Collection<int, Entrytype>
+     */
+    private function eventTypes(int $firmId): Collection
     {
-        $verified = $request->validate(
-            ['name' => 'required|string|max:255',
-                'id' => 'nullable|numeric|integer',
-                'folder_id' => 'nullable|numeric|integer',
-                'isChosen' => 'boolean|nullable',
-                'chosen_name' => 'nullable|string|max:255',
-                'lookup' => 'boolean|nullable',
-            ]);
-
-        if ($request->name != $request->chosen_name) {
-            $new_entrytype = new Entrytype;
-            $new_entrytype->firm_id = $request->user()->firm_id;
-            $new_entrytype->folder_id = 6;  // 6 for Events folder
-            $new_entrytype->name = $request->name;
-            $new_entrytype->save();
-        } else {
-            $new_entrytype = Entrytype::where('firm_id', $request->user()->firm_id)
-                ->where('folder_id', 6)
-                ->where('name', $request->name)
-                ->first();
-        }
-
-        $event_types = Entrytype::select('id', 'name')
-            ->where('firm_id', $request->user()->firm_id)
+        return Entrytype::select('id', 'name', 'faux_deleted')
+            ->where('firm_id', $firmId)
             ->where('folder_id', 6)
-            ->orderBy('name', 'asc')
+            ->orderBy('name')
             ->get();
-
-        return Inertia::render('Calendar/Index', [
-            'event_types' => fn () => $event_types,
-            'new_event_type' => $new_entrytype,
-        ]);
     }
 } // end class

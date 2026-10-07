@@ -1,12 +1,14 @@
 <script setup>
-    import { nextTick, watch } from 'vue';
+    import { ref, watch } from 'vue';
     import { useForm } from '@inertiajs/vue3';
     import InputError from "@/Components/InputError.vue";
     import InputLabel from "@/Components/InputLabel.vue";
     import TextInput from "@/Components/TextInput.vue";
     import axios from 'axios';
 
-    const props = defineProps(['id']);
+    const props = defineProps({ id: String, show: Boolean });
+    const emit = defineEmits(['added', 'close']);
+    const dialogRef = ref(null);
     let dialog_id = props.id + '_dialog';
 
     const theForm = useForm({
@@ -30,15 +32,9 @@
             display_last_first: ""
             });
 
-    let added_contact_obj = defineModel('added_contact_obj');             // define the model for the object used on the parent form
-
-
-    watch( added_contact_obj.value, (setting) => {                          // watch added_contact_obj, and display or close modal based on value of display_modal
-        if( setting.display_modal === true ) {
-            document.getElementById(dialog_id).showModal();
-        } else {
-            document.getElementById(dialog_id).close();
-        }
+    watch( () => props.show, (show) => {                                    // open or close the dialog when the parent toggles show
+        if( show ) dialogRef.value?.showModal();
+        else dialogRef.value?.close();
     });
 
     function setModalErrors( errors ) {
@@ -82,16 +78,9 @@
             axios.post('/new_contact_modal', theForm )                          // post the form to add the new contact to the db
                 .then( function (response) {
                     if (response.data.added_contact_name != '' && response.data.added_contact_id != 0) {    // on success, if added name and id are returned
-
-                        added_contact_obj.value.display_modal = false;          // close the modal
                         theForm.reset();                                        // clear the form
-
-                        nextTick(() => {                                        // on nextTick, copy contact_id and name to the parent form, mark accept and added as true
-                            added_contact_obj.value.id = response.data.added_contact_id;
-                            added_contact_obj.value.name = response.data.added_contact_name;
-                            added_contact_obj.value.accept = true;
-                            added_contact_obj.value.new_contact_added = true;   // also record that a new contact was added
-                        });
+                        emit('added', { id: response.data.added_contact_id, name: response.data.added_contact_name });
+                        emit('close');                                          // close the modal
                     } else console.log('error - contact name or id was not returned from server - clicked_contactModal_button'); // NOTE: should add error handling/logging here
                 })
                 .catch(function (error) {
@@ -100,14 +89,14 @@
 
         } else if( button === 'cancel' ) {                  // if cancel button clicked, clear form and close modal
             theForm.reset();
-            added_contact_obj.value.display_modal = false;
+            emit('close');
         }
     }
 
 </script>
 
 <template>
-    <dialog :id="dialog_id" class="modal">
+    <dialog ref="dialogRef" :id="dialog_id" class="modal" @close="emit('close')">
         <div class="modal-box w-11/12 max-w-6xl z-300">
             <h3 class="font-bold text-2xl text-center">Add New Contact</h3>
             <form :id="props.id" name="form4contact" class="max-w-5xl mx-auto mt-4" autocomplete="off">

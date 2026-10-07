@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreContactRequest;
 use App\Http\Requests\StoreEntryRequest;
 use App\Models\Contact;
 use App\Models\ContactRole;
@@ -12,16 +13,22 @@ use App\Models\Filetype;
 use App\Models\Firm;
 use App\Models\Folder;
 use App\Models\RecentFile;
-use App\Models\Response;
+use App\Services\EntryResponseService;
+use App\Services\FirmLookupService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class EntryController extends Controller
 {
+    public function __construct(
+        private EntryResponseService $responses,
+        private FirmLookupService $lookups,
+    ) {}
+
     public function index(Request $request, $file_id)
     {
         $firmId = $request->user()->firm_id;
@@ -96,11 +103,11 @@ class EntryController extends Controller
                 'view_folder_id' => $viewfolder_id,                                                                 // id of folder being viewed
                 'view_folder_name' => $filepart,                                                                     // resolved folder name (may differ from URL if defaulted)
                 'expecting_response' => $this->getExpectingResponse($file->id, $firmId),                       // file entries expecting a response
-                'firm_members' => $this->getFirmMembers($firmId, $refresh),                                   // firm members (caller's firm, not the file owner — matters for the shared reserved file)
-                'attorneys' => $this->getAttorneys($firmId, $refresh),                                        // attorneys
+                'firm_members' => $refresh === 'full' ? $this->lookups->firmMembers($firmId) : [],                   // firm members (caller's firm, not the file owner — matters for the shared reserved file)
+                'attorneys' => $refresh === 'full' ? $this->lookups->attorneys($firmId) : [],                        // attorneys
                 'filetypes' => $this->getFileTypes($firmId, $refresh),                                // all the firm's filetypes (for the file edit and the droplist)
-                'folders' => $this->getFirmFolders($firmId, $refresh, $request->new_entrytype_added),         // folders (with their entrytypes)
-                'file_contacts' => $this->getFileContacts($file->id, $firmId, $refresh, $request->new_contact_added),  // all contacts in this file
+                'folders' => $refresh === 'full' ? $this->lookups->folders($firmId) : [],                            // folders (with their entrytypes)
+                'file_contacts' => $this->getFileContacts($file->id, $firmId, $refresh),  // all contacts in this file
                 'assigned_attorney_id' => $assignedAttorney?->contact_id,
                 'client_name' => $clientContactRole?->contact?->display_last_first ?? '',
                 'contact_role_ids' => $this->getContactRoleIds($file->id, $firmId),
@@ -196,15 +203,15 @@ class EntryController extends Controller
             $entry->amount = empty($request->amount) ? null : $request->amount;
         }
 
-        $entry->save();
+        $respondsToId = $request->filled('is_response_to') ? (int) $request->is_response_to : null;
 
-        // Handle pending contact roles
-        $this->savePendingContactRoles($request, $file->id);
+        DB::transaction(function () use ($entry, $request, $file, $respondsToId) {
+            $entry->save();
 
-        // if this is a response to another entry, handle it
-        if ($request->is_a_response != 'N' && ! empty($request->is_response_to)) {
-            $this->handleThisResponse($request->is_a_response, $entry->id, $request->is_response_to, $entry->date1, $create = true);
-        }
+            $this->responses->savePendingContactRoles($file->id, $request->pending_contact_roles);
+
+            $this->responses->sync($entry, $request->is_a_response, $respondsToId, (string) $entry->date1);
+        });
 
         $filepart = $this->get_folder_info($request->folder_id, 'name');
 
@@ -303,7 +310,6 @@ class EntryController extends Controller
             $entry->to_contact_id = empty($request->to_contact_id) ? null : $request->to_contact_id;    // if empty, use null, otherwise use the id
             // NOTE: change later to put FILE for empty to contact (To: FILE)
             $entry->date_response_expected = $request->date_response_expected;
-            $entry->expecting_response = $this->responseExpectedTF($entry->id, $request->date_response_expected);
         }
 
         $entry->note = $request->note;
@@ -315,7 +321,19 @@ class EntryController extends Controller
 
         // Firm ownership is enforced upstream by StoreEntryRequest::authorize() (EntryPolicy::update),
         // so any request reaching this point already belongs to the entry's firm.
-        $entry->save();
+        $respondsToId = $request->filled('is_response_to') ? (int) $request->is_response_to : null;
+
+        DB::transaction(function () use ($entry, $request, $respondsToId) {
+            $entry->save();
+
+            if ($entry->folder_id !== 6) {
+                $this->responses->refreshExpecting($entry->id);
+            }
+
+            $this->responses->savePendingContactRoles($entry->file_id, $request->pending_contact_roles);
+
+            $this->responses->sync($entry, $request->is_a_response, $respondsToId, (string) $entry->date1);
+        });
 
         // // Check if from_contact changed and cleanup old contact role
         // if ($entry->wasChanged('from_contact_id') && $entry->getOriginal('from_contact_id')) {
@@ -326,21 +344,12 @@ class EntryController extends Controller
         //     $this->cleanupContactRole($entry->file_id, $entry->getOriginal('to_contact_id'));
         // }
 
-        // Handle pending contact roles
-        $this->savePendingContactRoles($request, $entry->file_id);
-
         // if the initial from or to contact is no longer in this entry, check if they're still in the file
         if ($hold_from_id !== $entry->from_contact_id && $hold_from_id !== $entry->to_contact_id) {
             $this->checkInFile($hold_from_id, $entry->file_id);
         }
         if ($hold_to_id !== $entry->from_contact_id && $hold_to_id !== $entry->to_contact_id) {
             $this->checkInFile($hold_to_id, $entry->file_id);
-        }
-
-        if ($request->is_a_response == 'N') {
-            $this->handleIsNoResponse($entry->id);
-        } elseif ($request->is_a_response != 'N' && ! empty($request->is_response_to)) {
-            $this->handleThisResponse($request->is_a_response, $entry->id, $request->is_response_to, $entry->date1, $create = false);
         }
 
         if ($request->comeback == true) {
@@ -370,8 +379,10 @@ class EntryController extends Controller
             $fromContactId = $entry->from_contact_id;
             $toContactId = $entry->to_contact_id;
 
-            $this->handleIsNoResponse($entry->id);  // delete the response for this entry
-            $entry->delete();                       // delete this entry
+            DB::transaction(function () use ($entry) {
+                $this->responses->remove($entry);   // delete the response for this entry
+                $entry->delete();                   // delete this entry
+            });
 
             // Clean up contact roles for contacts no longer referenced in any entry
             if ($fromContactId) {
@@ -430,195 +441,8 @@ class EntryController extends Controller
         return $sendback;
     }
 
-    public function contact_add_modal(Request $request)
+    public function new_contact_modal(StoreContactRequest $request)
     {
-        // dd($request);
-        $verified1 = $request->validate(
-            ['title' => ['required', Rule::in(['Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Hon.', 'Co.'])],
-                // 'form_for' => Rule::in(['from', 'to']),
-            ]);
-
-        if ($request->title === 'Co.') {
-            $verified2 = $request->validate([
-                'company' => 'required|max:255',
-                'first_name' => 'nullable|max:255',
-                'last_name' => 'nullable|max:255',
-            ]);
-        } else {
-            $verified2 = $request->validate([
-                'company' => 'nullable|max:255',
-                'first_name' => 'required|max:255',
-                'last_name' => 'required|max:255',
-            ]);
-        }
-
-        $verified3 = $request->validate([
-            'middle_name' => 'nullable|max:255',
-            'srjr' => 'nullable|max:255',
-            'esqphd' => 'nullable|max:255',
-            'business_title' => 'nullable|max:255',
-            'address' => 'nullable|max:255',
-            'email' => 'nullable|email|max:255',
-            'email_alt' => 'nullable|email|max:255',
-            'work_phone' => 'nullable|max:255',
-            'cell_phone' => 'nullable|max:255',
-            'home_phone' => 'nullable|max:255',
-            'fax_phone' => 'nullable|max:255',
-            'other_phone' => 'nullable|max:255',
-            'display_name' => ['required', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id)],
-            'display_last_first' => 'max:255',
-        ],
-            [
-                'display_name' => 'The names in your contact list must be unique, and the name '.$request->display_name.' is already in your contact list.  To distinguish this contact, try using a middle initial or appending a number in parentheses to the last name.',
-            ]);
-
-        // Passed validations, so add new contact
-        $contact = new Contact;
-        $contact->title = $request->title;
-        $contact->first_name = $request->first_name;
-        $contact->middle_name = $request->middle_name;
-        $contact->last_name = $request->last_name;
-        $contact->srjr = $request->srjr;
-        $contact->esqphd = $request->esqphd;
-        $contact->company = $request->company;
-        $contact->business_title = $request->business_title;
-        $contact->address = $request->address;
-        $contact->email = $request->email;
-        $contact->email_alt = $request->email_alt;
-        $contact->work_phone = $request->work_phone;
-        $contact->cell_phone = $request->cell_phone;
-        $contact->home_phone = $request->home_phone;
-        $contact->fax_phone = $request->fax_phone;
-        $contact->other_phone = $request->other_phone;
-        $contact->display_name = $request->display_name;
-        $contact->display_last_first = $request->display_last_first;
-
-        $contact->firm_id = $request->user()->firm_id;
-
-        $contact->save();
-
-        return inertia::render('Entries/Index', ['added_contact_name' => $contact->display_last_first,
-            'added_contact_id' => $contact->id,
-            'form_for' => $request->form_for,
-        ]);
-    } // end function
-
-    public function contact_add_modal2(Request $request)
-    {
-        // dd($request);
-        $verified1 = $request->validate(
-            ['title' => ['required', Rule::in(['Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Hon.', 'Co.'])],
-                // 'form_for' => Rule::in(['from', 'to']),
-            ]);
-
-        if ($request->title === 'Co.') {
-            $verified2 = $request->validate([
-                'company' => 'required|max:255',
-                'first_name' => 'nullable|max:255',
-                'last_name' => 'nullable|max:255',
-            ]);
-        } else {
-            $verified2 = $request->validate([
-                'company' => 'nullable|max:255',
-                'first_name' => 'required|max:255',
-                'last_name' => 'required|max:255',
-            ]);
-        }
-
-        $verified3 = $request->validate([
-            'middle_name' => 'nullable|max:255',
-            'srjr' => 'nullable|max:255',
-            'esqphd' => 'nullable|max:255',
-            'business_title' => 'nullable|max:255',
-            'address' => 'nullable|max:255',
-            'email' => 'nullable|email|max:255',
-            'email_alt' => 'nullable|email|max:255',
-            'work_phone' => 'nullable|max:255',
-            'cell_phone' => 'nullable|max:255',
-            'home_phone' => 'nullable|max:255',
-            'fax_phone' => 'nullable|max:255',
-            'other_phone' => 'nullable|max:255',
-            'display_name' => ['required', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id)],
-            'display_last_first' => 'max:255',
-        ],
-            [
-                'display_name' => 'The names in your contact list must be unique, and the name '.$request->display_name.' is already in your contact list.  To distinguish this contact, try using a middle initial or appending a number in parentheses to the last name.',
-            ]);
-
-        // Passed validations, so add new contact
-        $contact = new Contact;
-        $contact->title = $request->title;
-        $contact->first_name = $request->first_name;
-        $contact->middle_name = $request->middle_name;
-        $contact->last_name = $request->last_name;
-        $contact->srjr = $request->srjr;
-        $contact->esqphd = $request->esqphd;
-        $contact->company = $request->company;
-        $contact->business_title = $request->business_title;
-        $contact->address = $request->address;
-        $contact->email = $request->email;
-        $contact->email_alt = $request->email_alt;
-        $contact->work_phone = $request->work_phone;
-        $contact->cell_phone = $request->cell_phone;
-        $contact->home_phone = $request->home_phone;
-        $contact->fax_phone = $request->fax_phone;
-        $contact->other_phone = $request->other_phone;
-        $contact->display_name = $request->display_name;
-        $contact->display_last_first = $request->display_last_first;
-
-        $contact->firm_id = $request->user()->firm_id;
-
-        $contact->save();
-
-        $sendback = ['added_contact_name' => $contact->display_last_first,
-            'added_contact_id' => $contact->id,
-        ];
-
-        return $sendback;
-
-    } // end function
-
-    public function new_contact_modal(Request $request)
-    {
-        $verified1 = $request->validate(
-            ['title' => ['required', Rule::in(['Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Hon.', 'Co.'])],
-            ]);
-
-        if ($request->title === 'Co.') {
-            $verified2 = $request->validate([
-                'company' => 'required|max:255',
-                'first_name' => 'nullable|max:255',
-                'last_name' => 'nullable|max:255',
-            ]);
-        } else {
-            $verified2 = $request->validate([
-                'company' => 'nullable|max:255',
-                'first_name' => 'required|max:255',
-                'last_name' => 'required|max:255',
-            ]);
-        }
-
-        $verified3 = $request->validate([
-            'middle_name' => 'nullable|max:255',
-            'srjr' => 'nullable|max:255',
-            'esqphd' => 'nullable|max:255',
-            'business_title' => 'nullable|max:255',
-            'address' => 'nullable|max:255',
-            'email' => 'nullable|email|max:255',
-            'email_alt' => 'nullable|email|max:255',
-            'work_phone' => 'nullable|max:255',
-            'cell_phone' => 'nullable|max:255',
-            'home_phone' => 'nullable|max:255',
-            'fax_phone' => 'nullable|max:255',
-            'other_phone' => 'nullable|max:255',
-            'display_name' => ['required', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id)],
-            'display_last_first' => 'max:255',
-        ],
-            [
-                'display_name' => 'The names in your contact list must be unique, and the name '.$request->display_name.
-                                  ' is already in your contact list.  To distinguish this contact, try using a middle initial or appending a number in parentheses to the last name.',
-            ]);
-
         // Validations ok, so add new contact
 
         $contact = new Contact;
@@ -765,97 +589,10 @@ class EntryController extends Controller
         } // endIf ! file atty or client
     }
 
-    public function handleIsNoResponse($entry_id_in)
+    // Get all contacts for a file, only if full refresh
+    public function getFileContacts($file_id, $firmId, $refresh = 'full')
     {
-        $found_response = Response::where('entry_id', $entry_id_in)->first();       // look for a response from this entry
-
-        if ($found_response) {                                                    // if a response was found
-
-            if ($found_response->response_type === 'F') {                           // if this had been a full response, so update the related entry to again expect a response
-
-                $related_entry = Entry::where('id', $found_response->response_to)->first();
-
-                if ($related_entry && $related_entry->date_response_expected) {    // found the related entry and it was expecting a response by a date
-                    $related_entry->expecting_response = true;                      // so, now it is expecting a response again
-                    $related_entry->save();
-                }
-            }
-
-            $found_response->delete();      // now, delete response from this entry, because it is now not a response
-        }
-    }
-
-    public function handleThisResponse($response_type, $entry_from, $response_to, $response_date, $create = false)
-    {
-        if ($create === false) {                                                       // if create is false, this is not a new entry - look for a response record
-            $found_response = Response::where('entry_id', $entry_from)->first();
-        }
-
-        if ($create === true || ($create === false && empty($found_response))) {     // if this is for a new entry being created or an existing one without a found response
-
-            $new_response = new Response;                                               // create a new response for this entry
-
-            $new_response->entry_id = $entry_from;                                      // entry_id that the response is from
-            $new_response->response_to = $response_to;                                  // entry_id that the response is to
-            $new_response->response_date = $response_date;                              // response date
-            $new_response->response_type = $response_type;                              // Full or Partial response
-
-            $new_response->save();
-        } elseif ($create == false) {                                                // else if this is an existing entry which has a found response
-            if ($found_response->response_to == $response_to) {                        // if found response is for the same related, then update it
-
-                $hold_type = $found_response->response_type;                            // hold the found response type
-
-                $found_response->response_date = $response_date;
-                $found_response->response_type = $response_type;                        // Full or Partial response
-                $found_response->save();
-
-                if ($hold_type == 'F' && $response_type == 'P') {                      // And, if the prior response was full, but now it's partial, update the related entry to expect a response
-
-                    $related_entry = Entry::where('id', $response_to)->first();
-
-                    if ($related_entry) {
-                        $related_entry->expecting_response = true;
-                        $related_entry->save();
-                    }
-                } // end if was F, but now P
-            } elseif ($found_response->response_to != $response_to) {                 // else if the found response was to a different related entry (this entry now responds to a different entry)
-
-                if ($found_response->response_type == 'F') {                            // if the found response was a 'Full Response', reset the prior related entry to again expect a response
-
-                    $prior_entry = Entry::where('id', $found_response->response_to)->first();  // get the prior related entry and reset it to expecting
-
-                    if ($prior_entry && $prior_entry->date_response_expected && $prior_entry->expecting_response === false) {   // prior entry has response date, but not expecting a response
-                        $prior_entry->expecting_response = true;    // so now it is expecting a response again
-                        $prior_entry->save();
-                    }
-                } // end if prior response was full
-
-                // Now update the found response
-                $found_response->response_to = $response_to;
-                $found_response->response_date = $response_date;
-                $found_response->response_type = $response_type;   // Full or Partial response
-                $found_response->save();
-            } // end else found prior response was NOT to the same related entry
-        }
-
-        // Now, if this is a full response, update the related entry
-        if ($response_type == 'F') {
-
-            $related_entry = Entry::where('id', $response_to)->first();
-
-            if ($related_entry) {
-                $related_entry->expecting_response = false;
-                $related_entry->save();
-            }
-        }
-
-    } // end handleThisResponse function
-
-    // Get all contacts for a file, only if full refresh or new contact added
-    public function getFileContacts($file_id, $firmId, $refresh = 'full', $new_contact_added = false)
-    {
-        if ($refresh === 'full' || $new_contact_added === true) {
+        if ($refresh === 'full') {
             $from_contacts = DB::table('entries')->select('from_contact_id')->where('file_id', $file_id)->where('firm_id', $firmId)->distinct();       // get all "from" contact ids for this firm's entries on the file (firm filter is reserved-file safety; no-op for normal files)
             $to_contacts = DB::table('entries')->select('to_contact_id')->where('file_id', $file_id)->where('firm_id', $firmId)->distinct();           // get all "to" contact ids for this firm's entries on the file
 
@@ -870,62 +607,6 @@ class EntryController extends Controller
         }
 
         return $file_contacts;
-    }
-
-    // Get all folders for a firm, only if full refresh or new entrytype added
-    public function getFirmFolders($thefirmid, $refresh = 'full', $new_entrytype_added = false)
-    {
-        if ($refresh === 'full' || $new_entrytype_added === true) {                                                // if full refresh or new entrytype added, get folders with their entrytypes
-            $folders = Folder::query()
-                ->where('id', '>', '0')                                                                     // get all the folders with their entrytypes for this firm
-                ->with(['entrytypes' => function ($query) use ($thefirmid) {
-                    $query->select('id', 'folder_id', 'name')
-                        ->where('firm_id', $thefirmid)
-                        ->orderBy('name');
-                }])
-                ->get();
-        } else {
-            $folders = [];                                                                                          // else, return empty array
-        }
-
-        return $folders;
-    }
-
-    // Get all firm members for a firm, only if full refresh
-    public function getFirmMembers($thefirmid, $refresh = 'full')
-    {
-        if ($refresh === 'full') {                                    // if full refresh, get all current firm members
-            $firm_members = Contact::query()
-                ->select('display_last_first', 'id', 'account_status', 'firm_role')
-                ->where('firm_id', $thefirmid)
-                ->where('is_firm_member', true)
-                ->where('account_status', 'A')
-                ->orderBy('display_last_first')
-                ->get();
-        } else {                                                      // else, return empty array
-            $firm_members = [];
-        }
-
-        return $firm_members;
-    }
-
-    // Get all attorneys for a firm, only if full refresh
-    public function getAttorneys($thefirmid, $refresh = 'full')
-    {
-        if ($refresh === 'full') {
-            $attorneys = Contact::query()
-                ->select('display_last_first', 'id', 'account_status', 'firm_role')
-                ->where('firm_id', $thefirmid)
-                ->where('is_firm_member', true)
-                ->where('account_status', 'A')
-                ->where('firm_role', 'Attorney')
-                ->orderBy('display_last_first')
-                ->get();
-        } else {
-            $attorneys = [];  // else, return empty array
-        }
-
-        return $attorneys;
     }
 
     // Get all file types for a firm, only if full refresh
@@ -957,43 +638,6 @@ class EntryController extends Controller
             ->get();
 
         return $expecting_entries;
-    }
-
-    // return false if no response date is specified, or if the entry already has received a full response
-    public function responseExpectedTF($entry_id, $date_response_expected = null)
-    {
-        if ($date_response_expected == null or empty($date_response_expected)) {
-            $sendback = false;
-        }            // no response expected date, so false
-        else {
-            $aResponse = Response::where('response_to', $entry_id)->where('response_type', 'F')->first();   // look for a full response
-            if ($aResponse) {
-                $sendback = false;
-            }                                                                 // full response found, so return false (response expected is false)
-            else {
-                $sendback = true;
-            }                                                                              // no full response found, so return true - a response is still expected
-        }
-
-        return $sendback;
-    }
-
-    public function savePendingContactRoles(Request $request, $file_id)
-    {
-        if (! empty($request->pending_contact_roles) && is_array($request->pending_contact_roles)) {
-            foreach ($request->pending_contact_roles as $pendingRole) {
-                ContactRole::firstOrCreate(
-                    [
-                        'file_id' => $file_id,
-                        'contact_id' => $pendingRole['contact_id'],
-                        'role' => $pendingRole['role'],
-                    ],
-                    [
-                        'role_label' => $pendingRole['role_label'] ?? ContactRole::ROLE_LABELS[$pendingRole['role']] ?? $pendingRole['role'],
-                    ]
-                );
-            }
-        }
     }
 
     public function getFileContactRoles($file_id, $firmId, $refresh = 'full')
@@ -1052,37 +696,18 @@ class EntryController extends Controller
         }
     }
 
-    public function add_new_entrytype(Request $request)
+    public function add_new_entrytype(Request $request): JsonResponse
     {
-        $verified = $request->validate(
+        $request->validate(
             ['name' => 'required|string|max:255',
-                'id' => 'nullable|numeric|integer',
-                'folder_id' => ['required', 'numeric', 'integer', Rule::exists('folders', 'id')],
-                'isChosen' => 'boolean|nullable',
-                'chosen_name' => 'nullable|string|max:255',
-                'lookup' => 'boolean|nullable',
+                'folder_id' => 'required|numeric|integer|exists:folders,id',
             ],
             [
                 'folder_id' => 'Invalid folder identification',
             ]);
 
-        if ($request->name != $request->chosen_name) {
-            $new_entrytype = new Entrytype;
-            $new_entrytype->firm_id = $request->user()->firm_id;
-            $new_entrytype->folder_id = $request->folder_id;
-            $new_entrytype->name = $request->name;
-            $new_entrytype->save();
-        } else {
-            $new_entrytype = Entrytype::where('firm_id', $request->user()->firm_id)
-                ->where('folder_id', $request->folder_id)
-                ->where('name', $request->name)
-                ->first();
-        }
+        $entrytype = $this->lookups->findOrRestoreEntrytype($request->user()->firm_id, (int) $request->folder_id, trim($request->name));
 
-        return Inertia::render('Entries/Index', [
-            'folders' => fn () => $this->getFirmFolders($request->user()->firm_id),      // no 2nd parameter forces a new query
-            'new_entrytype' => $new_entrytype,
-        ]);
-
+        return response()->json($entrytype->only('id', 'folder_id', 'name', 'faux_deleted'));
     }
 }

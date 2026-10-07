@@ -4,7 +4,7 @@
     const contact_id = defineModel('contact_id');
     const contact_name = defineModel('contact_name');
     const the_mode = defineModel('the_mode');
-    let added_contact_obj = defineModel('added_contact_obj');
+    const emit = defineEmits(['add-contact']);
 
     const props = defineProps([ 'id', 'folder_id', 'next_field', 'state', 'firm_members', 'file_contacts' ]);
 
@@ -30,21 +30,6 @@
         (props.folder_id > 4 && props.folder_id < 8) ||
         (props.id === 'entry_to' && props.folder_id == 8)
     );
-
-        // watch added_contact_obj - if accept is true && the field matches the id on the entry form, then copy the info to the contact_id and contact_name
-    watch( added_contact_obj.value, ( newValue ) => {                                        // #8: removed waitForTicks(4) — the single nextTick is sufficient
-        if( newValue.accept === true && newValue.field === props.id ) {       // props.id is the id of the input on the entryform (entry_from or entry_to)
-            contact_id.value = newValue.id;
-            contact_name.value = newValue.name;
-
-            nextTick(() => {
-                newValue.id = 0;
-                newValue.name = '';
-                newValue.field = '';
-                newValue.accept = false;
-            });
-        }
-    });
 
     watch( contact_name, (name_in) => {             // watch the entry form name, which is set in parent (update_disp) and update this component value
         nextTick(() => {
@@ -103,8 +88,7 @@
 
 
     function clicked_AddNewContact() {                          // user clicked button to add a new contact
-        added_contact_obj.value.field = props.id;                   // set the object field to the id of the input field
-        added_contact_obj.value.display_modal = true;               // show the modal
+        emit('add-contact');
     }
 
 

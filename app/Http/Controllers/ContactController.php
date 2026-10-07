@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreContactRequest;
+use App\Http\Requests\UpdateContactRequest;
 use App\Models\Contact;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class ContactController extends Controller
@@ -48,40 +49,9 @@ class ContactController extends Controller
         return inertia::render('Contacts/Create');
     }
 
-    public function store(Request $request)
+    public function store(StoreContactRequest $request)
     {
-        $checkvals = [];
-        $checkvals['title'] = ['required', Rule::in(['Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Hon.', 'Co.'])];
-
-        if ($request->title === 'Co.') {
-            $checkvals['company'] = 'required|max:255';
-            $checkvals['first_name'] = 'nullable|max:255';
-            $checkvals['last_name'] = 'nullable|max:255';
-        } else {
-            $checkvals['company'] = 'nullable|max:255';
-            $checkvals['first_name'] = 'required|max:255';
-            $checkvals['last_name'] = 'required|max:255';
-        }
-
-        $checkvals['middle_name'] = 'nullable|max:255';
-        $checkvals['srjr'] = 'nullable|max:255';
-        $checkvals['esqphd'] = 'nullable|max:255';
-        $checkvals['business_title'] = 'nullable|max:255';
-        $checkvals['address'] = 'nullable|max:255';
-        $checkvals['email'] = 'nullable|email|max:255';
-        $checkvals['email_alt'] = 'nullable|email|max:255';
-        $checkvals['work_phone'] = 'nullable|max:255';
-        $checkvals['cell_phone'] = 'nullable|max:255';
-        $checkvals['home_phone'] = 'nullable|max:255';
-        $checkvals['fax_phone'] = 'nullable|max:255';
-        $checkvals['other_phone'] = 'nullable|max:255';
-        $checkvals['note'] = 'nullable|max:1000';
-        $checkvals['display_name'] = ['max:255', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id)];
-        $checkvals['display_last_first'] = 'max:255';
-
-        $validatedVals = $request->validate($checkvals, [
-            'display_name' => 'Each name in your contact list must be unique, and this name is already in your list.  To distinguish this contact, try using a middle initial or appending a number in parentheses to the last name.',
-        ]);
+        $validatedVals = $request->validated();
 
         $validatedVals['firm_id'] = $request->user()->firm_id;      // add the firm_id to the validated values
 
@@ -133,48 +103,11 @@ class ContactController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Contact $contact)
+    public function update(UpdateContactRequest $request, Contact $contact)
     {
         $this->authorize('update', $contact);
 
-        $checkvals = [];
-        $checkvals['title'] = ['required', Rule::in(['Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Hon.', 'Co.'])];
-
-        if ($request->title === 'Co.') {
-            $checkvals['company'] = 'required|max:255';
-            $checkvals['first_name'] = 'nullable|max:255';
-            $checkvals['last_name'] = 'nullable|max:255';
-        } else {
-            $checkvals['company'] = 'nullable|max:255';
-            $checkvals['first_name'] = 'required|max:255';
-            $checkvals['last_name'] = 'required|max:255';
-        }
-
-        $checkvals['middle_name'] = 'nullable|max:255';
-        $checkvals['srjr'] = 'nullable|max:255';
-        $checkvals['esqphd'] = 'nullable|max:255';
-        $checkvals['business_title'] = 'nullable|max:255';
-        $checkvals['address'] = 'nullable|max:255';
-        $checkvals['email'] = 'nullable|email|max:255';
-        $checkvals['email_alt'] = 'nullable|email|max:255';
-        $checkvals['work_phone'] = 'nullable|max:255';
-        $checkvals['cell_phone'] = 'nullable|max:255';
-        $checkvals['home_phone'] = 'nullable|max:255';
-        $checkvals['fax_phone'] = 'nullable|max:255';
-        $checkvals['other_phone'] = 'nullable|max:255';
-        $checkvals['note'] = 'nullable|max:1000';
-        if ($request->display_name !== $contact->display_name) {    // if the name has changed, confirm it is still unique in the table for this firm
-            $checkvals['display_name'] = ['max:255', Rule::unique('contacts')->where('firm_id', $request->user()->firm_id)];
-        } else {
-            $checkvals['display_name'] = 'max:255';
-        }
-        $checkvals['display_last_first'] = 'max:255';
-
-        $validatedVals = $request->validate($checkvals, [
-            'display_name' => 'Each name in your contact list must be unique, and this name is already in your list.  To distinguish this contact, try using a middle initial or appending a number in parentheses to the last name.',
-        ]);
-
-        $contact->update($validatedVals);  // update the contact with the validated values
+        $contact->update($request->validated());  // update the contact with the validated values
 
         return redirect(route('contacts.index', ['page' => $request->current_page, 'show' => $request->show]));
     }

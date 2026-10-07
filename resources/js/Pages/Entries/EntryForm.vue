@@ -8,6 +8,9 @@ import FileLookup_form from '@/Pages/Files/FileLookup_form.vue';
 import DocumentPicker from "@/Components/DocumentPicker.vue";
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import { isResponseOverdue, responseLateClass, responseStatusLabel } from '@/Utils/entryStatus.js';
+import AddEntrytypeModal from "@/Components/AddEntrytypeModal.vue";
+import { formatDate } from '@/Utils/dateFormat.js';
+import { activeEntrytypes, selectableEntrytypes, upsertEntrytype } from '@/Utils/entrytypes.js';
 import axios from 'axios';
 
 const reservedFileId = usePage().props.reserved_file_id;
@@ -43,10 +46,6 @@ const display_name = reactive({                         // used to display the f
     file: '',
 });
 
-const matching = reactive({                             // object holds matching entries from entrytype lookup
-    entrytypes: Object,
-});
-
 const entry_form = useForm({                            // the entry_form - passed to the server
     formtype: "entry",
     file_id: null,
@@ -78,21 +77,10 @@ const entry_form = useForm({                            // the entry_form - pass
     viewshow: props.state.show,
     read: props.state.read,
     from_to: props.state.from_to,
-    new_entrytype_added: false,
-    new_contact_added: false,
     pending_contact_roles: [],
 });
 
 let saved_entry_form = {};
-
-const entrytype_form = useForm({                        // form for entrytype lookup and addition
-    name: '',
-    id: null,
-    folder_id: null,
-    isChosen: false,
-    chosenName: '',
-    lookup: false,
-});
 
 const disp = reactive({
     listFormat: 1,                                      // the format of the main listbox
@@ -164,7 +152,7 @@ const currentResponseDisplay = computed(() => {
     if (!entry_form.is_response_to) return null;
     const match = responseRows.value.find((r) => r.id === entry_form.is_response_to);
     if (!match) return null;
-    return match.type + ' - ' + reformat_date(match.date) + ' - ' + match.from;
+    return match.type + ' - ' + formatDate(match.date) + ' - ' + match.from;
 });
 
 function pickResponseEntry(id) {
@@ -181,28 +169,25 @@ function onIsAResponseChange() {
     }
 }
 
-const folder_singular = [                               // this array is used to display the singular name of a folder
-    'Correspondence',
-    'Pleading',
-    'Discovery',
-    'Document',
-    'Memo',
-    'Event',
-    'To-Do',
-    'Phone Message',
-    'Medical Record',
-    'Medical Bill',
-    'Case Cost',
-];
-
-let added_contact_obj = reactive({                    // used for contact lookup
-    name: '',
-    id: 0,
-    display_modal: false,
-    accept: false,
+const contact_modal = reactive({                                         // add-contact modal: open flag and which field (from/to) asked for it
+    show: false,
     field: '',
-    new_contact_added: false,
 });
+
+function open_add_contact(field) {                                       // a ContactLookup asked to add a new contact
+    contact_modal.field = field;
+    contact_modal.show = true;
+}
+
+function contact_added({ id, name }) {                                   // put the new contact into the field that opened the modal
+    if (contact_modal.field === 'from') {
+        entry_form.from_contact_id = id;
+        display_name.from = name;
+    } else if (contact_modal.field === 'to') {
+        entry_form.to_contact_id = id;
+        display_name.to = name;
+    }
+}
 
 const mark_read = reactive({                            // used for the "Read" checkbox on memos and phone messages
     status_msg: '',
@@ -211,7 +196,7 @@ const mark_read = reactive({                            // used for the "Read" c
 });
 
 let save_clicked = false;                               // use this to avoid repeat of warning before unmounting
-let refresh_entrytype_pending = ref(false);             // use this to stop update_disp (in onUpdate) upon return from posting to add a new entrytype
+const show_type_modal = ref(false);                     // add-entrytype modal open flag
 const showDocumentPicker = ref(false);                  // controls the DocumentPicker modal
 
 // --- Statute of Limitations (SOL) protection ---
@@ -225,6 +210,14 @@ const solEntrytypeId = computed(() => {
     if (!eventsFolder) return null;
     const solType = eventsFolder.entrytypes.find(et => et.name === 'Deadline - Statute of Limitations');
     return solType ? solType.id : null;
+});
+
+const entrytypeOptions = computed(() => {                                   // options for the entrytype select: active types, plus the entry's own type if it was deleted
+    const types = props.p1.folders[props.getFolderRow()].entrytypes;
+    const currentId = props.state.mode === 'entry_add'
+        ? null
+        : (props.p1.entries.data[props.state.row]?.entrytype_id ?? null);
+    return selectableEntrytypes(types, currentId);
 });
 
 // Check whether the current entry_form is for a Statute of Limitations entry
@@ -365,25 +358,9 @@ function checkEditMode() {                                              // chang
 }
 
 
-function clicked_AddTypeButton() {                                      // the user clicked the Add Type button
-    if (props.state.mode == 'browse') {                                 // if in browse mode, then set to 'entry_edit'
-        () => the_mode.value = 'entry_edit';
-    }
-    entrytype_form.reset();                                             // clear entrytype form
-    document.getElementById('entrytype_modal').showModal();          // open the entytype form modal
-    nextTick(() => {
-        document.getElementById('type_name').focus();                   // set the focus to the entrytype name on the form
-    });
-}
-
-
-function clicked_matchingEntrytype(index) {                             // the user clicked a matching existing entrytype while adding new entrytype
-    entrytype_form.name = matching.entrytypes[index].name;              // so, copy those values and close that lookup as chosen
-    entrytype_form.id = matching.entrytypes[index].id;
-    entrytype_form.isChosen = true;
-    entrytype_form.chosenName = entrytype_form.name;
-    entry_form.entrytype_id = entrytype_form.id;                        // copy value to entry form
-    display_modal('entrytype', false);                                  // close the modal
+function clicked_AddTypeButton() {                                      // the user clicked the Add New Type button
+    if (props.state.mode == 'browse') the_mode.value = 'entry_edit';    // adding a type while browsing starts an edit
+    show_type_modal.value = true;
 }
 
 
@@ -395,7 +372,6 @@ function display_modal(which_modal, OnOff = null) {
     else if (which_modal === 'sol_event') modal_name = 'sol_event_modal';
     else if (which_modal === 'entrychanged') modal_name = 'entrychanged_modal';
     //         else if( which_modal === 'contact' ) modal_name = 'contact_modal';
-    else if (which_modal === 'entrytype') modal_name = 'entrytype_modal';
     else if (which_modal === 'addcancelled') modal_name = 'addcancelled_modal';
 
     nextTick(() => {
@@ -409,56 +385,6 @@ function display_modal(which_modal, OnOff = null) {
     });
 }
 
-
-function lookup_entrytype() {                                           // this function returns up to 6 matching entrytypes from those available for this folder
-    let row2get = props.getFolderRow();                                 // set the folder 
-    matching.entrytypes = props.p1.folders[row2get].entrytypes.filter(function (e) {
-        if (e.name.toLowerCase().includes(entrytype_form.name.toLowerCase()) && this.count < 6) {  // set the test and limit the filtered list to 6 entries
-            this.count++;
-            return true;
-        }
-        else return false;
-    }, { count: 0 }); // end of filter
-};
-
-
-function clicked_entrytypeModal_button(clicked_button) {
-    if (clicked_button == 'ok') {
-        if (entrytype_form.isChosen == true && entrytype_form.name == entrytype_form.chosenName) {
-            entry_form.entrytype_id = entrytype_form.id;
-            display_modal('entrytype', false);
-        } else {
-            // Check if an entrytype with this name already exists (case-insensitive) before posting
-            let row2get = props.getFolderRow();
-            const existingMatch = props.p1.folders[row2get].entrytypes.find(
-                e => e.name.toLowerCase() === entrytype_form.name.trim().toLowerCase()
-            );
-            if (existingMatch) {
-                entry_form.entrytype_id = existingMatch.id;
-                display_modal('entrytype', false);
-                return;
-            }
-            entrytype_form.folder_id = props.getFolderData('id');
-            entrytype_form.post('/add_new_entrytype',
-            {   only: ['folders', 'new_entrytype'], 
-                preserveState: true,
-                onSuccess: () => {
-                    nextTick( () => {
-                        entry_form.entrytype_id = props.p1.new_entrytype.id;
-                        entry_form.new_entrytype_added = true;
-                        // document.getElementById('entrytype_modal').close();          // close the entrytype form modal
-                        display_modal('entrytype', false);
-                    });
-                } // onSuccess
-            }); // post
-        } // if isChosen
-    }
-    else if (clicked_button == 'cancel') {
-        entrytype_form.reset();
-    }
-
-    document.getElementById('entrytype_modal').showModal();
-}
 
 function clicked_mark_read() {                                                                      // user clicked the mark read checkbox, so handle toggle and update the record
     axios.put('/toggle_read/' + entry_form.entry_id )
@@ -531,13 +457,11 @@ function entry_actions(action, comeback = true) {
         let theEntry = props.p1.entries.data[props.state.row];
 
         if( props.state.mode === 'entry_edit' ) {                                                    // if submitting from 'edit_entry'
-            if( props.file_view === 'file' ) submit_file_edit();
-            else if( props.file_view === 'view' ) submit_view_edit();
+            submit_edit();
 
 
         } else if (props.state.mode === 'entry_add') {                                              // else if submitting 'entry_add'
-            if( props.file_view === 'file' ) submit_file_add();
-            else if( props.file_view === 'view' ) submit_view_add();
+            submit_add();
 
         } else if (props.state.mode === 'entry_delete') {
             // entry_form.delete(route('entries.destroy', [props.p1.file.id, props.p1.entries.data[props.state.row].id]),
@@ -569,95 +493,47 @@ function entry_actions(action, comeback = true) {
 }
 
 
-function submit_file_add() {                                                            // function to submit a new entry to a file
-    entry_form.file_id = props.p1.file.id;                                      // add file_id (passed in) to the form
-    entry_form.formtype = 'file'                                                        // formtype = 'file'
-    let action_url = '/files/' + entry_form.file_id + '/entries';                   // set the action_url for the post (to store in EntryController)
+function submit_add() {                                                                 // submit a new entry from the file or a view
+    if( props.file_view === 'file' ) entry_form.file_id = props.p1.file.id;             // on a file, the entry belongs to that file
+    entry_form.formtype = props.file_view;                                              // 'file' or 'view'
 
-/*
-    // entry_form.new_contact_added = isNewFileContact();                                  // is there a new file contact in this form?    
-    // let refresh_arr = ['entries','view_folder_id'];
-    // if( entry_form.new_contact_added === true ) refresh_arr.push('file_contacts');      // set in isNewFileContact()
-    // if( entry_form.new_entrytype_added === true ) refresh_arr.push('folders');          // set when a new entrytype is added
-*/
-
-    if( entry_form.file_id ) {                                                      // if the form has a file_id specified
-        entry_form.post( action_url,                                                    // post to action_url
-            {   preserveState: (page) => Object.keys(page.props.errors).length,         // preserveState if there are errors
-            });
-    } else alert('Please select a file for this entry.');                               // else, no file specified, so alert
-
-    
-}
-
-function submit_view_add() {
-    // entry_form.file_id = props.p1.file.id;                                      // add file_id (passed in) to the form
-    entry_form.formtype = 'view'                                                        // formtype = 'file'
-    let action_url = '/views';                   // set the action_url for the post (to store in EntryController)
-
-    /*
-    // entry_form.new_contact_added = isNewFileContact();                                  // is there a new file contact in this form?    
-    // let refresh_arr = ['entries','view_folder_id'];
-    // if( entry_form.new_contact_added === true ) refresh_arr.push('file_contacts');      // set in isNewFileContact()
-    // if( entry_form.new_entrytype_added === true ) refresh_arr.push('folders');          // set when a new entrytype is added
-    */
-   
-    if( entry_form.file_id ) {                                                          // if the form has a file id specified
-        entry_form.post( action_url,                                                        // post to action_url
-            {   preserveState: (page) => Object.keys(page.props.errors).length,             // preserveState if there are errors
-            });
-    } else alert('Please select a file for this entry.');                                   // else, no file specified, so alert
-
-    
-}
-
-function submit_file_edit() {                                                                   // submit an edited entry to a file
-    display_modal('entrychanged', false);                                                       // close entrychanged modal if it's open
-    let theEntry = props.p1.entries.data[props.state.row];
-
-    if( objectChanged( entry_form, saved_entry_form ) ) {                                       // if data on the the form changed
-        entry_form.filepart = props.state.folder_name;                                          // put the currently selected filepart in the form
-        entry_form.put( route( 'entries.update', { file: theEntry.file_id, entry: theEntry.id }),        // submit the update
-            {   preserveState: (page) => Object.keys(page.props.errors).length,                 // preserveState - true if there are errors
-                onError: (errors) => console.log(errors),
-            });
-    } else {                                                                                    // else, form data did not change
-        the_mode.value = 'browse';                                                              // clicked Ok/Save, but no changes on the form, so just set to browse mode
-    }
-}
-
-function submit_view_edit() {                                                                   // submit an edited entry to a view
-    display_modal('entrychanged', false);                                                       // close entrychanged modal if it's open
-
-    if( objectChanged( entry_form, saved_entry_form ) ) {                                       // if data on the the form changed
-        if( props.state.view === 'memos' ) entry_form.filepart = 'memos';                       // set the entry_form.filepart based on the current view
-        else if( props.state.view === 'phone' ) entry_form.filepart = 'phone';      
-        else if( props.state.view === 'todo' ) entry_form.filepart = 'todo';
-
-        entry_form.put( route( 'views.update', { view: entry_form.entry_id } ),                         // submit the update
-            {   preserveState: (page) => Object.keys(page.props.errors).length,                 // preserveState - true if there are errors
-                onError: (errors) => console.log(errors),
-            });
-    } else {                                                                                    // else, form data did not change
-        the_mode.value = 'browse';                                                              // clicked Ok/Save, but no changes on the form, so just set to browse mode
-    }
-    
-}
-
-function isNewFileContact() {
-    let new_contact_found = false;                                                                                  // start as false
-
-    let test_from_id = props.p1.file_contacts.find( (contact) => contact.id === entry_form.from_contact_id );       // find from_contact_id in file_contacts
-    if( test_from_id === undefined ) new_contact_found = true;                                                      // if undefined, it was not found, so new contact is true
-
-    if( props.getFolderData('hide_to_prompt') === false ) {                                                               // if the form has a 'to' field
-        let test_to_id = props.p1.file_contacts.find( (contact) => contact.id === entry_form.to_contact_id );       // find to_contact_id in file_contacts
-        if( test_to_id === undefined ) new_contact_found = true;                                                    // if undefined, it was not found, so new contact is true
+    if( !entry_form.file_id ) {                                                         // no file specified, so alert
+        alert('Please select a file for this entry.');
+        return;
     }
 
-    return new_contact_found;
+    const action_url = props.file_view === 'file'
+        ? '/files/' + entry_form.file_id + '/entries'                                   // EntryController store
+        : '/views';                                                                     // ViewController store
+
+    entry_form.post( action_url,
+        {   preserveState: (page) => Object.keys(page.props.errors).length,             // preserveState if there are errors
+        });
 }
 
+function submit_edit() {                                                                // submit an edited entry from the file or a view
+    display_modal('entrychanged', false);                                               // close entrychanged modal if it's open
+
+    if( !objectChanged( entry_form, saved_entry_form ) ) {                              // clicked Ok/Save, but no changes on the form, so just set to browse mode
+        the_mode.value = 'browse';
+        return;
+    }
+
+    let update_url = '';
+    if( props.file_view === 'file' ) {
+        const theEntry = props.p1.entries.data[props.state.row];
+        entry_form.filepart = props.state.folder_name;                                  // put the currently selected filepart in the form
+        update_url = route( 'entries.update', { file: theEntry.file_id, entry: theEntry.id });
+    } else {
+        if( ['memos', 'phone', 'todo'].includes(props.state.view) ) entry_form.filepart = props.state.view;   // filepart follows the current view
+        update_url = route( 'views.update', { view: entry_form.entry_id } );
+    }
+
+    entry_form.put( update_url,
+        {   preserveState: (page) => Object.keys(page.props.errors).length,             // preserveState - true if there are errors
+            onError: (errors) => console.log(errors),
+        });
+}
 
 function checkContactRole(contact_id, contact_name, field = '') {
     if (!contact_id) return;
@@ -863,13 +739,12 @@ function findEntryType( find_folder_id = 0, find_entrytype_id= 0 ) {
     } else return '';
 }
 
-function findEntryTypeID( find_folder_id = 0, find_entrytype_name = "" ) {
+function findEntryTypeID( find_folder_id = 0, find_entrytype_name = "" ) {   // id of an active entrytype by name, or null
     let sendback = null;
     if( find_folder_id > 0 && find_entrytype_name !== "" ) {
         let folder_row = find_folder_id - 1;
-        sendback = props.p1.folders[ folder_row ].entrytypes.find( (entrytype) => entrytype.name === find_entrytype_name ).id;
+        sendback = activeEntrytypes(props.p1.folders[ folder_row ].entrytypes).find( (entrytype) => entrytype.name === find_entrytype_name )?.id ?? null;
     }
-    if( sendback === null ) console.log( 'Error finding EntryTypeID for ' + find_entrytype_name );
     return sendback;
 }
 
@@ -880,33 +755,6 @@ function getFileName() {                                                    // n
     } else return '';                                                           // else, return empty string
 }
 
-function reformat_date(dt, input_time = false, all_day = false) {
-    if (dt === null || dt === undefined) {
-        return '';                                                                          // if date is null or undefined, return empty string
-    } else {
-        dt = dt.toString();                                                                 // convert to string if not already
-        if (input_time == true) {
-            let the_date = dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
-            let the_hour = dt.slice(11, 13);
-            let the_minutes = dt.slice(14, 16);
-            let hour_12 = the_hour;
-            let a_p = "am";
-            if (the_hour > 12) {
-                hour_12 = the_hour - 12;
-                a_p = "pm";
-            }
-            if (all_day == false) {
-                return the_date + ', ' + hour_12 + ':' + the_minutes + '' + a_p;
-            } else {
-                return the_date + ' (all day)';
-            }
-
-        } else {
-            return dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
-        } // end if input_time or all
-    }
-}
-
 function format_response_li(response) {                                         // function to format the display of a received response
     let dateof = '';
     let resptype = '';
@@ -915,7 +763,7 @@ function format_response_li(response) {                                         
     if( response.response_type == 'P' ) resptype = 'partial response';
     else if( response.response_type == 'F' ) resptype = 'full response';
 
-    dateof = reformat_date(response.response_date);
+    dateof = formatDate(response.response_date);
 
     // stringback = String.fromCharCode(0x2022) + ' Received a ' + resptype + ' on ' + dateof;
     stringback = '- Received a ' + resptype + ' on ' + dateof;
@@ -960,7 +808,7 @@ function setup_add() {                                                          
 
         entry_form.folder_id = props.state.add_folder_id;                                               // set the new entry folder id
         if( props.getFolderData('hide_entrytype_prompt' ) == 1) {                                       // if the folder hides the entrytype prompt
-            entry_form.entrytype_id = props.p1.folders[addFolderRow].entrytypes[0].id;                  // use id of the first (and only) entrytype for this folder 
+            entry_form.entrytype_id = activeEntrytypes(props.p1.folders[addFolderRow].entrytypes)[0]?.id ?? null;                // use id of the first (and only) entrytype for this folder 
         } else if( props.state.add_folder_id === 1 ) {                                                  // else if it's the correspondence folder
             entry_form.entrytype_id = findEntryTypeID( 1, 'Letter' );                                   // initially set the entrytype_id to the id for 'Letter'
         }
@@ -1156,8 +1004,8 @@ update_disp();
 
                     <select v-model="entry_form.entrytype_id" id="entry_entrytype_select" @blur="checkEditMode()" @change="checkEditMode()"
                         class="w-72 select select-bordered select-sm rounded-md font-normal text-sm text-base-content bg-base-100">
-                        <option v-for="etype, index in props.p1.folders[props.getFolderRow()].entrytypes" :key="etype.id" :value="etype.id">
-                            {{ etype.name }}
+                        <option v-for="etype in entrytypeOptions" :key="etype.id" :value="etype.id">
+                            {{ etype.label }}
                         </option>
                     </select>
 
@@ -1180,7 +1028,7 @@ update_disp();
                     v-model:contact_id="entry_form.from_contact_id"
                     v-model:contact_name="display_name.from"
                     v-model:the_mode="the_mode"
-                    v-model:added_contact_obj="added_contact_obj"
+                    @add-contact="open_add_contact('from')"
                     :id="'entry_from'"
                     :folder_id="entry_form.folder_id"
                     :next_field="props.getFolderData('hide_to_prompt') == true ? 'entry_note' : 'entry_to'"
@@ -1204,7 +1052,7 @@ update_disp();
                     v-model:contact_id="entry_form.to_contact_id"
                     v-model:contact_name="display_name.to"
                     v-model:the_mode="the_mode"
-                    v-model:added_contact_obj="added_contact_obj"
+                    @add-contact="open_add_contact('to')"
                     :id="'entry_to'"
                     :folder_id="entry_form.folder_id"
                     :next_field="'entry_note'"
@@ -1303,6 +1151,8 @@ update_disp();
                     <option value="P">Partial Response</option>
                     <option value="F">Full Response</option>
                 </select>
+                <InputError class="ml-3" :message="entry_form.errors.is_a_response" />
+                <InputError class="ml-3" :message="entry_form.errors.is_response_to" />
             </div>
 
             <!-- Is Response To Row - displays the currently selected responsive entry and a button to open the picker modal -->
@@ -1354,7 +1204,7 @@ update_disp();
                             class="cursor-pointer hover:bg-base-200"
                             :class="{ 'bg-base-200': row.id === entry_form.is_response_to }"
                             @click="pickResponseEntry(row.id)">
-                            <td>{{ reformat_date(row.date) }}</td>
+                            <td>{{ formatDate(row.date) }}</td>
                             <td>{{ row.from }}</td>
                             <td>{{ row.type }}</td>
                         </tr>
@@ -1378,41 +1228,18 @@ update_disp();
 
 <!-- Note: Here is the AddContactForm Component which is used by the ContactLookup component -->
 
-    <AddContactForm v-model:added_contact_obj="added_contact_obj" :id="'contact_modal_form'" />
+    <AddContactForm :id="'contact_modal_form'" :show="contact_modal.show" @added="contact_added" @close="contact_modal.show = false" />
 
-    <!-- Put this part before </body> tag - Entrytype Modal -->
-    <dialog id="entrytype_modal" class="modal">
-        <div class="modal-box w-11/12 max-w-3xl">
-            <h3 class="font-bold text-2xl text-center">
-                Enter a New <span class="font-normal">({{ props.getFolderData('name', 'singular') }})</span> Type
-            </h3>
-            <form>
-                <div class="flex mt-8 items-baseline">
-                    <label for="type_name" class="text-xl">
-                        {{ props.getFolderData('entrytype_prompt') }}
-                    </label>
-                    <input v-model="entrytype_form.name" id="type_name" name="type_name" @input="lookup_entrytype()"
-                        class="input ml-4 w-125" autocomplete="off" />
-                </div>
-                <table
-                    v-if="matching.entrytypes.length > 0 && entrytype_form.name.length > 0 && entrytype_form.isChosen == false"
-                    class="mt-2 ml-32 border w-80">
-                    <tr v-for="entrytype, index in matching.entrytypes" :key="entrytype.id"
-                        @click="clicked_matchingEntrytype(index)">
-                        <td class="pl-4 py-1 text-sm hover:bg-base-200 hover:cursor-default">
-                            {{ entrytype.name }}
-                        </td>
-                    </tr>
-                </table>
-            </form>
-            <div class="modal-action justify-center mt-12">
-                <button type="button" class="btn btn-primary mr-10 w-28 gap-0"
-                    @click="clicked_entrytypeModal_button('ok')"><u>O</u>k</button>
-                <button type="button" class="btn btn-primary gap-0"
-                    @click="display_modal('entrytype', false)">Cancel</button>
-            </div>
-        </div>
-    </dialog>
+    <AddEntrytypeModal
+        :show="show_type_modal"
+        :types="props.p1.folders[props.getFolderRow()].entrytypes"
+        :folder-id="props.getFolderData('id')"
+        :label="props.getFolderData('entrytype_prompt')"
+        @close="show_type_modal = false"
+        @added="(type) => upsertEntrytype(props.p1.folders[props.getFolderRow()].entrytypes, type)"
+        @selected="(id) => entry_form.entrytype_id = id">
+        <template #title>Enter a New <span class="font-normal">({{ props.getFolderData('name', 'singular') }})</span> Type</template>
+    </AddEntrytypeModal>
 
 
     <!-- Put this part before </body> tag - Confirm Entry Change modal-->

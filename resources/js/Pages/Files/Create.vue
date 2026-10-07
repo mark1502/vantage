@@ -32,14 +32,7 @@ const display_name = reactive({
     client: '',
 });
 
-let added_contact_obj = reactive({
-    name: '',
-    id: 0,
-    display_modal: false,
-    accept: false,
-    field: '',
-    new_contact_added: false,
-});
+const show_contact_modal = ref(false);
 
 let form = useForm({
     formtype: "file",
@@ -68,20 +61,6 @@ let form = useForm({
 let saved_file_form = { ...form };                              // clone a copy of the file form
 
 const the_mode = ref('file_add');
-
-watch(added_contact_obj, (newValue) => {
-    if (newValue.accept === true && newValue.field === 'file_client') {
-        form.client_contact_id = newValue.id;
-        display_name.client = newValue.name;
-
-        nextTick(() => {
-            newValue.id = 0;
-            newValue.name = '';
-            newValue.field = '';
-            newValue.accept = false;
-        });
-    }
-});
 
 const removeListener = router.on('before', (event) => {         // Inertia onBefore event, before rerouting
     if( !form.isDirty ) return;
@@ -287,7 +266,7 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
                                     v-model:contact_id="form.client_contact_id"
                                     v-model:contact_name="display_name.client"
                                     v-model:the_mode="the_mode"
-                                    v-model:added_contact_obj="added_contact_obj"
+                                    @add-contact="show_contact_modal = true"
                                     :id="'file_client'"
                                     :folder_id="0"
                                     :next_field="'date_opened'"
@@ -476,7 +455,9 @@ onUnmounted( () => document.removeEventListener('keydown', handleEsc) );
         </dialog>
 
         <!-- Add Contact Form Modal -->
-        <AddContactForm v-model:added_contact_obj="added_contact_obj" :id="'contact_modal_form'" />
+        <AddContactForm :id="'contact_modal_form'" :show="show_contact_modal"
+            @added="({ id, name }) => { form.client_contact_id = id; display_name.client = name; }"
+            @close="show_contact_modal = false" />
 
     </AuthenticatedLayout>
 </template>

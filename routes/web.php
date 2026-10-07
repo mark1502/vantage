@@ -88,16 +88,8 @@ Route::middleware('auth', 'welcomed')->group(function () {
     Route::put('/toggle_read/{entry}', [EntryController::class, 'toggle_read']);
 
     Route::post('/lookup_contact', [EntryController::class, 'lookup_contact'])->name('entries.lookup_contact')->middleware('throttle:120,1');
-    Route::post('/contact_add_modal', [EntryController::class, 'contact_add_modal'])->name('entries.add_modal');
-    Route::get('/contact_add_modal', [EntryController::class, 'contact_add_modal']);  // for error passback
-    Route::post('/contact_add_modal2', [EntryController::class, 'contact_add_modal2'])->name('entries.add_modal2');
-    Route::get('/contact_add_modal2', [EntryController::class, 'contact_add_modal2']);  // for error passback
     Route::post('/add_new_entrytype', [EntryController::class, 'add_new_entrytype'])->name('entries.add.entrytype');
-    Route::get('/add_new_entrytype', [EntryController::class, 'add_new_entrytype']);  // for error passback
     Route::post('/new_contact_modal', [EntryController::class, 'new_contact_modal'])->name('entries.new_contact_modal');
-
-    Route::post('/add_new_event_type', [CalendarController::class, 'add_new_event_type'])->name('calendar.add.event_type');
-    Route::get('/add_new_event_type', [CalendarController::class, 'add_new_event_type']);   // for error passback
 
     // Route::post('/newfiletype', [CasefiletypeController::class, 'addnewtype'])->name('files.addnewtype');  // Not needed?
 

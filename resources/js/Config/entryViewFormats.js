@@ -1,17 +1,4 @@
-function formatDate(dt, inputTime = false, allDay = false) {
-    if (!dt) return '';
-    dt = dt.toString();
-    if (inputTime) {
-        const theDate = dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
-        let theHour = parseInt(dt.slice(11, 13));
-        const theMinutes = dt.slice(14, 16);
-        let ap = 'am';
-        if (theHour > 12) { theHour -= 12; ap = 'pm'; }
-        if (!allDay) return theDate + ', ' + theHour + ':' + theMinutes + ap;
-        return theDate + ' (all day)';
-    }
-    return dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
-}
+import { formatDate } from '@/Utils/dateFormat.js';
 
 // Width style as percentage string — used inline via :style="{ width: col.width }"
 // Narrow columns (dates, amounts) get fixed-ish %, text columns expand to fill.

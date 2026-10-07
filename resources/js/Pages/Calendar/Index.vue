@@ -14,6 +14,9 @@ import '@/../../resources/css/fullcalendar-theme.css';
 // import VueDatePicker from '@vuepic/vue-datepicker';
 // import '@vuepic/vue-datepicker/dist/main.css'
 import axios from 'axios';
+import { formatTime } from '@/Utils/dateFormat.js';
+import { activeEntrytypes, selectableEntrytypes, upsertEntrytype } from '@/Utils/entrytypes.js';
+import AddEntrytypeModal from '@/Components/AddEntrytypeModal.vue';
 
 const reservedFileId = usePage().props.reserved_file_id;
 
@@ -51,7 +54,6 @@ const props = defineProps({
     'event_types': Object,
     'bg_colors': Object,
     'text_colors': Object,
-    'new_event_type': Object,
     'hover_placement': { type: String, default: 'upper_right' },
     'initial_view': { type: String, default: null },
     'initial_date': { type: String, default: null },
@@ -59,12 +61,14 @@ const props = defineProps({
 });
 
 // Default event type for new events: the firm's "Meeting" type, else the first type in the list
-const default_event_type_id = (props.event_types.find(t => t.name === 'Meeting') ?? props.event_types[0])?.id ?? null;
-
-const matching = reactive({ event_types: Object });
+const active_event_types = activeEntrytypes(props.event_types);
+const default_event_type_id = (active_event_types.find(t => t.name === 'Meeting') ?? active_event_types[0])?.id ?? null;
 
 const calendarform_title = ref('Add New Event');
 const solEventFileId = ref(null);
+const editing_entrytype_id = ref(null);                                         // type of the event being edited, so a deleted type stays selectable
+const show_type_modal = ref(false);                                             // add-event-type modal open flag
+const eventTypeOptions = computed(() => selectableEntrytypes(props.event_types, editing_entrytype_id.value));
 
 const calendar_form = useForm({
     formtype: "calendar",
@@ -83,15 +87,6 @@ const calendar_form = useForm({
 });
 
 let hold_calendar_form = {};
-
-const entrytype_form = useForm({
-    name: '',
-    id: null,
-    folder_id: null,
-    isChosen: false,
-    chosenName: '',
-    lookup: false,
-});
 
 const calendarFor = reactive({
     initials: '****',
@@ -192,8 +187,8 @@ const calendarOptions = reactive({                              // HERE is the S
             if (mouseEnterInfo.event.allDay) {
                 tooltip.timespan = '(all day)';
             } else {
-                let starting_time = toolTimeCalc( mouseEnterInfo.event.startStr );
-                let ending_time = toolTimeCalc( mouseEnterInfo.event.endStr );
+                let starting_time = formatTime( mouseEnterInfo.event.startStr );
+                let ending_time = formatTime( mouseEnterInfo.event.endStr );
                 const endDateStr = mouseEnterInfo.event.endStr.slice(0, 10);
                 const startDateStr = mouseEnterInfo.event.startStr.slice(0, 10);
                 if (endDateStr !== startDateStr) {
@@ -243,24 +238,6 @@ const calendarOptions = reactive({                              // HERE is the S
 //
 // END of calendarOptions
 //
-
-
-function toolTimeCalc( timeString ) {
-    const str = timeString.replace('T', ' ').slice(0, 19);
-    const timePart = str.split(' ')[1];
-    const [h, min] = timePart.split(':');
-    let hours = parseInt(h);
-    let a_p = 'am';
-    if( hours > 11 ) a_p = 'pm';
-    if( hours > 12 ) hours -= 12;
-    if( hours === 0 ) hours = 12;
-
-    let the_time = hours  + ':';
-    the_time += min;
-    the_time += a_p;
-
-    return the_time;
-}
 
 
 function confirmUserChange() {          // on submit, first test if the event firm member was changed, if so, then confirm the change
@@ -389,7 +366,6 @@ function display_modal( which_modal, setting = null ) {
     switch ( which_modal ) {
         case 'confirm_event_for':
         case 'confirm_file_change':
-        case 'entrytype':
         case 'confirm_delete_event':
         case 'goto_date':
             modal_name = which_modal + '_modal';
@@ -405,8 +381,7 @@ function display_modal( which_modal, setting = null ) {
 
 
 function clicked_AddTypeButton() {
-    entrytype_form.reset();
-    display_modal( 'entrytype', true );
+    show_type_modal.value = true;
 }
 
 function clear_calendarform() {
@@ -416,6 +391,7 @@ function clear_calendarform() {
     calendar_form.file_id = null;
     calendar_form.entry_id = null;
     calendar_form.entrytype_id = default_event_type_id;
+    editing_entrytype_id.value = null;
     calendar_form.from_contact_id = null;
     calendar_form.date1 = "";
     calendar_form.date2 = "";
@@ -518,6 +494,7 @@ function click_event(eventInfo) {
 
     calendar_form.from_contact_id = eventInfo.event.extendedProps.event_for;
     calendar_form.entrytype_id    = eventInfo.event.extendedProps.entrytype_id;
+    editing_entrytype_id.value    = eventInfo.event.extendedProps.entrytype_id;
     calendar_form.note            = eventInfo.event.extendedProps.note;
 
     calendar_form.file_id = eventInfo.event.extendedProps.file_id;
@@ -613,57 +590,6 @@ function findFirmMemberInitials( lookup_id ) {
     return props.firm_members[idx].member_initials;                                 // return that members initials
 }
 
-
-function lookup_entrytype() {
-    matching.event_types = props.event_types.filter( function (e) {
-        if( e.name.toLowerCase().includes( entrytype_form.name.toLowerCase() ) && this.count < 6 ) {  // set the test and limit the filtered list to 6 entries
-            this.count ++;
-            return true;
-        }
-        else return false;
-    }, {count: 0} );
-};
-
-function clicked_matchingEntrytype(index) {
-    entrytype_form.name = matching.event_types[index].name;
-    entrytype_form.id = matching.event_types[index].id;
-    entrytype_form.isChosen = true;
-    entrytype_form.chosenName = entrytype_form.name;    
-}
-
-
-function clicked_entrytypeModal_button(clicked_button) {
-    if (clicked_button == 'ok') {
-        if(entrytype_form.isChosen == true && entrytype_form.name == entrytype_form.chosenName) {
-            calendar_form.entrytype_id = entrytype_form.id;
-            display_modal('entrytype', false);
-        }
-        else {
-            const existingMatch = props.event_types.find(
-                e => e.name.toLowerCase() === entrytype_form.name.trim().toLowerCase()
-            );
-            if (existingMatch) {
-                calendar_form.entrytype_id = existingMatch.id;
-                display_modal('entrytype', false);
-                return;
-            }
-            entrytype_form.folder_id = 6;
-            entrytype_form.post('/add_new_event_type', { only: ['event_types', 'new_event_type'], preserveState: true,
-            onSuccess: () => {
-                calendar_form.entrytype_id = props.new_event_type.id;
-                display_modal('entrytype', false);
-             },
-            onError: (errors) => {
-                console.log(errors);
-            }});
-
-        }
-    }
-    else if (clicked_button == 'cancel') {
-        entrytype_form.reset();
-        display_modal('entrytype', false);
-    }
-}
 
 function updateCalendarRight() {
     const el = fullCalendar.value?.$el;
@@ -808,9 +734,9 @@ onUnmounted(() => {
                         </label>
                         <select v-model="calendar_form.entrytype_id" id="entry_entrytype_select"
                             class="w-72 p-2 border font-normal text-sm text-base-content bg-base-100 disabled:text-base-content disabled:font-normal">
-                            <option v-for="event_type, index in props.event_types" :key="event_type.id"
+                            <option v-for="event_type in eventTypeOptions" :key="event_type.id"
                                 :value="event_type.id">
-                                {{ event_type.name }}
+                                {{ event_type.label }}
                             </option>
                         </select>
                         <button type="button" class="btn btn-xs btn-outline text-xs font-semibold w-32 ml-8"
@@ -951,33 +877,16 @@ onUnmounted(() => {
         </dialog>
 
         <!-- Modal - add new event type -->
-        <dialog id="entrytype_modal" class="modal">
-            <div class="modal-box w-11/12 max-w-3xl z-50">
-                <h3 class="font-bold text-2xl text-center">Add New Event Type</h3>
-                <form>
-                    <div class="flex mt-8 items-baseline">
-                        <label for="type_name" class="text-xl">
-                            Event Type:
-                        </label>
-                        <input v-model="entrytype_form.name" id="type_name" name="type_name" @input="lookup_entrytype()"
-                        class="input ml-4 w-[500px]" autocomplete="off" />
-                    </div>
-                    <table v-if="matching.event_types.length > 0 && entrytype_form.name.length > 0 && entrytype_form.isChosen == false" class="mt-2 ml-32 border w-80">
-                        <tr v-for="entrytype, index in matching.event_types" :key="entrytype.id" @click="clicked_matchingEntrytype(index)">
-                            <td class="pl-4 py-1 text-sm hover:bg-base-200 hover:cursor-default">
-                                {{ entrytype.name }}
-                            </td>
-                        </tr>
-                    </table>
-
-                </form>
-                <div class="modal-action justify-center mt-12">
-                    <button type="button" class="btn btn-primary mr-10 w-28" @click="clicked_entrytypeModal_button('ok')">Ok</button>
-                    <button type="button" class="btn btn-primary" @click="display_modal( 'entrytype', false )">Cancel</button>
-                </div>
-
-            </div>
-        </dialog>
+        <AddEntrytypeModal
+            :show="show_type_modal"
+            :types="props.event_types"
+            :folder-id="6"
+            label="Event Type:"
+            @close="show_type_modal = false"
+            @added="(type) => upsertEntrytype(props.event_types, type)"
+            @selected="(id) => calendar_form.entrytype_id = id">
+            <template #title>Add New Event Type</template>
+        </AddEntrytypeModal>
 
         <!-- SOL Event Modal -->
         <dialog id="sol_event_modal" class="modal">

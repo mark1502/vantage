@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\ContactRole;
 use App\Models\File;
+use App\Rules\SingleFullResponse;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -46,7 +47,11 @@ class StoreViewRequest extends FormRequest
         $firmId = $this->user()->firm_id;
 
         $firmContact = Rule::exists('contacts', 'id')->where('firm_id', $firmId);
-        $firmEntrytype = Rule::exists('entrytypes', 'id')->where('firm_id', $firmId);
+        $currentEntrytypeId = $this->route('view')?->entrytype_id;
+        $firmEntrytype = Rule::exists('entrytypes', 'id')
+            ->where('firm_id', $firmId)
+            ->where(fn ($query) => $query->where('faux_deleted', false)
+                ->when($currentEntrytypeId, fn ($q, $id) => $q->orWhere('id', $id)));
         $firmEntry = Rule::exists('entries', 'id')->where('firm_id', $firmId);
 
         return ['formtype' => 'string|max:20|nullable',
@@ -64,7 +69,7 @@ class StoreViewRequest extends FormRequest
             'date_response_expected' => 'date_format:Y-m-d H:i:s|nullable',
             'was_a_response' => 'in:N,P,F',
             'was_response_to' => ['integer', 'numeric', 'nullable', $firmEntry],
-            'is_a_response' => 'in:N,P,F',
+            'is_a_response' => ['in:N,P,F', new SingleFullResponse($this->integer('is_response_to') ?: null, $this->route('view')?->id)],
             'is_response_to' => ['integer', 'numeric', 'nullable', $firmEntry],
             'amount' => 'numeric|nullable',
             'current_page' => 'numeric|integer|nullable',
@@ -77,8 +82,6 @@ class StoreViewRequest extends FormRequest
             'viewshow' => 'numeric|integer|nullable',
             'read' => 'string|max:20|required',
             'from_to' => 'string|max:20|required',
-            'new_entrytype_added' => 'boolean',
-            'new_contact_added' => 'boolean',
             'pending_contact_roles' => 'array|nullable',
             'pending_contact_roles.*.contact_id' => ['required', 'integer', $firmContact],
             'pending_contact_roles.*.role' => ['required', 'string', 'max:50', Rule::in(array_keys(ContactRole::ROLE_LABELS))],
@@ -94,7 +97,7 @@ class StoreViewRequest extends FormRequest
             'date1' => 'Invalid Date',
             'from_contact_id' => 'Contact Not Found',
             'to_contact_id' => 'Invalid contact identification.',
-            'is_a_response' => 'Invalid Entry Response',
+            'is_a_response.in' => 'Invalid Entry Response',
         ];
     }
 }

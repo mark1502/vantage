@@ -14,6 +14,7 @@ import { useTheme } from '@/Composables/useTheme';
 import Pagination from '@/Components/Pagination.vue'
 import { getAvailableFormats, getColumns } from '@/Config/entryViewFormats.js'
 import { statusTextClass } from '@/Utils/entryStatus.js'
+import { FOLDER_SINGULAR } from '@/Config/folders.js'
 import { MagnifyingGlassMinusIcon } from '@heroicons/vue/20/solid';
 
 // Get access to theme management
@@ -38,7 +39,6 @@ const props = defineProps({
     role_options: Object,
     file_contact_roles: Array,
     firm_document_base_path: String,
-    new_entrytype: Object,
 });
 
 const state = reactive({
@@ -96,20 +96,6 @@ const availableFormats = computed(() => {
 const activeColumns = computed(() => {
     return getColumns(currentFormatKey.value, currentFolder.value);
 });
-
-const folder_singular = [  // this array is used to display the singular name of a folder
-    'Correspondence',
-    'Pleading',
-    'Discovery',
-    'Document',
-    'Memo',
-    'Event',
-    'To-Do',
-    'Phone Message',
-    'Medical Record',
-    'Medical Bill',
-    'Case Cost',
-];
 
 function entryList_click(what, index = null) {                            // there was a click on the list or list buttons
     switch (what) {
@@ -403,7 +389,7 @@ function getFolderData( whichData, singular = null ) {                          
     let folder = props.folders[row];                                                    // set a shortcut for cleaner code
 
     if( singular != null && whichData === 'name' ) {                                   // if singular and name is requested, return the singular name
-        dataBack = folder_singular[row];
+        dataBack = FOLDER_SINGULAR[row];
     } else if( whichData === 'input_time' || whichData.substring(0, 4) === 'hide' ) {  // if input_time or whether hiding a prompt field
         dataBack = folder[whichData] ? folder[whichData] : false;                       // boolean - return false if not set
     } else {
@@ -443,34 +429,6 @@ function setEntryClass( index ) {                                               
     }
 
     return textcolor + ' ' + bgcolor + ' ' + border;
-}
-
-
-function reformat_date(dt, input_time = false, all_day = false) {                       // returns a formatted date or date & time
-    if( dt === null || dt === undefined ) {
-        return '';                                                                          // if date is null or undefined, return empty string
-    } else {
-        dt = dt.toString();                                                                 // convert to string if not already
-        if( input_time == true ) {
-            let the_date = dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
-            let the_hour = dt.slice(11, 13);
-            let the_minutes = dt.slice(14, 16);
-            let hour_12 = the_hour;
-            let a_p = "am";
-            if( the_hour > 12 ) {
-                hour_12 = the_hour - 12;
-                a_p = "pm";
-            }
-            if( all_day == false ) {
-                return the_date + ', ' + hour_12 + ':' + the_minutes + '' + a_p;
-            } else {
-                return the_date + ' (all day)';
-            }
-
-        } else {
-            return dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
-        } // end if input_time or all
-    }
 }
 
 

@@ -212,7 +212,7 @@ Contact::firmMembers()->active()->get();     // active firm members
 - Two middleware groups:
   - `auth` only: Welcome routes
   - `auth + welcomed`: Main application routes
-- Modal forms use both GET and POST for same route (error passback pattern)
+- Modal forms post with axios to JSON endpoints (see Modal Pattern)
 
 ### Frontend Conventions
 - Pages follow folder structure matching routes (e.g., `Pages/Files/Index.vue`)
@@ -227,9 +227,9 @@ Contact::firmMembers()->active()->get();     // active firm members
 - Queue connection uses database driver
 
 ### Modal Pattern
-- Modal forms submit to specific endpoints (e.g., `/contact_add_modal`)
-- GET routes exist for the same endpoints to handle error passback
-- Validation errors redirect back to modal with old input
+- Modal forms submit to specific endpoints (e.g., `/add_new_entrytype`)
+- The modal posts with `axios` to a JSON endpoint (`/new_contact_modal`, `/add_new_entrytype`), which returns the created record
+- Validation failures come back as a 422 JSON response that the modal displays
 
 ## Key Features
 

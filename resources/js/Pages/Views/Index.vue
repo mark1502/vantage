@@ -7,6 +7,8 @@ import EntryForm from "@/Pages/Entries/EntryForm.vue";
 
 import Pagination from '@/Components/Pagination.vue'
 import { statusTextClass } from '@/Utils/entryStatus.js'
+import { formatDate } from '@/Utils/dateFormat.js'
+import { FOLDER_SINGULAR } from '@/Config/folders.js'
 
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { reactive, ref, computed, onMounted, onUnmounted, onUpdated, nextTick } from "vue";
@@ -70,20 +72,6 @@ const index_form = reactive({
     filepart: state.folder_name,
 });
 
-const folder_singular = [                                                       // this array is used to display the singular name of a folder
-    'Correspondence',
-    'Pleading',
-    'Discovery',
-    'Document',
-    'Memo',
-    'Event',
-    'To-Do',
-    'Phone Message',
-    'Medical Record',
-    'Medical Bill',
-    'Case Cost',
-];
-
 const hotkey_pressed = ref();
 const keep_row = ref();
 const EntryForm_ref = ref(null);                                                // ref used to call update_disp method in EntryForm child component
@@ -123,7 +111,7 @@ const viewColumns = computed(() => {
                 {
                     label: table_heading.date1,
                     width: 'w-28',
-                    value: (entry) => reformat_date(entry.date1, getFolderData('input_time')),
+                    value: (entry) => formatDate(entry.date1, getFolderData('input_time')),
                 },
                 {
                     label: table_heading.from,
@@ -143,7 +131,7 @@ const viewColumns = computed(() => {
                 {
                     label: 'Date:',
                     width: 'w-16',
-                    value: (entry) => reformat_date(entry.date1, getFolderData('input_time')),
+                    value: (entry) => formatDate(entry.date1, getFolderData('input_time')),
                 },
                 {
                     label: 'For:',
@@ -163,7 +151,7 @@ const viewColumns = computed(() => {
                 {
                     label: 'Date:',
                     width: 'w-32',
-                    value: (entry) => reformat_date(entry.date1, getFolderData('input_time'), entry.all_day),
+                    value: (entry) => formatDate(entry.date1, getFolderData('input_time'), entry.all_day),
                 },
                 {
                     label: 'For:',
@@ -189,7 +177,7 @@ const viewColumns = computed(() => {
                     label: 'Date:',
                     width: 'w-36',
                     // Timeline entries can come from any folder, so pass that folder's input_time
-                    value: (entry) => reformat_date(entry.date1, props.folders[entry.folder_id - 1].input_time, entry.all_day),
+                    value: (entry) => formatDate(entry.date1, props.folders[entry.folder_id - 1].input_time, entry.all_day),
                 },
                 {
                     label: 'Folder:',
@@ -223,7 +211,7 @@ const viewColumns = computed(() => {
                 {
                     label: 'Date Due',
                     width: 'w-28',
-                    value: (entry) => reformat_date(entry.date_response_expected),
+                    value: (entry) => formatDate(entry.date_response_expected),
                 },
             ];
 
@@ -413,11 +401,11 @@ function set_events_filter() {
     document.getElementById('events_filters_modal').close();
 
     if( state.date_from !== null && state.date_to !== null ) {
-        disp.date_range = reformat_date( state.date_from ) + ' - ' + reformat_date( state.date_to );
+        disp.date_range = formatDate( state.date_from ) + ' - ' + formatDate( state.date_to );
     } else if( state.date_from !== null && state.date_to === null ) {
-        disp.date_range = 'Starting ' + reformat_date( state.date_from );
+        disp.date_range = 'Starting ' + formatDate( state.date_from );
     } else if( state.date_from === null && state.date_to !== null ) {
-        disp.date_range = 'Ending '  + reformat_date( state.date_to );
+        disp.date_range = 'Ending '  + formatDate( state.date_to );
     } else if( (state.date_from === null && state.date_to === null) || disp.events_filter === 'all_events' ) {
         disp.date_range = 'All';
     }
@@ -481,7 +469,7 @@ function getFolderData( whichData, singular = null ) {                          
     let folder = props.folders[row];                                                    // set a shortcut for cleaner code
 
     if( singular != null && whichData === 'name' ) {
-        dataBack = folder_singular[row];                                                // singular of name
+        dataBack = FOLDER_SINGULAR[row];                                               // singular of name
     } else if( whichData === 'input_time' || whichData.substring(0, 4) === 'hide' ) {
         dataBack = folder[whichData] ? folder[whichData] : false;                       // boolean - input_time and hide prompt fields
     } else {
@@ -521,33 +509,6 @@ function showCompletedPending() {                                               
     let show_it = false;
     if( state.view === 'todo' ) show_it = true;
     return show_it;
-}
-
-function reformat_date(dt, input_time = false, all_day = false) {
-    if (dt === null || dt === undefined) {
-        return '';                                                                          // if date is null or undefined, return empty string
-    } else {
-        dt = dt.toString();                                                                 // convert to string if not already
-        if (input_time == true) {
-            let the_date = dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
-            let the_hour = dt.slice(11, 13);
-            let the_minutes = dt.slice(14, 16);
-            let hour_12 = the_hour;
-            let a_p = "am";
-            if (the_hour > 12) {
-                hour_12 = the_hour - 12;
-                a_p = "pm";
-            }
-            if (all_day == false) {
-                return the_date + ', ' + hour_12 + ':' + the_minutes + '' + a_p;
-            } else {
-                return the_date + ' (all day)';
-            }
-
-        } else {
-            return dt.slice(5, 7) + '/' + dt.slice(8, 10) + '/' + dt.slice(2, 4);
-        } // end if input_time or all
-    }
 }
 
 function display_entry_contact( entry, fromto ) {

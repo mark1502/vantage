@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\ContactRole;
+use App\Rules\SingleFullResponse;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -45,7 +46,11 @@ class StoreEntryRequest extends FormRequest
         $firmId = $this->user()->firm_id;
 
         $firmContact = Rule::exists('contacts', 'id')->where('firm_id', $firmId);
-        $firmEntrytype = Rule::exists('entrytypes', 'id')->where('firm_id', $firmId);
+        $currentEntrytypeId = $this->route('entry')?->entrytype_id;
+        $firmEntrytype = Rule::exists('entrytypes', 'id')
+            ->where('firm_id', $firmId)
+            ->where(fn ($query) => $query->where('faux_deleted', false)
+                ->when($currentEntrytypeId, fn ($q, $id) => $q->orWhere('id', $id)));
         $firmEntry = Rule::exists('entries', 'id')->where('firm_id', $firmId);
 
         return ['formtype' => 'string|max:20|nullable',
@@ -63,7 +68,7 @@ class StoreEntryRequest extends FormRequest
             'date_response_expected' => 'date_format:Y-m-d H:i:s|nullable',
             'was_a_response' => 'in:N,P,F|nullable',
             'was_response_to' => ['integer', 'numeric', 'nullable', $firmEntry],
-            'is_a_response' => 'in:N,P,F',
+            'is_a_response' => ['in:N,P,F', new SingleFullResponse($this->integer('is_response_to') ?: null, $this->route('entry')?->id)],
             'is_response_to' => ['integer', 'numeric', 'nullable', $firmEntry],
             'amount' => 'numeric|nullable',
             'pending_contact_roles' => 'array|nullable',
@@ -82,7 +87,7 @@ class StoreEntryRequest extends FormRequest
             'date1' => 'Invalid Date',
             'from_contact_id' => 'Contact Not Found',
             'to_contact_id' => 'Invalid contact identification.',
-            'is_a_response' => 'Invalid Entry Response',
+            'is_a_response.in' => 'Invalid Entry Response',
         ];
     }
 }

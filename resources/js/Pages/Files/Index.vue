@@ -4,6 +4,7 @@ import { reactive, ref, computed, watch, onMounted, onUnmounted, nextTick } from
 import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 import Pagination from '@/Components/Pagination.vue';
 import InputLabel from "@/Components/InputLabel.vue";
+import { formatDateLong } from '@/Utils/dateFormat.js';
 
 
 
@@ -98,12 +99,6 @@ const disable_button = computed(() => {                                         
     if( props.files.data.length ) return false;
     else return true;
 });
-
-function reformat_date(dt) {
-    if (dt === null || dt === undefined) return '';                                                                // if date is null or undefined, return empty string
-    dt = dt.toString();                                                                                           // convert date to string
-    return  dt.slice(5,7) + '-' + dt.slice(8,10) + '-' + dt.slice(0,4);
-}
 
 function file_clicked(index) {                                                                                  // clicked on a file
     state.current_row = index;                                                                                      // set the row to the clicked file
@@ -349,13 +344,13 @@ update_disp();                                                                  
                                     <p class="mt-2">File Type: &nbsp;{{ file1.filetype.name }}</p>
                                     <p class="">Attorney: &nbsp;{{ file1.assigned_attorney.contact.display_name }}</p>
                                     <div class="flex font-mono mt-2">
-                                        <p class="w-1/2">Opened: {{ file1.date_opened ? reformat_date(file1.date_opened) : "" }}</p>
-                                        <p class="">Closed: {{ file1.date_closed ? reformat_date(file1.date_closed) : "No" }}</p>
+                                        <p class="w-1/2">Opened: {{ file1.date_opened ? formatDateLong(file1.date_opened) : "" }}</p>
+                                        <p class="">Closed: {{ file1.date_closed ? formatDateLong(file1.date_closed) : "No" }}</p>
                                     </div>
                                     <div class="flex font-mono">
                                         <p v-if="file1.filetype.enable_file_SOL == false" class="w-1/2">S.O.L.: N/A</p>
-                                        <p v-else class="w-1/2">S.O.L.: {{ file1.date_sol ? reformat_date(file1.date_sol) : "Not set" }}</p>
-                                        <p class="">Filed: &nbsp;{{ file1.date_filed ? reformat_date(file1.date_filed) : "No" }}</p>
+                                        <p v-else class="w-1/2">S.O.L.: {{ file1.date_sol ? formatDateLong(file1.date_sol) : "Not set" }}</p>
+                                        <p class="">Filed: &nbsp;{{ file1.date_filed ? formatDateLong(file1.date_filed) : "No" }}</p>
                                     </div>
 
                                     <p v-if="file1.date_filed" class="mt-2">Court: &nbsp;{{ file1.court_filed }}</p>

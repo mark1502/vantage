@@ -7,8 +7,8 @@ use App\Models\Contact;
 use App\Models\ContactRole;
 use App\Models\Entry;
 // use App\Models\File;
-use App\Models\Folder;
-use App\Models\Response;
+use App\Services\EntryResponseService;
+use App\Services\FirmLookupService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +17,11 @@ use Inertia\Inertia;
 
 class ViewController extends Controller
 {
+    public function __construct(
+        private EntryResponseService $responses,
+        private FirmLookupService $lookups,
+    ) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -71,9 +76,9 @@ class ViewController extends Controller
                 'initials' => $view_for,
                 'from_to' => $from_to,
                 'read' => $read,
-                'folders' => $this->getFirmFolders($firm_id, $refresh),
-                'firm_members' => $this->getFirmMembers($firm_id, $refresh),
-                'attorneys' => $this->getAttorneys($firm_id, $refresh),
+                'folders' => $refresh === 'full' ? $this->lookups->folders($firm_id) : [],
+                'firm_members' => $refresh === 'full' ? $this->lookups->firmMembers($firm_id) : [],
+                'attorneys' => $refresh === 'full' ? $this->lookups->attorneys($firm_id) : [],
                 'file_contacts' => $this->getFileContacts_fake($user->id, $refresh), // send a fake array to avoid problem in EntryForm.vue (where contact lookup is done on the client)
                 'expecting_response' => $this->getExpectingResponse(),
                 'contact_role_ids' => [],
@@ -132,17 +137,17 @@ class ViewController extends Controller
             $entry->amount = empty($request->amount) ? null : $request->amount;                         // the amount - or null if empty
         }
 
-        $entry->save();                                                                                 // save the entry
+        $respondsToId = $request->filled('is_response_to') ? (int) $request->is_response_to : null;
 
-        // Handle pending contact roles
-        if ($entry->file_id !== (int) config('documents.reserved_file_id')) {
-            $this->savePendingContactRoles($request, $entry->file_id);
-        }
+        DB::transaction(function () use ($entry, $request, $respondsToId) {
+            $entry->save();                                                                             // save the entry
 
-        // if this is a response to another entry, handle it
-        if ($request->is_a_response != 'N' && ! empty($request->is_response_to)) {
-            $this->handleThisResponse($request->is_a_response, $entry->id, $request->is_response_to, $entry->date1, $create = true);
-        }
+            if ($entry->file_id !== (int) config('documents.reserved_file_id')) {
+                $this->responses->savePendingContactRoles($entry->file_id, $request->pending_contact_roles);
+            }
+
+            $this->responses->sync($entry, $request->is_a_response, $respondsToId, (string) $entry->date1);
+        });
 
         // /return redirect('/files/' . $entry->file_id . '/entries?page=' . $request->current_page . '&show=' . $request->show . '&filepart=' . $request->filepart);
 
@@ -195,9 +200,6 @@ class ViewController extends Controller
             // NOTE: change later to put FILE for empty to contact (To: FILE) - actually, maybe use a system id
 
             $entry->date_response_expected = $request->date_response_expected;
-            if (! empty($request->date_response_expected)) {
-                $entry->expecting_response = true;
-            }         // if date_response_expected, expecting_response is true
 
             $entry->on_calendar = false;
             $entry->all_day = false;
@@ -209,18 +211,21 @@ class ViewController extends Controller
             $entry->amount = empty($request->amount) ? null : $request->amount;                         // the amount - or null if empty
         }
 
-        $entry->save();                                                                                 // save the entry
+        $respondsToId = $request->filled('is_response_to') ? (int) $request->is_response_to : null;
 
-        // Handle pending contact roles
-        if ($entry->file_id !== (int) config('documents.reserved_file_id')) {
-            $this->savePendingContactRoles($request, $entry->file_id);
-        }
+        DB::transaction(function () use ($entry, $request, $respondsToId) {
+            $entry->save();                                                                             // save the entry
 
-        if ($request->is_a_response === 'N') {
-            $this->handleIsNoResponse($entry->id);
-        } elseif ($request->is_a_response !== 'N' && ! empty($request->is_response_to)) {
-            $this->handleThisResponse($request->is_a_response, $entry->id, $request->is_response_to, $entry->date1, $create = false);
-        }
+            if ($entry->folder_id !== 6) {
+                $this->responses->refreshExpecting($entry->id);
+            }
+
+            if ($entry->file_id !== (int) config('documents.reserved_file_id')) {
+                $this->responses->savePendingContactRoles($entry->file_id, $request->pending_contact_roles);
+            }
+
+            $this->responses->sync($entry, $request->is_a_response, $respondsToId, (string) $entry->date1);
+        });
     }
 
     /**
@@ -229,73 +234,6 @@ class ViewController extends Controller
     public function destroy(string $id)
     {
         //
-    }
-
-    public function savePendingContactRoles(Request $request, $file_id)
-    {
-        if (! empty($request->pending_contact_roles) && is_array($request->pending_contact_roles)) {
-            foreach ($request->pending_contact_roles as $pendingRole) {
-                ContactRole::firstOrCreate(
-                    [
-                        'file_id' => $file_id,
-                        'contact_id' => $pendingRole['contact_id'],
-                        'role' => $pendingRole['role'],
-                    ],
-                    [
-                        'role_label' => $pendingRole['role_label'] ?? ContactRole::ROLE_LABELS[$pendingRole['role']] ?? $pendingRole['role'],
-                    ]
-                );
-            }
-        }
-    }
-
-    public function getFirmFolders($thefirmid, $refresh = 'full')
-    {
-        $folders = [];
-        if ($refresh === 'full') {
-            $folders = Folder::query()
-                ->where('id', '>', '0')                        // get all the folders with their entrytypes
-                ->with(['entrytypes' => function ($query) use ($thefirmid) {
-                    $query->where('firm_id', $thefirmid)
-                        ->orderBy('name');
-                }])
-                ->get();
-        }
-
-        return $folders;
-    }
-
-    public function getFirmMembers($thefirmid, $refresh = 'full')
-    {
-        $firm_members = [];
-        if ($refresh === 'full') {                                    // if not reloading just the entries, then do this query
-            $firm_members = Contact::query()
-                ->select('display_last_first', 'id', 'account_status', 'firm_role', 'member_initials')
-                ->where('firm_id', $thefirmid)
-                ->where('is_firm_member', true)
-                ->where('account_status', 'A')
-                ->orderBy('display_last_first')
-                ->get();
-        }
-
-        return $firm_members;
-    }
-
-    public function getAttorneys($thefirmid, $refresh = 'full')
-    {
-        $attorneys = [];
-        if ($refresh === 'full') {
-            $attorneys = Contact::query()
-                ->select('display_last_first', 'id', 'account_status', 'firm_role', 'member_initials')
-                ->where('firm_id', $thefirmid)
-                ->where('is_firm_member', true)
-                ->where('account_status', 'A')
-                ->where('firm_role', 'Attorney')
-                ->orderBy('display_last_first')
-                ->get();
-        }
-
-        return $attorneys;
     }
 
     public function getFileContacts_fake($user_id, $refresh = 'full')
@@ -464,92 +402,4 @@ class ViewController extends Controller
 
         return $theContact;
     }
-
-    public function handleIsNoResponse($entry_id_in)
-    {
-        $found_response = Response::where('entry_id', $entry_id_in)->first();       // look for a response from this entry
-
-        if ($found_response) {                                                    // if a response was found
-
-            if ($found_response->response_type === 'F') {                           // if this had been a full response, so update the related entry to again expect a response
-
-                $related_entry = Entry::where('id', $found_response->response_to)->first();
-
-                if ($related_entry && $related_entry->date_response_expected) {    // found the related entry and it was expecting a response by a date
-                    $related_entry->expecting_response = true;                      // so, now it is expecting a response again
-                    $related_entry->save();
-                }
-            }
-
-            $found_response->delete();      // now, delete response from this entry, because it is now not a response
-        }
-    }
-
-    public function handleThisResponse($response_type, $entry_from, $response_to, $response_date, $create = false)
-    {
-        if ($create === false) {                                                       // if create is false, this is not a new entry - look for a response record
-            $found_response = Response::where('entry_id', $entry_from)->first();
-        }
-
-        if ($create === true || ($create === false && empty($found_response))) {     // if this is for a new entry being created or an existing one without a found response
-
-            $new_response = new Response;                                               // create a new response for this entry
-
-            $new_response->entry_id = $entry_from;                                      // entry_id that the response is from
-            $new_response->response_to = $response_to;                                  // entry_id that the response is to
-            $new_response->response_date = $response_date;                              // response date
-            $new_response->response_type = $response_type;                              // Full or Partial response
-
-            $new_response->save();
-        } elseif ($create == false) {                                                // else if this is an existing entry which has a found response
-            if ($found_response->response_to == $response_to) {                        // if found response is for the same related, then update it
-
-                $hold_type = $found_response->response_type;                            // hold the found response type
-
-                $found_response->response_date = $response_date;
-                $found_response->response_type = $response_type;                        // Full or Partial response
-                $found_response->save();
-
-                if ($hold_type == 'F' && $response_type == 'P') {                      // And, if the prior response was full, but now it's partial, update the related entry to expect a response
-
-                    $related_entry = Entry::where('id', $response_to)->first();
-
-                    if ($related_entry) {
-                        $related_entry->expecting_response = true;
-                        $related_entry->save();
-                    }
-                } // end if was F, but now P
-            } elseif ($found_response->response_to != $response_to) {                 // else if the found response was to a different related entry
-
-                if ($found_response->response_type == 'F') {                            // if the found response was a 'Full Response', reset the prior related entry to again expect a response
-
-                    $prior_entry = Entry::where('id', $found_response->response_to)->first();  // get the prior related entry and reset it to expecting
-
-                    if ($prior_entry && $prior_entry->date_response_expected && $prior_entry->expecting_response === false) {   // prior entry has response date, but not expecting a response
-                        $prior_entry->expecting_response = true;
-                        $prior_entry->save();
-                    }
-                } // end if prior response was full
-
-                // Now update the found response
-                $found_response->response_to = $response_to;
-                $found_response->response_date = $response_date;
-                $found_response->response_type = $response_type;   // Full or Partial response
-                $found_response->save();
-            } // end else found prior response was NOT to the same related entry
-        }
-
-        // Now, if this is a full response, update the related entry
-        if ($response_type == 'F') {
-
-            $related_entry = Entry::where('id', $response_to)->first();
-
-            if ($related_entry) {
-                $related_entry->expecting_response = false;
-                $related_entry->save();
-            }
-        }
-
-    } // end handleThisResponse function
-
 }
